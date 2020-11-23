@@ -12,14 +12,6 @@ export default class Node extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-
-  }
-
-  componentDidMount() {
-
-  }
-
   render(){
     return (
       <motion.div className={}>

@@ -5,48 +5,39 @@ import "./Sidebar.css"
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
+    this.handleSelectedItemChange = this.handleSelectedItemChange.bind(this);
+  }
+
+  handleSelectedItemChange(event){
+    this.props.onSelectedItemChange(event.target.value);
   }
 
   render(){
+    const selected = this.props.selected;
+
+    console.log(selected);
+
     return (
       <div className="sidebar">
-        {/*<SelectedItemViewer current="None"/>*/}
-        {/*<SuggestiveSearch/>*/}
+        <SelectedItemViewer current={selected}/>
+        <SuggestiveSearch current={selected}/>
       </div>
     );
   }
 }
 
-class SelectedItemViewer extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      label: '',
-      image: '',
-      description: {}
-    }
-  }
-
-  render(){
-    return (
-      <div>
-
-      </div>
-    );
-  }
+function SelectedItemViewer(props) {
+  return (
+    <div>
+      <p>{props.current}</p>
+    </div>
+  );
 }
 
-class SuggestiveSearch extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {selectedItem: {}};
-  }
-
-  render(){
-    return (
-      <div>
-
-      </div>
-    );
-  }
+function SuggestiveSearch(props) {
+  return (
+    <div>
+      <p>{props.current}</p>
+    </div>
+  );
 }
