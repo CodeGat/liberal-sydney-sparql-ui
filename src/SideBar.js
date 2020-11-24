@@ -20,6 +20,7 @@ export default class SideBar extends React.Component {
     return (
       <div className="sidebar">
         <SelectedItemViewer current={selected}/>
+        
         <SuggestiveSearch current={selected}/>
       </div>
     );

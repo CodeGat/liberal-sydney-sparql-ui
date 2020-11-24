@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import "./Node";
+import "./Node.css";
 
 export default class Node extends React.Component {
   constructor(props) {
@@ -13,9 +13,13 @@ export default class Node extends React.Component {
   }
 
   render(){
+    const type = this.state.type;
+    const prefix = this.state.prefix;
+    const label = this.state.label;
+
     return (
-      <motion.div className={}>
-        <p>{}</p>
+      <motion.div className={"node"}>
+          <p>{prefix + ':' + label}</p>
       </motion.div>
     );
   }

@@ -1,0 +1,10 @@
+div.node {
+    --unkcolour: darkblue;
+    --knowncolour: #bebebe;
+    --literalshape: 0px;
+    --urishape: 100px;
+}
+
+div.node p {
+
+}
