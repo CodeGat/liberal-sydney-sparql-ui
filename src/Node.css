@@ -1,10 +1,10 @@
 div.node {
-    --unkcolour: darkblue;
-    --knowncolour: #bebebe;
-    --literalshape: 0px;
-    --urishape: 100px;
+    width: 100px;
+    height: 100px;
 }
 
-div.node p {
-
+.transparentInput {
+    text-align: center;
+    background: transparent;
+    border: none;
 }
