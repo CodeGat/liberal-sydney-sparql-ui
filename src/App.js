@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import Canvas from "./Canvas";
 import SideBar from "./SideBar";
@@ -7,21 +6,22 @@ import SideBar from "./SideBar";
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {selected: ''};
+    this.state = {selected: {id: '', content: ''}};
     this.handleSelectedItemChange = this.handleSelectedItemChange.bind(this);
   }
 
-  handleSelectedItemChange(item){
-    this.setState({selected: item});
+  handleSelectedItemChange(change){
+    this.setState({selected: change});
   }
 
   render(){
-    const selected = this.state.selected;
+    // const { id, content } = this.state.selected;
+    const { content } = this.state.selected;
 
     return (
       <div className="App">
-        <Canvas selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
-        <SideBar selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
+        <Canvas selected={content} onSelectedItemChange={this.handleSelectedItemChange}/>
+        <SideBar selected={content} onSelectedItemChange={this.handleSelectedItemChange}/>
       </div>
     );
   }

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import "./Node.css";
 
 //todo: something wrong with animating to borderRadius
-const nodeType = {
+const NODE_TYPE = {
   unknown:{
     backgroundColor: '#0000fe',
     borderRadius: '50%',
@@ -12,7 +12,7 @@ const nodeType = {
   unknownopt:{
     backgroundColor: '#1e90ff',
     borderRadius: '50%',
-    border: 'dashed 3px #0000fe',
+    border: '3px dashed #0000fe',
     width: '100px'
   },
   selectedunknown:{
@@ -23,7 +23,7 @@ const nodeType = {
   selectedunknownopt:{
     backgroundColor: '#1e90ff',
     borderRadius: '50%',
-    border: 'dashed 3px #0000fe',
+    border: '3px dashed #0000fe',
     width: '100px'
   },
   uri:{
@@ -52,26 +52,39 @@ const nodeType = {
     backgroundColor: '#444444',
     borderRadius: '10%'
   },
+  unf: {
+    width: '40px',
+    height: '40px'
+  }
 };
+const NODE_HEIGHT = 100;
+const NODE_WIDTH = 100;
 
+//todo: attempt to stop event bubbling when trying to edit text
+//todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   constructor(props) {
     super(props);
-    this.handleEntryExit = this.handleEntryExit.bind(this);
-    this.handleChangedText = this.handleChangedText.bind(this);
     this.state = {
-      type: 'unknown',
+      type: props.initState,
       isOptional: false,
       prefix: '',
       content: '?'
     }
   }
 
-  handleEntryExit(e){
-    this.props.onSelectedItemChange(this.state.content);
+  handleEntryExit = (e) => {
+    e.stopPropagation();
+    if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
+
+    if (this.props.mode === "edge"){
+      this.props.onEdgeCreation({id: this.props.id, content: this.state.content, x: e.x, y: e.y});
+    } else {
+      this.props.onSelectedItemChange({id: this.props.id, content: this.state.content});
+    }
   }
 
-  handleChangedText(e){
+  handleChangedText = (e) => {
     const changedText = e.target.value;
     this.setState({content: e.target.value});
 
@@ -87,12 +100,17 @@ export default class Node extends React.Component {
   render(){
     const { type, isOptional, content } = this.state;
     const animation = type + (isOptional ? "opt" : "");
+    const { mode, init, x, y } = this.props;
+    const adjustedX = x - NODE_WIDTH / 2;
+    const adjustedY = y - NODE_HEIGHT / 2;
 
     return (
       <motion.div className={"node"}
-                  drag dragMomentum={false} onTap={this.handleEntryExit}
-                  variants={nodeType} initial={'unknown'} animate={animation} transition={{duration: 1}}>
-        <input className={"transparentInput"} value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
+                  drag dragMomentum={false} whileHover={{scale:1.2}} style={{x: adjustedX, y: adjustedY}}
+                  variants={NODE_TYPE} initial={init} animate={animation} transition={{duration: 0.5}}
+                  onClickCapture={this.handleEntryExit}>
+        <input className={"transparentInput"} value={content} disabled={mode === "edge"}
+               onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
       </motion.div>
     );
   }

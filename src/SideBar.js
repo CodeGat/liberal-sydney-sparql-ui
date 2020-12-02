@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import "./Sidebar.css"
 
 export default class SideBar extends React.Component {
@@ -14,8 +13,6 @@ export default class SideBar extends React.Component {
 
   render(){
     const selected = this.props.selected;
-
-    console.log(selected);
 
     return (
       <div className="sidebar">
