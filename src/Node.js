@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import "./Node.css";
+import "./Canvas.css";
 
 //todo: something wrong with animating to borderRadius
 const NODE_TYPE = {
@@ -109,7 +110,7 @@ export default class Node extends React.Component {
                   drag dragMomentum={false} whileHover={{scale:1.2}} style={{x: adjustedX, y: adjustedY}}
                   variants={NODE_TYPE} initial={init} animate={animation} transition={{duration: 0.5}}
                   onClickCapture={this.handleEntryExit}>
-        <input className={"transparentInput"} value={content} disabled={mode === "edge"}
+        <input className={"canvas-input transparent"} value={content} disabled={mode === "edge"}
                onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
       </motion.div>
     );

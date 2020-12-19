@@ -25,3 +25,14 @@ div#node-select {
     background-color: #0000fe;
     border-radius: 100%;
 }
+
+.canvas-input {
+    text-align: center;
+    border: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: larger;
+}

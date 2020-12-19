@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import "./Edge.css";
+import "./Canvas.css";
 
 export default class Edge extends React.Component{
   constructor(props) {
@@ -26,7 +27,8 @@ export default class Edge extends React.Component{
       <motion.svg>
         <motion.path className='edge'
                      d={pathDef} onTap={this.handleEntryExit}>
-          <input value={"Testing"} onChange={this.handleEntryExit} onBlur={this.handleChangedText}/>
+          <input className={"canvas-input opaque"} value={"Testing"}
+                 onChange={this.handleEntryExit} onBlur={this.handleChangedText}/>
         </motion.path>
       </motion.svg>
     );

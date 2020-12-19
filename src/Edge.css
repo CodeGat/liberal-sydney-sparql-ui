@@ -1,7 +1,13 @@
-line.edge {
-
+.edge-container {
+    position: absolute;
 }
 
-line.edge input {
+.edge {
+    stroke: black;
+    stroke-width: 5px;
+    position: absolute;
+}
 
+.opaque {
+    background: white;
 }
