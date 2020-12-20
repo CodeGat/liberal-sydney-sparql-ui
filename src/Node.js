@@ -61,7 +61,6 @@ const NODE_TYPE = {
 const NODE_HEIGHT = 100;
 const NODE_WIDTH = 100;
 
-//todo: attempt to stop event bubbling when trying to edit text
 //todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   constructor(props) {
@@ -71,15 +70,18 @@ export default class Node extends React.Component {
       isOptional: false,
       prefix: '',
       content: '?'
-    }
+    };
   }
 
   handleEntryExit = (e) => {
     e.stopPropagation();
     if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
 
-    if (this.props.mode === "edge"){
-      this.props.onEdgeCreation({id: this.props.id, content: this.state.content, x: e.x, y: e.y});
+    if (this.props.mode.includes("edge")) {
+      const {x, y} = this.props;
+      const node = {id: this.props.id, content: this.state.content, x: x, y: y}
+
+      this.props.onEdgeAction(node);
     } else {
       this.props.onSelectedItemChange({id: this.props.id, content: this.state.content});
     }

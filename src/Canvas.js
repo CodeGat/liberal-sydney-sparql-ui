@@ -22,10 +22,6 @@ export default class Canvas extends React.Component {
    * {nodes: [{id, x, y, init}...], edges: [{id, from, to, done}...]}
    */
 
-  /**
-   *
-   * @param change
-   */
   handleNodeChange = (change) => {
     this.props.onSelectedItemChange(change);
   }
@@ -38,51 +34,72 @@ export default class Canvas extends React.Component {
     this.setState({mode: newMode});
   }
 
-  handleCanvasClick = (e) => {
+  handleCanvasClick = (event) => {
     const { mode } = this.state;
 
-    if (mode === "edge"){
-      this.handleEdgeConfirm(e);
+    if (mode === "edge-create"){
+      this.handleEdgeConfirmOnCanvas(event);
+      this.handleNodeCreate(event, "unfinished");
     } else if (mode === "node"){
-      this.handleNodeCreate(e, "unknown");
+      this.handleNodeCreate(event, "unknown");
     }
   }
 
-  //todo: edge creation and confirmation are broken
-  handleEdgeCreation = (initialNode) => {
+  handleEdgeAction = (node) => {
+    const { mode } = this.state;
+
+    if (mode === "edge"){
+      this.handleEdgeCreation(node);
+    } else if (mode === "edge-create"){
+      this.handleEdgeConfirmOnNode(node);
+    }
+  }
+
+  handleEdgeCreation = (node) => {
     this.setState(old => ({
       ...old,
       graph: {
         ...old.graph,
-        edges: [...old.graph.edges, {done:false, from: initialNode, to: initialNode}]
+        edges: [...old.graph.edges, {done: false, from: node, to: node}]
       },
       mode: "edge-create"
     }));
-    console.log(this.state);
   }
 
-  handleEdgePlacement  = (e) => {
+  handleEdgePlacement  = (event) => {
     this.setState(old => ({
       ...old,
       graph: {
         ...old.graph,
-        edges: old.graph.edges.map(el =>
-          el.done ? el : {...el, to: {x: e.clientX, y: e.clientY}})
+        edges: old.graph.edges.map(edge =>
+          edge.done ? edge : {...edge, to: {x: event.clientX, y: event.clientY}}) // should it be clientX/Y?
       }
     }));
   }
 
-  handleEdgeConfirm = (e) => {
+  handleEdgeConfirmOnCanvas = (event) => {
     this.setState(old => ({
       ...old,
       graph: {
         ...old.graph,
         edges: old.graph.edges.map(el =>
-          el.done ? el : {...el, done: true, to: {x: e.clientX, y: e.clientY}})
+          el.done ? el : {...el, done: true, to: {x: event.clientX, y: event.clientY}})
       },
       mode: "node"
     }));
-    this.handleNodeCreate(e, "unfinished");
+  }
+
+
+  handleEdgeConfirmOnNode = (node) => {
+    this.setState(old => ({
+      ...old,
+      graph: {
+        ...old.graph,
+        edges: old.graph.edges.map(el =>
+          el.done ? el : {...el, done: true, to: {x: node.x, y: node.y}})
+      },
+      mode: "node"
+    }));
   }
 
   handleNodeCreate = (e, initState) => {
@@ -111,7 +128,7 @@ export default class Canvas extends React.Component {
         <ModeSelector onModeSelectorChangeTo={this.handleModeSelectChange}/>
         {nodes.map(node =>
           <Node id={node.id} key={node.id} mode={mode} x={node.x} y={node.y} init={node.initState}
-                onSelectedItemChange={this.handleNodeChange} onEdgeCreation={this.handleEdgeCreation}/>)}
+                onSelectedItemChange={this.handleNodeChange} onEdgeAction={this.handleEdgeAction}/>)}
         {edges.map((edge, ix) =>
           <Edge id={ix} key={ix} from={edge.from} to={edge.to} onSelectedItemChange={this.handleEdgeChange}/>)}
       </div>
