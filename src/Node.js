@@ -6,67 +6,74 @@ import "./Canvas.css";
 //todo: something wrong with animating to borderRadius
 const NODE_TYPE = {
   unknown:{
-    backgroundColor: '#0000fe',
-    borderRadius: '50%',
+    fill: '#0000fe',
+    rx: '50%',
     width: '100px'
   },
   unknownopt:{
-    backgroundColor: '#1e90ff',
-    borderRadius: '50%',
+    fill: '#1e90ff',
+    rx: '50%',
     border: '3px dashed #0000fe',
     width: '100px'
   },
   selectedunknown:{
-    backgroundColor: '#0000fe',
-    borderRadius: '50%',
+    fill: '#0000fe',
+    rx: '50%',
     width: '100px'
   },
   selectedunknownopt:{
-    backgroundColor: '#1e90ff',
-    borderRadius: '50%',
+    fill: '#1e90ff',
+    rx: '50%',
     border: '3px dashed #0000fe',
     width: '100px'
   },
   uri:{
-    backgroundColor: '#4e4e4e',
-    borderRadius: '50%',
+    fill: '#4e4e4e',
+    rx: '50%',
     width: '100px'
   },
   uriopt:{
-    backgroundColor: '#bebebe',
-    borderRadius: '50%',
+    fill: '#bebebe',
+    rx: '50%',
     border: '3px dashed #4e4e4e',
     width: '100px'
   },
   literal:{
-    backgroundColor: '#4e4e4e',
-    borderRadius: '0%',
+    fill: '#4e4e4e',
+    rx: '0%',
     width: "200px"
   },
   literalopt:{
-    backgroundColor: '#bebebe',
-    borderRadius: '0%',
+    fill: '#bebebe',
+    rx: '0%',
     border: '3px dashed #4e4e4e',
     width: '200px'
   },
   amalgam:{
-    backgroundColor: '#444444',
-    borderRadius: '10%'
+    fill: '#444444',
+    rx: '10%'
   },
   unf: {
     width: '40px',
     height: '40px'
   }
 };
+const EDITABLE_LABEL = {
+  editable: {
+    fill: '#000000'
+  },
+  noteditable: {
+    fill: '#EBEBE4'
+  }
+};
 const NODE_HEIGHT = 100;
 const NODE_WIDTH = 100;
-
 //todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: props.initState,
+      type: props.init,
       isOptional: false,
       prefix: '',
       content: '?'
@@ -102,19 +109,26 @@ export default class Node extends React.Component {
 
   render(){
     const { type, isOptional, content } = this.state;
-    const animation = type + (isOptional ? "opt" : "");
+    const rectAnimation = type + (isOptional ? "opt" : "");
     const { mode, init, x, y } = this.props;
     const adjustedX = x - NODE_WIDTH / 2;
     const adjustedY = y - NODE_HEIGHT / 2;
 
+    console.log("type: " + type + ", init: " + init + " the animation should be :" + rectAnimation);
+
+    //todo: inline svg styles
     return (
-      <motion.div className={"node"}
-                  drag dragMomentum={false} whileHover={{scale:1.2}} style={{x: adjustedX, y: adjustedY}}
-                  variants={NODE_TYPE} initial={init} animate={animation} transition={{duration: 0.5}}
-                  onClickCapture={this.handleEntryExit}>
-        <input className={"canvas-input transparent"} value={content} disabled={mode === "edge"}
-               onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
-      </motion.div>
+      <g>
+        <motion.rect className={"node"}
+                     drag dragMomentum={false} whileHover={{scale: 1.2}} x={adjustedX} y={adjustedY}
+                     variants={NODE_TYPE} initial={init} animate={rectAnimation} transition={{duration: 0.5}}
+                     onClickCapture={this.handleEntryExit}/>
+        <motion.text className={"canvas-input opaque"} fill="#222222"
+                     variants={EDITABLE_LABEL} animate={mode === "edge" ? "noteditable" : "editable"}
+                     onChange={this.handleChangedText} onBlur={this.handleEntryExit}>
+          {content}
+        </motion.text>
+      </g>
     );
   }
 }

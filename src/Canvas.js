@@ -106,6 +106,9 @@ export default class Canvas extends React.Component {
     const nextNodeId = this.state.nodeCounter + 1;
     const newNode = {x: e.clientX, y: e.clientY, id: nextNodeId, initState: initState};
 
+    console.debug("New node will be: ");
+    console.debug(newNode);
+
     this.setState(old => ({
       ...old,
       nodeCounter: nextNodeId,
@@ -114,8 +117,6 @@ export default class Canvas extends React.Component {
         nodes: [...old.graph.nodes, newNode]
       }
     }));
-    console.log("After node create: ");
-    console.log(this.state);
   }
 
   render() {
@@ -126,11 +127,17 @@ export default class Canvas extends React.Component {
       <div className="canvas"
            onMouseMove={mode === "edge-create" ? this.handleEdgePlacement : null} onClick={this.handleCanvasClick}>
         <ModeSelector onModeSelectorChangeTo={this.handleModeSelectChange}/>
-        {nodes.map(node =>
-          <Node id={node.id} key={node.id} mode={mode} x={node.x} y={node.y} init={node.initState}
-                onSelectedItemChange={this.handleNodeChange} onEdgeAction={this.handleEdgeAction}/>)}
-        {edges.map((edge, ix) =>
-          <Edge id={ix} key={ix} from={edge.from} to={edge.to} onSelectedItemChange={this.handleEdgeChange}/>)}
+        <svg width="100%" height="100%">
+          <g id="nodes">
+            {nodes.map(node =>
+              <Node id={node.id} key={node.id} mode={mode} x={node.x} y={node.y} init={node.initState}
+                    onSelectedItemChange={this.handleNodeChange} onEdgeAction={this.handleEdgeAction}/>)}
+          </g>
+          <g id="edges">
+            {edges.map((edge, ix) =>
+              <Edge id={ix} key={ix} from={edge.from} to={edge.to} onSelectedItemChange={this.handleEdgeChange}/>)}
+          </g>
+        </svg>
       </div>
     );
   }
