@@ -37,6 +37,8 @@ export default class Canvas extends React.Component {
   handleCanvasClick = (event) => {
     const { mode } = this.state;
 
+    if (event.defaultPrevented) return;
+
     if (mode === "edge-create"){
       this.handleEdgeConfirmOnCanvas(event);
       this.handleNodeCreate(event, "unfinished");
@@ -72,7 +74,7 @@ export default class Canvas extends React.Component {
       graph: {
         ...old.graph,
         edges: old.graph.edges.map(edge =>
-          edge.done ? edge : {...edge, to: {x: event.clientX, y: event.clientY}}) // should it be clientX/Y?
+          edge.done ? edge : {...edge, to: {x: event.clientX, y: event.clientY}})
       }
     }));
   }
@@ -89,7 +91,6 @@ export default class Canvas extends React.Component {
     }));
   }
 
-
   handleEdgeConfirmOnNode = (node) => {
     this.setState(old => ({
       ...old,
@@ -103,11 +104,9 @@ export default class Canvas extends React.Component {
   }
 
   handleNodeCreate = (e, initState) => {
-    const nextNodeId = this.state.nodeCounter + 1;
+    const { nodeCounter } = this.state;
+    const nextNodeId = nodeCounter + 1;
     const newNode = {x: e.clientX, y: e.clientY, id: nextNodeId, initState: initState};
-
-    console.debug("New node will be: ");
-    console.debug(newNode);
 
     this.setState(old => ({
       ...old,
@@ -124,10 +123,11 @@ export default class Canvas extends React.Component {
     const { mode } = this.state;
 
     return (
-      <div className="canvas"
-           onMouseMove={mode === "edge-create" ? this.handleEdgePlacement : null} onClick={this.handleCanvasClick}>
+      <div className="canvas">
         <ModeSelector onModeSelectorChangeTo={this.handleModeSelectChange}/>
-        <svg width="100%" height="100%">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
+             width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
+             onMouseMove={mode === "edge-create" ? this.handleEdgePlacement : null} onClick={this.handleCanvasClick}>
           <g id="nodes">
             {nodes.map(node =>
               <Node id={node.id} key={node.id} mode={mode} x={node.x} y={node.y} init={node.initState}

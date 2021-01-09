@@ -1,10 +1,9 @@
-.node {
-    width: 100px;
-    height: 100px;
-    position: absolute;
-    fill: #ffffff;
-}
-
 .transparent {
     background: transparent;
+}
+
+.nodeLabel {
+    fill: #999999;
+    text-anchor: middle;
+
 }

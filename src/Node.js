@@ -7,51 +7,61 @@ import "./Canvas.css";
 const NODE_TYPE = {
   unknown:{
     fill: '#0000fe',
-    rx: '50%',
+    rx: 50,
+    height: "100px",
     width: '100px'
   },
   unknownopt:{
     fill: '#1e90ff',
-    rx: '50%',
+    rx: 50,
     border: '3px dashed #0000fe',
+    height: "100px",
     width: '100px'
   },
   selectedunknown:{
     fill: '#0000fe',
-    rx: '50%',
+    rx: 50,
+    height: "100px",
     width: '100px'
   },
   selectedunknownopt:{
     fill: '#1e90ff',
-    rx: '50%',
+    rx: 50,
     border: '3px dashed #0000fe',
+    height: "100px",
     width: '100px'
   },
   uri:{
     fill: '#4e4e4e',
-    rx: '50%',
+    rx: 50,
+    height: "100px",
     width: '100px'
   },
   uriopt:{
     fill: '#bebebe',
-    rx: '50%',
+    rx: 50,
     border: '3px dashed #4e4e4e',
+    height: "100px",
     width: '100px'
   },
   literal:{
     fill: '#4e4e4e',
-    rx: '0%',
+    rx: 0,
+    height: "100px",
     width: "200px"
   },
   literalopt:{
     fill: '#bebebe',
-    rx: '0%',
+    rx: 0,
     border: '3px dashed #4e4e4e',
+    height: "100px",
     width: '200px'
   },
   amalgam:{
     fill: '#444444',
-    rx: '10%'
+    height: "100px",
+    width: "100px",
+    rx: 10
   },
   unf: {
     width: '40px',
@@ -81,16 +91,19 @@ export default class Node extends React.Component {
   }
 
   handleEntryExit = (e) => {
-    e.stopPropagation();
-    if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
+    const { mode } = this.props;
+    e.preventDefault();
 
-    if (this.props.mode.includes("edge")) {
+    if (mode.includes("edge")) {
       const {x, y} = this.props;
       const node = {id: this.props.id, content: this.state.content, x: x, y: y}
 
       this.props.onEdgeAction(node);
     } else {
-      this.props.onSelectedItemChange({id: this.props.id, content: this.state.content});
+      const { id } = this.props;
+      const { content } = this.state;
+
+      this.props.onSelectedItemChange({id: id, content: content});
     }
   }
 
@@ -114,21 +127,14 @@ export default class Node extends React.Component {
     const adjustedX = x - NODE_WIDTH / 2;
     const adjustedY = y - NODE_HEIGHT / 2;
 
-    console.log("type: " + type + ", init: " + init + " the animation should be :" + rectAnimation);
-
-    //todo: inline svg styles
     return (
-      <g>
-        <motion.rect className={"node"}
-                     drag dragMomentum={false} whileHover={{scale: 1.2}} x={adjustedX} y={adjustedY}
-                     variants={NODE_TYPE} initial={init} animate={rectAnimation} transition={{duration: 0.5}}
-                     onClickCapture={this.handleEntryExit}/>
-        <motion.text className={"canvas-input opaque"} fill="#222222"
-                     variants={EDITABLE_LABEL} animate={mode === "edge" ? "noteditable" : "editable"}
-                     onChange={this.handleChangedText} onBlur={this.handleEntryExit}>
+      <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
+        <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
+                     variants={NODE_TYPE} initial="unknown" animate={rectAnimation} transition={{duration: 0.5}}/>
+        <motion.text className="nodeLabel" x={adjustedX + NODE_WIDTH / 2} y={adjustedY + NODE_WIDTH / 2}>
           {content}
         </motion.text>
-      </g>
+      </motion.g>
     );
   }
 }
