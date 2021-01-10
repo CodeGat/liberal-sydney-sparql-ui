@@ -109,9 +109,10 @@ export default class Node extends React.Component {
                      variants={NODE_VARIANTS} initial="unknown" animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         <foreignObject x={adjustedX - (LABEL_WIDTH - currentNodeWidth) / 2} y={adjustedY}
-                              width={LABEL_WIDTH} height={LABEL_HEIGHT}>
+                       width={LABEL_WIDTH} height={LABEL_HEIGHT}>
           <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
-                 onChange={this.handleChangedText} onBlur={this.handleEntryExit} onClick={(e) => e.preventDefault()}/>
+                        onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+                        onClick={(e) => e.preventDefault()}/>
         </foreignObject>
       </motion.g>
     );
