@@ -68,16 +68,9 @@ const NODE_TYPE = {
     height: '40px'
   }
 };
-const EDITABLE_LABEL = {
-  editable: {
-    fill: '#000000'
-  },
-  noteditable: {
-    fill: '#EBEBE4'
-  }
-};
-const NODE_HEIGHT = 100;
-const NODE_WIDTH = 100;
+
+const NODE_HEIGHT = 100, NODE_WIDTH = 100, LITERAL_WIDTH = 200;
+const LABEL_HEIGHT = 100, LABEL_WIDTH = 150;
 //todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   constructor(props) {
@@ -126,14 +119,18 @@ export default class Node extends React.Component {
     const { mode, init, x, y } = this.props;
     const adjustedX = x - NODE_WIDTH / 2;
     const adjustedY = y - NODE_HEIGHT / 2;
+    const currentNodeWidth = type.match(/uri|unknown/) ? NODE_WIDTH : LITERAL_WIDTH;
 
     return (
       <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
         <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
-                     variants={NODE_TYPE} initial="unknown" animate={rectAnimation} transition={{duration: 0.5}}/>
-        <motion.text className="nodeLabel" x={adjustedX + NODE_WIDTH / 2} y={adjustedY + NODE_WIDTH / 2}>
-          {content}
-        </motion.text>
+                     variants={NODE_TYPE} initial="unknown" animate={rectAnimation} transition={{duration: 0.5}}
+                     transformTemplate={() => "translateX(0) translateY(0)"}/>
+        <foreignObject x={adjustedX - (LABEL_WIDTH - currentNodeWidth) / 2} y={adjustedY}
+                              width={LABEL_WIDTH} height={LABEL_HEIGHT}>
+          <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
+                 onChange={this.handleChangedText} onBlur={this.handleEntryExit} onClick={(e) => e.preventDefault()}/>
+        </foreignObject>
       </motion.g>
     );
   }
