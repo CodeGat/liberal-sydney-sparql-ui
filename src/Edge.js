@@ -1,24 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import "./Edge.css";
 import "./Canvas.css";
 
-const EDGE_TYPE = {
-  unknown: {
+export default class Edge extends React.Component {
+  static variants = {
+    unknown: isOpt => ({
+      stroke: '#8e9094',
+      strokeWidth: 3,
+      strokeDasharray: isOpt ? 5 : 0
+    }),
+    known: isOpt => ({
+      stroke: '#656669',
+      strokeWidth: 3,
+      strokeDasharray: isOpt ? 5 : 0
+    }),
+  };
+  static labelHeight = 100;
+  static labelWidth = 175;
 
-  },
-  unknownopt: {
-
-  },
-  known: {
-
-  },
-  knownopt: {
-
-  }
-};
-
-export default class Edge extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
@@ -35,27 +34,35 @@ export default class Edge extends React.Component{
   }
 
   handleChangedText = (e) => {
-    this.setState({content: e.target.value});
+    const changedText = e.target.value;
+    this.setState({content: changedText});
+
+    if (changedText.match(/\?.*/)){
+      this.setState({type: "unknown"});
+    } else {
+      this.setState({type: "known"});
+    }
   }
 
   render() {
-    const { x: fromX, y: fromY } = this.props.from;
-    const { x: toX, y: toY } = this.props.to;
+    const { from, to } = this.props;
     const { type, isOptional, content } = this.state;
-    const animation = type + (isOptional ? "opt" : "");
-    const pathDef = "M" + fromX + " " + fromY + " L" + toX + " " + toY;
+    const def = `M${from.x} ${from.y} L${to.x} ${to.y}`;
 
-    console.log("Using pathdef: " + pathDef);
+    const smallX = from.x <= to.x ? from.x : to.x;
+    const largeX = from.x >  to.x ? from.x : to.x;
+    const smallY = from.y <= to.y ? from.y : to.y;
+    const largeY = from.y >  to.y ? from.y : to.y;
+
     return (
-      <div className="edge-container" style={{x: fromX, y: fromY}}>
-        <motion.svg width="100%" height="100%">
-          <motion.path className='edge' d={pathDef}
-                       variants={EDGE_TYPE} initial={"unknown"} animate={animation} transition={{duration: 0.5}}
-                       onTap={this.handleEntryExit}/>
-        </motion.svg>
-        <input className={"canvas-input opaque"} value={content}
-               onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
-      </div>
+      <g>
+        <motion.path d={def} markerEnd={"url(#arrow)"}
+                     variants={Edge.variants} initial='unknown' animate={type} custom={isOptional} />
+        <foreignObject x={smallX + (largeX - smallX) / 2} y={smallY + (largeY - smallY) / 2}
+                       width={Edge.labelWidth} height={Edge.labelHeight}>
+          <motion.input value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
+        </foreignObject>
+      </g>
     );
   }
 }
