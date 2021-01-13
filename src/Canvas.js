@@ -81,9 +81,7 @@ export default class Canvas extends React.Component {
     }));
   }
 
-  completeEdge = (e) => {
-    if (e.defaultPrevented) return;
-
+  completeEdge = (node, e) => {
     this.setState(old => ({
       graph: {
         ...old.graph,
@@ -129,7 +127,7 @@ export default class Canvas extends React.Component {
             {nodes.map(node =>
               <Node id={node.id} key={node.id} mode={mode} x={node.x} y={node.y} init={node.initState}
                     onSelectedItemChange={this.handleNodeChange}
-                    onEdgeAction={edgeCompleting ? this.completeEdge : this.createEdge}/>)}
+                    onEdgeAction={(node, e) => edgeCompleting ? this.completeEdge(node, e) : this.createEdge(node)}/>)}
           </g>
         </svg>
       </div>

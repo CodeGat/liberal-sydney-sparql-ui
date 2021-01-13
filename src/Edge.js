@@ -60,7 +60,8 @@ export default class Edge extends React.Component {
                      variants={Edge.variants} initial='unknown' animate={type} custom={isOptional} />
         <foreignObject x={smallX + (largeX - smallX) / 2} y={smallY + (largeY - smallY) / 2}
                        width={Edge.labelWidth} height={Edge.labelHeight}>
-          <motion.input value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}/>
+          <motion.input value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+                        onClick={(e) => e.preventDefault()}/>
         </foreignObject>
       </g>
     );
