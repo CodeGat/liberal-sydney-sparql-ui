@@ -116,13 +116,24 @@ export default class Node extends React.Component {
     }
   }
 
+  handleNodeDrag = (event) => {
+    const { id } = this.props;
+    const midX = event.clientX;// + Node.nodeWidth / 2;
+    const midY = event.clientY;// + Node.nodeHeight / 2;
+    const { x, y } = this.props;
+    const { adjustedX, adjustedY} = this.state;
+    console.log(`dragX/Y (client): ${event.clientX} ${event.clientY}, rectX/Y: ${x} ${y}, rectAdjX/Y: ${adjustedX} ${adjustedY}`);
+
+    this.props.onUpdateToConnectedEdges(id, midX, midY);
+  }
+
   render(){
     const { type, isOptional, content, adjustedX, adjustedY } = this.state;
     const { mode, init } = this.props;
     const currentNodeWidth = type.match(/uri|unknown/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
-      <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
+      <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}} onDrag={this.handleNodeDrag}>
         <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
                      variants={Node.variants} initial="unknown" animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>

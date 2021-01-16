@@ -112,6 +112,44 @@ export default class Canvas extends React.Component {
     }));
   }
 
+  /**
+   * updates every connected Edge to move in line with the calling Node
+   * @param id {number}: the id of the moving node
+   * @param newMidX {number}: the x-value of the midpoint of the given node
+   * @param newMidY {number}: the y-value of the midpoint of the given node
+   */
+  updateAllConnectedEdges = (id, newMidX, newMidY) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        edges: old.graph.edges.map(edge =>
+          this.updateConnectedEdge(edge, id, newMidX, newMidY))
+      }
+    }));
+  }
+
+  /**
+   *
+   * @param edge
+   * @param nodeId
+   * @param newMidX
+   * @param newMidY
+   * @returns {*}
+   */
+  updateConnectedEdge = (edge, nodeId, newMidX, newMidY) => {
+    let newEdge = edge;
+
+    if (edge.from.id === nodeId) {
+      newEdge.from.x = newMidX;
+      newEdge.from.y = newMidY;
+    }
+    if (edge.to.id === nodeId) {
+      newEdge.to.x = newMidX;
+      newEdge.to.y = newMidY;
+    }
+    return newEdge;
+  }
+
   render() {
     const { nodes, edges } = this.state.graph;
     const { mode, edgeCompleting } = this.state;
@@ -137,7 +175,8 @@ export default class Canvas extends React.Component {
               <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState}
                     mode={mode} edgeCompleting={edgeCompleting}
                     onSelectedItemChange={this.handleNodeChange}
-                    onEdgeCreation={this.createEdge} onEdgeCompletion={this.completeEdge} />)}
+                    onEdgeCreation={this.createEdge} onEdgeCompletion={this.completeEdge}
+                    onUpdateToConnectedEdges={this.updateAllConnectedEdges}/>)}
           </g>
         </svg>
       </div>
