@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import "./Canvas.css";
+import "./Edge.css";
 
 export default class Edge extends React.Component {
   static variants = {
@@ -15,7 +16,7 @@ export default class Edge extends React.Component {
       strokeDasharray: isOpt ? 5 : 0
     }),
   };
-  static labelHeight = 100;
+  static labelHeight = 30;
   static labelWidth = 175;
 
   constructor(props) {
@@ -54,13 +55,15 @@ export default class Edge extends React.Component {
     const smallY = from.y <= to.y ? from.y : to.y;
     const largeY = from.y >  to.y ? from.y : to.y;
 
+    const labelX = (smallX + (largeX - smallX) / 2) - Edge.labelWidth / 2;
+    const labelY = (smallY + (largeY - smallY) / 2) - Edge.labelHeight / 2;
+
     return (
       <g>
         <motion.path d={def} markerEnd={"url(#arrow)"}
                      variants={Edge.variants} initial='unknown' animate={type} custom={isOptional} />
-        <foreignObject x={smallX + (largeX - smallX) / 2} y={smallY + (largeY - smallY) / 2}
-                       width={Edge.labelWidth} height={Edge.labelHeight}>
-          <motion.input value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+        <foreignObject x={labelX} y={labelY} width={Edge.labelWidth} height={Edge.labelHeight}>
+          <motion.input className={"edgeLabel"} value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}
                         onClick={(e) => e.preventDefault()}/>
         </foreignObject>
       </g>
