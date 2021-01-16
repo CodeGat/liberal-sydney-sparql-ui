@@ -4,7 +4,6 @@ import "./Node.css";
 import "./Canvas.css";
 
 //todo: could remove mode in canvas in favour of drag=move, click=edge
-//todo: keep track of circle intersection?
 export default class Node extends React.Component {
   static variants = {
     unknown: isOpt => ({
@@ -66,23 +65,40 @@ export default class Node extends React.Component {
       type: props.init,
       isOptional: false,
       prefix: '',
-      content: '?'
+      content: '?',
+      adjustedX: props.x - Node.nodeWidth / 2,
+      adjustedY: props.y - Node.nodeHeight / 2
     };
   }
 
   handleEntryExit = (e) => {
-    const { mode } = this.props;
+    const { mode, edgeCompleting, id } = this.props;
     const { content } = this.state;
     e.preventDefault();
 
     if (mode === "edge") {
-      const { x, y, id } = this.props;
-      const node = {id: id, content: content, x: x, y: y}
+      const { x, y } = this.props;
+      const { isOptional, type, adjustedX, adjustedY } = this.state;
 
-      this.props.onEdgeAction(node, e);
+      if (edgeCompleting){ // we finish the edge here
+        const variant = Node.variants[type](isOptional);
+        const info = {id: id, content: content};
+        const shape = {
+          x: adjustedX, y: adjustedY,
+          width: parseInt(variant.width),
+          height: parseInt(variant.height),
+          rx: variant.rx, ry: variant.rx
+        };
+        const aux = {midX: x, midY: y};
+
+        this.props.onEdgeCompletion(e, info, shape, aux);
+      } else { // we are starting a new one
+        const info = {id: id, content: content};
+        const shape = {x: x, y: y};
+
+        this.props.onEdgeCreation(e, info, shape);
+      }
     } else {
-      const { id } = this.props;
-
       this.props.onSelectedItemChange({id: id, content: content});
     }
   }
@@ -101,10 +117,8 @@ export default class Node extends React.Component {
   }
 
   render(){
-    const { type, isOptional, content } = this.state;
-    const { mode, init, x, y } = this.props;
-    const adjustedX = x - Node.nodeWidth / 2;
-    const adjustedY = y - Node.nodeHeight / 2;
+    const { type, isOptional, content, adjustedX, adjustedY } = this.state;
+    const { mode, init } = this.props;
     const currentNodeWidth = type.match(/uri|unknown/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
