@@ -1,9 +1,17 @@
-.node {
-    width: 100px;
-    height: 100px;
-    position: absolute;
-}
-
 .transparent {
     background: transparent;
+}
+
+.nodeLabel {
+    fill: #999999;
+    text-anchor: middle;
+    text-align: center;
+    background: transparent;
+    border: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: larger;
 }
