@@ -1,10 +1,11 @@
 import React from 'react';
+import {AnimateSharedLayout, motion} from 'framer-motion';
 import "./Sidebar.css"
 
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
-    this.handleSelectedItemChange = this.handleSelectedItemChange.bind(this);
+    // this.state = {selected: props.content}
   }
 
   handleSelectedItemChange(event){
@@ -17,7 +18,6 @@ export default class SideBar extends React.Component {
     return (
       <div className="sidebar">
         <SelectedItemViewer current={selected}/>
-        
         <SuggestiveSearch current={selected}/>
       </div>
     );
@@ -32,10 +32,33 @@ function SelectedItemViewer(props) {
   );
 }
 
-function SuggestiveSearch(props) {
+class SuggestiveSearch extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {suggestions: []};
+  }
+
+  render(){
+    const { suggestions } = this.state;
+
+    return (
+      <div>
+        <AnimateSharedLayout>
+          <motion.ul layout>
+            {suggestions.map((suggestion, ix) => <Suggestion key={ix} label={} description={} type={} domain={} range={} />)}
+          </motion.ul>
+        </AnimateSharedLayout>
+      </div>
+    );
+  }
+}
+
+function Suggestion(props) {
+  const { label, description, type, domain, range } = props;
+
   return (
-    <div>
-      <p>{props.current}</p>
-    </div>
+    <motion.div>
+
+    </motion.div>
   );
 }

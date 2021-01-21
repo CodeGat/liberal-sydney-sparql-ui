@@ -7,7 +7,6 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {selected: {id: '', content: ''}};
-    this.handleSelectedItemChange = this.handleSelectedItemChange.bind(this);
   }
 
   handleSelectedItemChange(change){
