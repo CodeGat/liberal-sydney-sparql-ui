@@ -1,11 +1,24 @@
 import React from 'react';
 import {AnimateSharedLayout, motion} from 'framer-motion';
-import "./Sidebar.css"
+import "./Sidebar.css";
+
+async function submitQuery (url, query) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/sparql-results+json',
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: new URLSearchParams({'query': query})
+  });
+
+  return response.json();
+}
 
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
-    // this.state = {selected: props.content}
   }
 
   handleSelectedItemChange(event){
@@ -13,12 +26,19 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const selected = this.props.selected;
+    const { selected } = this.props;
+    const selectedComponents = selected.split(':');
+    let prefix = '', name;
+    if (selectedComponents.length === 1){
+      name = selected;
+    } else {
+      [ prefix, name ] = selectedComponents;
+    }
 
     return (
       <div className="sidebar">
-        <SelectedItemViewer current={selected}/>
-        <SuggestiveSearch current={selected}/>
+        <SelectedItemViewer prefix={prefix} name={name} />
+        <SuggestiveSearch prefix={prefix} name={name} />
       </div>
     );
   }
@@ -27,7 +47,7 @@ export default class SideBar extends React.Component {
 function SelectedItemViewer(props) {
   return (
     <div>
-      <p>{props.current}</p>
+      <p><span className="lightprefix">{props.prefix}</span>{':' + props.name}</p>
     </div>
   );
 }
@@ -35,17 +55,73 @@ function SelectedItemViewer(props) {
 class SuggestiveSearch extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {suggestions: []};
+    this.state = {
+      suggestions: [],
+      elementDefs: [],
+      isLoaded: false
+    };
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // generate new suggestions based on the current content
+    if (this.props.current !== prevProps.current){
+      const newSuggestions = [];
+      const { elementDefs } = this.state;
+
+      for (let def of elementDefs){
+        if (def.elem.name === this.props.name){
+          newSuggestions.push({type: "data", range: def.range});
+        }
+      }
+
+      this.setState({suggestions: newSuggestions});
+    }
+  }
+
+  componentDidMount() {
+    // when component mounts, fetch ontology and the associated data, caching it
+    const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
+    submitQuery(base_url, "SELECT ?s ?domain ?range WHERE {" +
+      "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] } ." +
+      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
+      .then(
+        result => {
+          const triples = result.results.bindings;
+          const defs = [];
+
+          for (let triple of triples) {
+            const { s, domain, range } = triple;
+            const [ sPrefix, sName ] = s.value.split("#");
+            const [ dPrefix, dName ] = domain.value.split("#");
+            const [ rPrefix, rName ] = range.value.split("#");
+
+            defs.push({
+              elem: {prefix: sPrefix, name: sName},
+              domain: {prefix: dPrefix, name: dName},
+              range: {prefix: rPrefix, name: rName}
+            });
+          }
+          this.setState({isLoaded: true, elementDefs: defs});
+        },
+        error => {
+          this.setState({isLoaded: true, error});
+        }
+      );
   }
 
   render(){
-    const { suggestions } = this.state;
+    const { suggestions, isLoaded } = this.state;
 
     return (
       <div>
         <AnimateSharedLayout>
           <motion.ul layout>
-            {suggestions.map((suggestion, ix) => <Suggestion key={ix} label={} description={} type={} domain={} range={} />)}
+            {isLoaded && suggestions.map((suggestion, ix) =>
+              <Suggestion key={ix}
+                          label={suggestion.label} description={suggestion.description} type={suggestion.type}
+                          domain={suggestion.domain} range={suggestion.range} />)}
+            {!isLoaded &&
+              <p>Loading...</p>}
           </motion.ul>
         </AnimateSharedLayout>
       </div>
