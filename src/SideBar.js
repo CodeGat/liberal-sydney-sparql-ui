@@ -144,7 +144,7 @@ class SuggestiveSearch extends React.Component {
   componentDidMount() {
     // when component mounts, fetch ontology and the associated data, caching it
     const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
-    submitQuery(base_url, "SELECT ?s ?domain ?range WHERE {" +
+    submitQuery(base_url, "SELECT DISTINCT ?s ?domain ?range WHERE {" +
       "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] } ." +
       "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
       .then(
