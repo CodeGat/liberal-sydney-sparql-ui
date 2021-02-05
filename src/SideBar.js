@@ -123,9 +123,7 @@ class SuggestiveSearch extends React.Component {
         <AnimateSharedLayout>
           <motion.ul layout>
             {isLoaded && suggestions.map((suggestion, ix) =>
-              <Suggestion key={ix}
-                          label={suggestion.label} description={suggestion.description} type={suggestion.type}
-                          domain={suggestion.domain} range={suggestion.range} />)}
+              <SuggestionWrapper key={ix} suggestion={suggestion} />)}
             {!isLoaded &&
               <p>Loading...</p>}
           </motion.ul>
@@ -135,12 +133,44 @@ class SuggestiveSearch extends React.Component {
   }
 }
 
-function Suggestion(props) {
-  const { label, description, type, domain, range } = props;
+function SuggestionWrapper(props) {
+  const { type } = props.suggestion;
+
+  if (type === 'edge') {
+    const { range } = props.suggestion;
+    return (<SuggestionForEdge node={range}/>);
+  } else if (type === 'datatype') {
+    return (<SuggestionForDatatype />);
+  } else {
+    const { elem } = props.suggestion;
+    return (<SuggestionForNode property={elem}/>);
+  }
+}
+
+function SuggestionForEdge(props) {
+  const { prefix, name } = props.node;
 
   return (
-    <motion.div>
+    <div>
+      <p>Edge suggestion: {prefix + ":" + name}</p>
+    </div>
+  );
+}
 
-    </motion.div>
+function SuggestionForDatatype(props) {
+  return (
+    <div>
+      <p>Placeholder Datatype suggestion {props}</p>
+    </div>
+  );
+}
+
+function SuggestionForNode(props) {
+  const { prefix, name } = props.property;
+
+  return (
+    <div>
+      <p>Node suggestion: {prefix + ":" + name}</p>
+    </div>
   );
 }
