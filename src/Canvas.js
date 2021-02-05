@@ -24,14 +24,22 @@ export default class Canvas extends React.Component {
    * {nodes: [{id, x, y, init}...], edges: [{id, from {id, x, y}, to {id, x, y}, done}...]}
    */
 
-  handleNodeChange = (change) => {
+
+  /**
+   * Propagates a change on canvas to the root - eventually the sidebar
+   * @param {Object} change
+   * @param {string} change.type - the type of the object modified: either a node, edge or datatype
+   * @param {number} change.id - the canvas id of the modified object
+   * @param {string} change.content - the content that was changed
+   */
+  handleElementChange = (change) => {
     this.props.onSelectedItemChange(change);
   }
 
-  handleEdgeChange = (content) => {
-    this.props.onSelectedItemChange(content);
-  }
-
+  /**
+   * the mode of the canvas
+   * @param {string} newMode
+   */
   handleModeSelectChange = (newMode) => {
     this.setState({mode: newMode});
   }
@@ -130,13 +138,13 @@ export default class Canvas extends React.Component {
           <g id="edges">
             {edges.map(edge =>
               <Edge id={edge.id} key={edge.id} from={edge.from} to={edge.to}
-                    onSelectedItemChange={this.handleEdgeChange}/>)}
+                    onSelectedItemChange={this.handleElementChange}/>)}
           </g>
           <g id="nodes">
             {nodes.map(node =>
               <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState}
                     mode={mode} edgeCompleting={edgeCompleting}
-                    onSelectedItemChange={this.handleNodeChange}
+                    onSelectedItemChange={this.handleElementChange}
                     onEdgeCreation={this.createEdge} onEdgeCompletion={this.completeEdge} />)}
           </g>
         </svg>

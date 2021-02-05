@@ -31,7 +31,9 @@ export default class Edge extends React.Component {
   }
 
   handleEntryExit = (e) => {
-    this.props.onSelectedItemChange(e.target.value);
+    const { id } = this.props;
+
+    this.props.onSelectedItemChange({type: 'edge', id: id, content: e.target.value});
   }
 
   handleChangedText = (e) => {

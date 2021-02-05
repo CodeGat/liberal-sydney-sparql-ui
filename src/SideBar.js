@@ -16,9 +16,11 @@ async function submitQuery (url, query) {
   return response.json();
 }
 
+//todo: is statefullness required if we click on a suggestion?
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {};
   }
 
   handleSelectedItemChange(event){
@@ -26,19 +28,20 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const { selected } = this.props;
-    const selectedComponents = selected.split(':');
+    const { content, type, id } = this.props.selected;
+    const selectedComponents = content.split(':');
     let prefix = '', name;
+
     if (selectedComponents.length === 1){
-      name = selected;
+      name = content;
     } else {
       [ prefix, name ] = selectedComponents;
     }
 
     return (
       <div className="sidebar">
-        <SelectedItemViewer prefix={prefix} name={name} />
-        <SuggestiveSearch prefix={prefix} name={name} />
+        <SelectedItemViewer type={type} prefix={prefix} name={name} />
+        <SuggestiveSearch id={id} type={type} prefix={prefix} name={name} />
       </div>
     );
   }
@@ -47,6 +50,7 @@ export default class SideBar extends React.Component {
 function SelectedItemViewer(props) {
   return (
     <div>
+      <p>This is a {props.type}</p>
       <p><span className="lightprefix">{props.prefix}</span>{':' + props.name}</p>
     </div>
   );
@@ -63,8 +67,10 @@ class SuggestiveSearch extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
+    const { id, type, content } = this.props;
+
     // generate new suggestions based on the current content
-    if (this.props.current !== prevProps.current){
+    if (id !== prevProps.id && content !== prevProps.content && type !== prevProps.type){
       const newSuggestions = [];
       const { elementDefs } = this.state;
 

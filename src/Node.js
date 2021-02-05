@@ -73,12 +73,12 @@ export default class Node extends React.Component {
 
   handleEntryExit = (e) => {
     const { mode, edgeCompleting, id } = this.props;
-    const { content } = this.state;
+    const { content, type } = this.state;
     e.preventDefault();
 
     if (mode === "edge") {
       const { x, y } = this.props;
-      const { isOptional, type, adjustedX, adjustedY } = this.state;
+      const { isOptional, adjustedX, adjustedY } = this.state;
 
       if (edgeCompleting){ // we finish the edge here
         const variant = Node.variants[type](isOptional);
@@ -99,7 +99,7 @@ export default class Node extends React.Component {
         this.props.onEdgeCreation(e, info, shape);
       }
     } else {
-      this.props.onSelectedItemChange({id: id, content: content});
+      this.props.onSelectedItemChange({type: type, id: id, content: content});
     }
   }
 
