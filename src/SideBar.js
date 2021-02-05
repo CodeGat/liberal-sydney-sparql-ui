@@ -16,7 +16,7 @@ async function submitQuery (url, query) {
   return response.json();
 }
 
-//todo: is statefullness required if we click on a suggestion?
+//todo: is state required if we click on a suggestion?
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
@@ -67,21 +67,78 @@ class SuggestiveSearch extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const { id, type, content } = this.props;
+    const { id, type, prefix, name } = this.props;
 
-    // generate new suggestions based on the current content
-    if (id !== prevProps.id && content !== prevProps.content && type !== prevProps.type){
-      const newSuggestions = [];
-      const { elementDefs } = this.state;
+    if (name !== prevProps.name || prefix !== prevProps.prefix || id !== prevProps.id || type !== prevProps.type){
+      // generate new suggestions based on the current content
+      let newSuggestions;
 
-      for (let def of elementDefs){
-        if (def.elem.name === this.props.name){
-          newSuggestions.push({type: "data", range: def.range});
-        }
-      }
+      if (type === "edge") newSuggestions = this.generateSuggestionsForEdge(prefix, name);
+      else if (type === "datatype") newSuggestions = this.generateSuggestionsForDatatype(prefix, name);
+      else newSuggestions = this.generateSuggestionsForNode(type, prefix, name);
 
       this.setState({suggestions: newSuggestions});
     }
+  }
+
+  //todo: get list of ontology expansions or require user to detail them
+  /**
+   * Generates suggestions for the currently selected Edge
+   * @typedef {Object} EdgeSuggestion
+   * @property {Object} range
+   * @property {string} range.prefix
+   * @property {string} range.name
+   * @param {string} prefix - prefix of the edge
+   * @param {string} name - name of the edge
+   * @returns {EdgeSuggestion[]}
+   */
+  generateSuggestionsForEdge(prefix, name) {
+    const suggestions = [];
+    const { elementDefs } = this.state;
+
+    for (let def of elementDefs) {
+      if (def.elem.name === name) {
+        suggestions.push({range: def.range});
+      }
+    }
+
+    return suggestions;
+  }
+
+  /**
+   * Generates suggestions for the currently selected Datatype
+   * @typedef {Object} DatatypeSuggestion
+   * @property {string} prefix
+   * @property {string} name
+   * @param prefix - prefix of the datatype
+   * @param name - name of the datatype
+   * @returns {DatatypeSuggestion[]}
+   */
+  generateSuggestionsForDatatype(prefix, name) {
+    return [];
+  }
+
+  /**
+   * Generates suggestions for the currently selected Node
+   * @typedef {Object} NodeSuggestion
+   * @property {string} prefix - prefix of suggested edge
+   * @property {string} name - name of suggested edge
+   * @param type - type of the node: is it a literal, iri, unknown?
+   * @param prefix - prefix of the node
+   * @param name - name of the node
+   * @returns {NodeSuggestion[]}
+   */
+  generateSuggestionsForNode(type, prefix, name) {
+    const suggestions = [];
+    const { elementDefs } = this.state;
+
+    for (let def of elementDefs) {
+      if (def.domain.name === name) {
+        suggestions.push({elem: def.elem});
+      }
+    }
+
+    return suggestions;
   }
 
   componentDidMount() {
@@ -117,6 +174,7 @@ class SuggestiveSearch extends React.Component {
 
   render(){
     const { suggestions, isLoaded } = this.state;
+    console.log(suggestions);
 
     return (
       <div>
