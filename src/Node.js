@@ -118,7 +118,8 @@ export default class Node extends React.Component {
 
   render(){
     const { type, isOptional, content, adjustedX, adjustedY } = this.state;
-    const { mode, init } = this.props;
+    // const { mode, init } = this.props;
+    const { mode } = this.props;
     const currentNodeWidth = type.match(/uri|unknown/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
