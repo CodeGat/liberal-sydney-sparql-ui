@@ -1,6 +1,8 @@
 import React from 'react';
 import {AnimateSharedLayout, motion} from 'framer-motion';
 import "./Sidebar.css";
+import arrow from './arrow_icon_black.png';
+import node from './node_icon_known.png';
 
 async function submitQuery(url, query) {
   const response = await fetch(url, {
@@ -205,39 +207,46 @@ function SuggestionWrapper(props) {
 
   if (suggestion.type === 'edge') {
     const { elem } = props.suggestion;
-    return (<SuggestionForSelectedNode property={elem}/>);
+    return (<SuggestionForSelectedNode type={suggestion.type} property={elem}/>);
   } else if (suggestion.type === 'datatype') {
     return (<SuggestionForSelectedDatatype />);
   } else {
     const { range } = props.suggestion;
-    return (<SuggestionForSelectedEdge node={range}/>);
+    return (<SuggestionForSelectedEdge type={suggestion.type} node={range}/>);
   }
 }
 
+//todo: can be literals, known, unknown, optional......
 function SuggestionForSelectedEdge(props) {
+  const { type } = props;
   const { prefix, name } = props.node;
 
   return (
-    <div>
-      <p>Edge suggestion: {prefix + ":" + name}</p>
+    <div className={'suggestion'}>
+      <img className={'suggestion-img'} src={node} alt={'known node icon'} />
+      <p className={'suggestion-name'}>{name}</p>
+      <p className={'suggestion-prefix'}>From <span className={'lightprefix small'}>{prefix}</span></p>
     </div>
   );
 }
 
 function SuggestionForSelectedDatatype(props) {
   return (
-    <div>
+    <div className={'suggestion'}>
       <p>Placeholder Datatype suggestion {props}</p>
     </div>
   );
 }
 
 function SuggestionForSelectedNode(props) {
+  const { type } = props;
   const { prefix, name } = props.property;
 
   return (
-    <div>
-      <p>Node suggestion: {prefix + ":" + name}</p>
+    <div className={'suggestion'}>
+      <img className={'suggestion-img'} src={arrow} alt={"known property icon"} />
+      <p className={'suggestion-name'}>{name}</p>
+      <p className={'suggestion-prefix'}>From <span className={'lightprefix small'}>{prefix}</span></p>
     </div>
   );
 }

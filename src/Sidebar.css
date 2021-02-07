@@ -16,6 +16,52 @@
     overflow-y: auto;
 }
 
+ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+.suggestion {
+    display: grid;
+    grid-template-columns: 30px auto;
+    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
+    grid-template-areas: "img name" ". prefix"  ". description";
+    grid-auto-flow: column;
+    align-items: center;
+    column-gap: 7px;
+    row-gap: 0;
+    background-color: #b3b3b3;
+    margin: 0.5em;
+    padding: 0 8px 0 8px;
+}
+
+.suggestion p {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.suggestion-name {
+    grid-area: name;
+}
+
+.suggestion-img {
+    grid-area: img;
+}
+
+.suggestion-description {
+    grid-area: description;
+}
+
+.suggestion-prefix {
+    grid-area: prefix;
+    align-self: start;
+}
+
 .lightprefix {
     color: #999999;
+}
+
+.small {
+    font-size: small;
 }
