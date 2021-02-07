@@ -2,7 +2,7 @@ import React from 'react';
 import {AnimateSharedLayout, motion} from 'framer-motion';
 import "./Sidebar.css";
 
-async function submitQuery (url, query) {
+async function submitQuery(url, query) {
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -14,6 +14,15 @@ async function submitQuery (url, query) {
   });
 
   return response.json();
+}
+
+/**
+ * Attempts to find the given prefix from prefix.cc
+ * @param prefix - the prefix to expand
+ * @returns {Promise<Response>}
+ */
+async function fetchPrefix(prefix) {
+  return await fetch('http://prefix.cc/' + prefix + '.file.json');
 }
 
 //todo: is state required if we click on a suggestion?
@@ -73,15 +82,15 @@ class SuggestiveSearch extends React.Component {
       // generate new suggestions based on the current content
       let newSuggestions;
 
-      if (type === "edge") newSuggestions = this.generateSuggestionsForEdge(prefix, name);
-      else if (type === "datatype") newSuggestions = this.generateSuggestionsForDatatype(prefix, name);
-      else newSuggestions = this.generateSuggestionsForNode(type, prefix, name);
+      if (type === "edge") newSuggestions = this.generateSuggestionsForSelectedEdge(prefix, name);
+      else if (type === "datatype") newSuggestions = this.generateSuggestionsForSelectedDatatype(prefix, name);
+      else newSuggestions = this.generateSuggestionsForSelectedNode(type, prefix, name);
 
       this.setState({suggestions: newSuggestions});
     }
   }
 
-  //todo: get list of ontology expansions or require user to detail them
+  //todo: get list of ontology expansions from prefix.cc
   /**
    * Generates suggestions for the currently selected Edge
    * @typedef {Object} EdgeSuggestion
@@ -92,13 +101,13 @@ class SuggestiveSearch extends React.Component {
    * @param {string} name - name of the edge
    * @returns {EdgeSuggestion[]}
    */
-  generateSuggestionsForEdge(prefix, name) {
+  generateSuggestionsForSelectedEdge(prefix, name) {
     const suggestions = [];
     const { elementDefs } = this.state;
 
     for (let def of elementDefs) {
       if (def.elem.name === name) {
-        suggestions.push({range: def.range});
+        suggestions.push({type: 'node', range: def.range});
       }
     }
 
@@ -114,7 +123,7 @@ class SuggestiveSearch extends React.Component {
    * @param name - name of the datatype
    * @returns {DatatypeSuggestion[]}
    */
-  generateSuggestionsForDatatype(prefix, name) {
+  generateSuggestionsForSelectedDatatype(prefix, name) {
     return [];
   }
 
@@ -128,19 +137,20 @@ class SuggestiveSearch extends React.Component {
    * @param name - name of the node
    * @returns {NodeSuggestion[]}
    */
-  generateSuggestionsForNode(type, prefix, name) {
+  generateSuggestionsForSelectedNode(type, prefix, name) {
     const suggestions = [];
     const { elementDefs } = this.state;
 
     for (let def of elementDefs) {
       if (def.domain.name === name) {
-        suggestions.push({elem: def.elem});
+        suggestions.push({type: 'edge', elem: def.elem});
       }
     }
 
     return suggestions;
   }
 
+  //todo: add desc, label, find shortened ontology (through prefix.cc api)
   componentDidMount() {
     // when component mounts, fetch ontology and the associated data, caching it
     const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
@@ -174,7 +184,6 @@ class SuggestiveSearch extends React.Component {
 
   render(){
     const { suggestions, isLoaded } = this.state;
-    console.log(suggestions);
 
     return (
       <div>
@@ -192,20 +201,20 @@ class SuggestiveSearch extends React.Component {
 }
 
 function SuggestionWrapper(props) {
-  const { type } = props.suggestion;
+  const { suggestion } = props;
 
-  if (type === 'edge') {
-    const { range } = props.suggestion;
-    return (<SuggestionForEdge node={range}/>);
-  } else if (type === 'datatype') {
-    return (<SuggestionForDatatype />);
-  } else {
+  if (suggestion.type === 'edge') {
     const { elem } = props.suggestion;
-    return (<SuggestionForNode property={elem}/>);
+    return (<SuggestionForSelectedNode property={elem}/>);
+  } else if (suggestion.type === 'datatype') {
+    return (<SuggestionForSelectedDatatype />);
+  } else {
+    const { range } = props.suggestion;
+    return (<SuggestionForSelectedEdge node={range}/>);
   }
 }
 
-function SuggestionForEdge(props) {
+function SuggestionForSelectedEdge(props) {
   const { prefix, name } = props.node;
 
   return (
@@ -215,7 +224,7 @@ function SuggestionForEdge(props) {
   );
 }
 
-function SuggestionForDatatype(props) {
+function SuggestionForSelectedDatatype(props) {
   return (
     <div>
       <p>Placeholder Datatype suggestion {props}</p>
@@ -223,7 +232,7 @@ function SuggestionForDatatype(props) {
   );
 }
 
-function SuggestionForNode(props) {
+function SuggestionForSelectedNode(props) {
   const { prefix, name } = props.property;
 
   return (
