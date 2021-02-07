@@ -25,7 +25,7 @@ ul {
     display: grid;
     grid-template-columns: 30px auto;
     grid-template-rows: minmax(30px, auto) minmax(30px, auto);
-    grid-template-areas: "img name" ". prefix"  ". description";
+    grid-template-areas: "img name" "from prefix"  "desc description";
     grid-auto-flow: column;
     align-items: center;
     column-gap: 7px;
@@ -49,8 +49,17 @@ ul {
     grid-area: img;
 }
 
+.suggestion-desc {
+    grid-area: desc;
+}
+
 .suggestion-description {
     grid-area: description;
+}
+
+.suggestion-from {
+    grid-area: from;
+    justify-self: end;
 }
 
 .suggestion-prefix {
@@ -58,7 +67,7 @@ ul {
     align-self: start;
 }
 
-.lightprefix {
+.light {
     color: #999999;
 }
 

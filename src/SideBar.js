@@ -62,7 +62,7 @@ function SelectedItemViewer(props) {
   return (
     <div>
       <p>This is a {props.type}</p>
-      <p><span className="lightprefix">{props.prefix}</span>{':' + props.name}</p>
+      <p><span className="light">{props.prefix}</span>{':' + props.name}</p>
     </div>
   );
 }
@@ -246,7 +246,8 @@ function SuggestionForSelectedNode(props) {
     <div className={'suggestion'}>
       <img className={'suggestion-img'} src={arrow} alt={"known property icon"} />
       <p className={'suggestion-name'}>{name}</p>
-      <p className={'suggestion-prefix'}>From <span className={'lightprefix small'}>{prefix}</span></p>
+      <p className={"suggestion-from small"}>From</p>
+      <p className={'suggestion-prefix light small'}>{prefix}</p>
     </div>
   );
 }
