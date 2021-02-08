@@ -41,30 +41,49 @@ ul {
     margin-bottom: 5px;
 }
 
-.suggestion-name {
+.grid-name {
     grid-area: name;
 }
 
-.suggestion-img {
+.grid-img {
     grid-area: img;
 }
 
-.suggestion-desc {
+.grid-desc {
     grid-area: desc;
 }
 
-.suggestion-description {
+.grid-description {
     grid-area: description;
 }
 
-.suggestion-from {
+.grid-from {
     grid-area: from;
     justify-self: end;
 }
 
-.suggestion-prefix {
+.grid-prefix {
     grid-area: prefix;
     align-self: start;
+}
+
+#itemviewer {
+    display: grid;
+    grid-template-columns: 30px auto;
+    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
+    grid-template-areas: "img name" "from prefix";
+    grid-auto-flow: column;
+    align-items: center;
+    column-gap: 7px;
+    row-gap: 0;
+    margin: 0.5em;
+    padding: 0 8px 0 8px;
+}
+
+#itemviewer p {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .light {

@@ -1,32 +1,10 @@
 import React from 'react';
-import {AnimateSharedLayout, motion} from 'framer-motion';
+import { AnimateSharedLayout, motion } from 'framer-motion';
+import { submitQuery, fetchExpansionOfPrefix, fetchPrefixOfExpansion } from './UtilityFunctions'
 import "./Sidebar.css";
 import arrowImg from './arrow_icon_black.png';
 import nodeImg from './node_icon_known.png';
 import litImg from './literal_icon_known.png';
-
-async function submitQuery(url, query) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'application/sparql-results+json',
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: new URLSearchParams({'query': query})
-  });
-
-  return response.json();
-}
-
-/**
- * Attempts to find the given prefix from prefix.cc
- * @param prefix - the prefix to expand
- * @returns {Promise<Response>}
- */
-async function fetchPrefix(prefix) {
-  return await fetch('http://prefix.cc/' + prefix + '.file.json');
-}
 
 //todo: is state required if we click on a suggestion?
 export default class SideBar extends React.Component {
@@ -59,13 +37,57 @@ export default class SideBar extends React.Component {
   }
 }
 
-function SelectedItemViewer(props) {
-  return (
-    <div>
-      <p>This is a {props.type}</p>
-      <p><span className="light">{props.prefix}</span>{':' + props.name}</p>
-    </div>
-  );
+//todo: prefix, name, desc, domain, range, from (in case of ?)
+class SelectedItemViewer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      expandedPrefix: ''
+    };
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const { prefix } = this.props;
+
+    if (prevProps.prefix !== prefix) {
+      fetchExpansionOfPrefix(prefix)
+        .then(
+          data => this.setState({expandedPrefix: data[prefix]}),
+          error => this.setState(error))
+    }
+  }
+
+  render() {
+    const { type, prefix, name } = this.props;
+    const  { expandedPrefix } = this.state;
+
+    return (
+      <div id={'itemviewer'}>
+        {type !== '' &&
+          <>
+            <SelectedItemViewerImage type={type} />
+            <p className={'grid-name'}>{name}</p>
+            <p className={'grid-from'}>From</p>
+            <p className={'grid-prefix light small'}>{expandedPrefix}</p>
+          </>}
+      </div>
+    );
+  }
+}
+
+function SelectedItemViewerImage(props) {
+  const { type } = props;
+
+  if (type === 'uri') {
+    return (<img className={'grid-img'} src={nodeImg} alt={'selected known node icon'}/>);
+  } else if (type === 'edge') {
+    return (<img className={'grid-img'} src={arrowImg} alt={'selected known edge icon'}/>);
+  } else if (type === 'literal') {
+    return (<img className={'grid-img'} src={litImg} alt={'selected known literal icon'}/>);
+  } else {
+    console.warn("Unknown selected item - not explicitly a node, edge or literal");
+    return null;
+  }
 }
 
 class SuggestiveSearch extends React.Component {
@@ -162,27 +184,27 @@ class SuggestiveSearch extends React.Component {
     const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
     submitQuery(base_url, "SELECT DISTINCT ?s ?domain ?range WHERE {" +
       "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] } ." +
-      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }"
-    ).then(
-      response => {
-        const results = response.results.bindings;
-        const defs = [];
+      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
+      .then(
+        response => {
+          const results = response.results.bindings;
+          const defs = [];
 
-        for (const { s, domain, range } of results) {
-          const [ sPrefix, sName ] = s.value.split("#");
-          const [ dPrefix, dName ] = domain.value.split("#");
-          const [ rPrefix, rName ] = range.value.split("#");
+          for (const { s, domain, range } of results) {
+            const [ sPrefix, sName ] = s.value.split("#");
+            const [ dPrefix, dName ] = domain.value.split("#");
+            const [ rPrefix, rName ] = range.value.split("#");
 
-          defs.push({
-            elem: {iri: s.value, prefix: sPrefix, name: sName},
-            domain: {iri: domain.value, prefix: dPrefix, name: dName},
-            range: {iri: range.value, prefix: rPrefix, name: rName}
-          });
-        }
-        this.setState({isDefsLoaded: true, elementDefs: defs});
-      },
-      error => this.setState({isDefsLoaded: true, error})
-    );
+            defs.push({
+              elem: {iri: s.value, prefix: sPrefix, name: sName},
+              domain: {iri: domain.value, prefix: dPrefix, name: dName},
+              range: {iri: range.value, prefix: rPrefix, name: rName}
+            });
+          }
+          this.setState({isDefsLoaded: true, elementDefs: defs});
+        },
+        error => this.setState({isDefsLoaded: true, error})
+      );
 
     submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
       "  OPTIONAL { ?s rdfs:label ?label }" +
@@ -251,12 +273,12 @@ function SuggestionAsNode(props) {
 
   return (
     <div className={'suggestion'}>
-      <img className={'suggestion-img'} src={nodeImg} alt={'known node icon'} />
-      <p className={'suggestion-name'}>{name}</p>
-      <p className={"suggestion-from small"}>From</p>
-      <p className={'suggestion-prefix light small'}>{prefix}</p>
-      <p className={'suggestion-desc small'}>Desc.</p>
-      <p className={'suggestion-description light small'}>{comment}</p>
+      <img className={'grid-img'} src={nodeImg} alt={'known node icon'} />
+      <p className={'grid-name'}>{name}</p>
+      <p className={"grid-from small"}>From</p>
+      <p className={'grid-prefix light small'}>{prefix}</p>
+      <p className={'grid-desc small'}>Desc.</p>
+      <p className={'grid-description light small'}>{comment}</p>
     </div>
   );
 }
@@ -266,10 +288,10 @@ function SuggestionAsLiteral(props) {
 
   return (
     <div className={'suggestion'}>
-      <img className={'suggestion-img'} src={litImg} alt={'known literal icon'} />
-      <p className={'suggestion-name'}>{name}</p>
-      <p className={'suggestion-from small'}>From</p>
-      <p className={'suggestion-prefix light small'}>{prefix}</p>
+      <img className={'grid-img'} src={litImg} alt={'known literal icon'} />
+      <p className={'grid-name'}>{name}</p>
+      <p className={'grid-from small'}>From</p>
+      <p className={'grid-prefix light small'}>{prefix}</p>
     </div>
   );
 }
@@ -289,12 +311,12 @@ function SuggestionForSelectedNode(props) {
 
   return (
     <div className={'suggestion'}>
-      <img className={'suggestion-img'} src={arrowImg} alt={"known property icon"} />
-      <p className={'suggestion-name'}>{name}</p>
-      <p className={"suggestion-from small"}>From</p>
-      <p className={'suggestion-prefix light small'}>{prefix}</p>
-      <p className={'suggestion-desc small'}>Desc.</p>
-      <p className={'suggestion-description light small'}>{comment}</p>
+      <img className={'grid-img'} src={arrowImg} alt={"known property icon"} />
+      <p className={'grid-name'}>{name}</p>
+      <p className={"grid-from small"}>From</p>
+      <p className={'grid-prefix light small'}>{prefix}</p>
+      <p className={'grid-desc small'}>Desc.</p>
+      <p className={'grid-description light small'}>{comment}</p>
     </div>
   );
 }
