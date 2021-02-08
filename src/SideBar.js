@@ -1,8 +1,9 @@
 import React from 'react';
 import {AnimateSharedLayout, motion} from 'framer-motion';
 import "./Sidebar.css";
-import arrow from './arrow_icon_black.png';
-import node from './node_icon_known.png';
+import arrowImg from './arrow_icon_black.png';
+import nodeImg from './node_icon_known.png';
+import litImg from './literal_icon_known.png';
 
 async function submitQuery(url, query) {
   const response = await fetch(url, {
@@ -73,7 +74,9 @@ class SuggestiveSearch extends React.Component {
     this.state = {
       suggestions: [],
       elementDefs: [],
-      isLoaded: false
+      info: {},
+      isDefsLoaded: false,
+      isInfoLoaded: false
     };
   }
 
@@ -92,7 +95,6 @@ class SuggestiveSearch extends React.Component {
     }
   }
 
-  //todo: get list of ontology expansions from prefix.cc
   /**
    * Generates suggestions for the currently selected Edge
    * @typedef {Object} EdgeSuggestion
@@ -109,7 +111,10 @@ class SuggestiveSearch extends React.Component {
 
     for (let def of elementDefs) {
       if (def.elem.name === name) {
-        suggestions.push({type: 'node', range: def.range});
+        suggestions.push({
+          type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'literal' : 'node',
+          elem: def.range
+        });
       }
     }
 
@@ -152,48 +157,61 @@ class SuggestiveSearch extends React.Component {
     return suggestions;
   }
 
-  //todo: add desc, label, find shortened ontology (through prefix.cc api)
   componentDidMount() {
     // when component mounts, fetch ontology and the associated data, caching it
     const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
     submitQuery(base_url, "SELECT DISTINCT ?s ?domain ?range WHERE {" +
       "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] } ." +
-      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
-      .then(
-        result => {
-          const triples = result.results.bindings;
-          const defs = [];
+      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }"
+    ).then(
+      response => {
+        const results = response.results.bindings;
+        const defs = [];
 
-          for (let triple of triples) {
-            const { s, domain, range } = triple;
-            const [ sPrefix, sName ] = s.value.split("#");
-            const [ dPrefix, dName ] = domain.value.split("#");
-            const [ rPrefix, rName ] = range.value.split("#");
+        for (const { s, domain, range } of results) {
+          const [ sPrefix, sName ] = s.value.split("#");
+          const [ dPrefix, dName ] = domain.value.split("#");
+          const [ rPrefix, rName ] = range.value.split("#");
 
-            defs.push({
-              elem: {prefix: sPrefix, name: sName},
-              domain: {prefix: dPrefix, name: dName},
-              range: {prefix: rPrefix, name: rName}
-            });
-          }
-          this.setState({isLoaded: true, elementDefs: defs});
-        },
-        error => {
-          this.setState({isLoaded: true, error});
+          defs.push({
+            elem: {iri: s.value, prefix: sPrefix, name: sName},
+            domain: {iri: domain.value, prefix: dPrefix, name: dName},
+            range: {iri: range.value, prefix: rPrefix, name: rName}
+          });
         }
-      );
+        this.setState({isDefsLoaded: true, elementDefs: defs});
+      },
+      error => this.setState({isDefsLoaded: true, error})
+    );
+
+    submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
+      "  OPTIONAL { ?s rdfs:label ?label }" +
+      "  OPTIONAL { ?s rdfs:comment ?comment } }"
+    ).then(
+      response => {
+        const results = response.results.bindings;
+        let comments = {};
+
+        for (const { s, label, comment } of results) {
+          comments[s.value] = {label: label.value, comment: comment.value};
+        }
+
+        this.setState({isInfoLoaded: true, info: comments});
+      },
+      error => this.setState({isInfoLoaded: true, error})
+    );
   }
 
   render(){
-    const { suggestions, isLoaded } = this.state;
+    const { suggestions, info, isDefsLoaded, isInfoLoaded } = this.state;
 
     return (
       <div>
         <AnimateSharedLayout>
           <motion.ul layout>
-            {isLoaded && suggestions.map((suggestion, ix) =>
-              <SuggestionWrapper key={ix} suggestion={suggestion} />)}
-            {!isLoaded &&
+            {isDefsLoaded && isInfoLoaded && suggestions.map((s, ix) =>
+              <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
+            {(!isDefsLoaded || !isInfoLoaded) &&
               <p>Loading...</p>}
           </motion.ul>
         </AnimateSharedLayout>
@@ -203,29 +221,55 @@ class SuggestiveSearch extends React.Component {
 }
 
 function SuggestionWrapper(props) {
-  const { suggestion } = props;
+  const { type, elem } = props.suggestion;
+  const { info } = props;
 
-  if (suggestion.type === 'edge') {
-    const { elem } = props.suggestion;
-    return (<SuggestionForSelectedNode type={suggestion.type} property={elem}/>);
-  } else if (suggestion.type === 'datatype') {
+  if (type === 'edge') {
+    return (<SuggestionForSelectedNode type={type} property={elem} info={info}/>);
+  } else if (type === 'datatype') {
     return (<SuggestionForSelectedDatatype />);
   } else {
-    const { range } = props.suggestion;
-    return (<SuggestionForSelectedEdge type={suggestion.type} node={range}/>);
+    return (<SuggestionForSelectedEdge type={type} node={elem} info={info}/>);
   }
 }
 
 //todo: can be literals, known, unknown, optional......
 function SuggestionForSelectedEdge(props) {
-  const { type } = props;
+  const { type, node } = props;
+
+  if (type === 'literal') {
+    return (<SuggestionAsLiteral node={node}/>);
+  } else {
+    const { info } = props;
+    return (<SuggestionAsNode node={node} info={info} />);
+  }
+}
+
+function SuggestionAsNode(props) {
+  const { prefix, name } = props.node;
+  const { label, comment } = props.info;
+
+  return (
+    <div className={'suggestion'}>
+      <img className={'suggestion-img'} src={nodeImg} alt={'known node icon'} />
+      <p className={'suggestion-name'}>{name}</p>
+      <p className={"suggestion-from small"}>From</p>
+      <p className={'suggestion-prefix light small'}>{prefix}</p>
+      <p className={'suggestion-desc small'}>Desc.</p>
+      <p className={'suggestion-description light small'}>{comment}</p>
+    </div>
+  );
+}
+
+function SuggestionAsLiteral(props) {
   const { prefix, name } = props.node;
 
   return (
     <div className={'suggestion'}>
-      <img className={'suggestion-img'} src={node} alt={'known node icon'} />
+      <img className={'suggestion-img'} src={litImg} alt={'known literal icon'} />
       <p className={'suggestion-name'}>{name}</p>
-      <p className={'suggestion-prefix'}>From <span className={'lightprefix small'}>{prefix}</span></p>
+      <p className={'suggestion-from small'}>From</p>
+      <p className={'suggestion-prefix light small'}>{prefix}</p>
     </div>
   );
 }
@@ -241,13 +285,16 @@ function SuggestionForSelectedDatatype(props) {
 function SuggestionForSelectedNode(props) {
   const { type } = props;
   const { prefix, name } = props.property;
+  const { label, comment } = props.info;
 
   return (
     <div className={'suggestion'}>
-      <img className={'suggestion-img'} src={arrow} alt={"known property icon"} />
+      <img className={'suggestion-img'} src={arrowImg} alt={"known property icon"} />
       <p className={'suggestion-name'}>{name}</p>
       <p className={"suggestion-from small"}>From</p>
       <p className={'suggestion-prefix light small'}>{prefix}</p>
+      <p className={'suggestion-desc small'}>Desc.</p>
+      <p className={'suggestion-description light small'}>{comment}</p>
     </div>
   );
 }
