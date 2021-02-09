@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimateSharedLayout, motion } from 'framer-motion';
-import { submitQuery, fetchExpansionOfPrefix } from './UtilityFunctions'
+import { submitQuery } from './UtilityFunctions'
 import "./Sidebar.css";
 import arrowImg from './arrow_icon_black.png';
 import nodeImg from './node_icon_known.png';
@@ -9,7 +9,30 @@ import litImg from './literal_icon_known.png';
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      info: {},
+      infoLoaded: false
+    };
+  }
+
+  componentDidMount() {
+    const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local url
+    submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
+      "  OPTIONAL { ?s rdfs:label ?label }" +
+      "  OPTIONAL { ?s rdfs:comment ?comment } }"
+    ).then(
+      response => {
+        const results = response.results.bindings;
+        let info = {};
+
+        for (const { s, label, comment } of results) {
+          info[s.value] = {label: label.value, comment: comment.value};
+        }
+
+        this.setState({infoLoaded: true, info: info});
+      },
+      error => this.setState({infoLoaded: true, error})
+    );
   }
 
   handleSelectedItemChange(event){
@@ -18,10 +41,12 @@ export default class SideBar extends React.Component {
 
   render(){
     const { content, type, id } = this.props.selected;
+    const { info, infoLoaded } = this.state;
     const selectedComponents = content.split(':');
-    let prefix = '', name;
+    let prefix, name;
 
-    if (selectedComponents.length === 1){
+    if (selectedComponents.length === 1){ //todo: see data rework issue
+      prefix = ''
       name = content;
     } else {
       [ prefix, name ] = selectedComponents;
@@ -29,8 +54,10 @@ export default class SideBar extends React.Component {
 
     return (
       <div className="sidebar">
-        <SelectedItemViewer type={type} prefix={prefix} name={name} />
-        <SuggestiveSearch id={id} type={type} prefix={prefix} name={name} />
+        <SelectedItemViewer type={type} prefix={prefix} name={name}
+                            info={info} infoLoaded={infoLoaded} />
+        <SuggestiveSearch id={id} type={type} prefix={prefix} name={name}
+                          info={info} infoLoaded={infoLoaded} />
       </div>
     );
   }
@@ -40,32 +67,11 @@ export default class SideBar extends React.Component {
 class SelectedItemViewer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      expandedPrefix: '',
-      isLoaded: false
-    };
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    const { prefix } = this.props;
-
-    if (prevProps.prefix !== prefix) {
-      this.setState({isLoaded: false, expandedPrefix: prefix});
-      fetchExpansionOfPrefix(prefix).then(
-        response =>
-          this.setState({
-            isLoaded: true,
-            expandedPrefix: response.success ? response.value.slice(0, -1) : prefix
-          }),
-        error =>
-          this.setState({isLoaded: true, error})
-      );
-    }
+    this.state = {};
   }
 
   render() {
-    const { type, name } = this.props;
-    const { expandedPrefix, isLoaded } = this.state;
+    const { type, prefix, name } = this.props;
 
     return (
       <div id={'itemviewer'}>
@@ -74,7 +80,7 @@ class SelectedItemViewer extends React.Component {
             <SelectedItemViewerImage type={type} />
             <p className={'grid-name'}>{name}</p>
             <p className={'grid-from'}>From</p>
-            <p className={'grid-prefix light small'}>{isLoaded ? expandedPrefix : 'Loading origin...'}</p>
+            <p className={'grid-prefix light small'}>{prefix}</p>
           </>}
       </div>
     );
@@ -102,9 +108,7 @@ class SuggestiveSearch extends React.Component {
     this.state = {
       suggestions: [],
       elementDefs: [],
-      info: {},
-      isDefsLoaded: false,
-      isInfoLoaded: false
+      defsLoaded: false,
     };
   }
 
@@ -207,39 +211,23 @@ class SuggestiveSearch extends React.Component {
               range: {iri: range.value, prefix: rPrefix, name: rName}
             });
           }
-          this.setState({isDefsLoaded: true, elementDefs: defs});
+          this.setState({defsLoaded: true, elementDefs: defs});
         },
-        error => this.setState({isDefsLoaded: true, error})
+        error => this.setState({defsLoaded: true, error})
       );
-
-    submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
-      "  OPTIONAL { ?s rdfs:label ?label }" +
-      "  OPTIONAL { ?s rdfs:comment ?comment } }"
-    ).then(
-      response => {
-        const results = response.results.bindings;
-        let comments = {};
-
-        for (const { s, label, comment } of results) {
-          comments[s.value] = {label: label.value, comment: comment.value};
-        }
-
-        this.setState({isInfoLoaded: true, info: comments});
-      },
-      error => this.setState({isInfoLoaded: true, error})
-    );
   }
 
   render(){
-    const { suggestions, info, isDefsLoaded, isInfoLoaded } = this.state;
+    const { suggestions, defsLoaded } = this.state;
+    const { info, infoLoaded } = this.props;
 
     return (
       <div>
         <AnimateSharedLayout>
           <motion.ul layout>
-            {isDefsLoaded && isInfoLoaded && suggestions.map((s, ix) =>
+            {defsLoaded && infoLoaded && suggestions.map((s, ix) =>
               <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
-            {(!isDefsLoaded || !isInfoLoaded) &&
+            {(!defsLoaded || !infoLoaded) &&
               <p>Loading...</p>}
           </motion.ul>
         </AnimateSharedLayout>
@@ -274,12 +262,13 @@ function SuggestionForSelectedEdge(props) {
 }
 
 function SuggestionAsNode(props) {
-  const { prefix, name } = props.node;
+  const { info, node } = props;
+  const { prefix, name } = node;
   let label, comment;
 
-  if (props.info) {
-    label = props.info.label;
-    comment = props.info.comment;
+  if (info) {
+    label = info.label;
+    comment = info.comment;
   }
 
   return (
@@ -320,13 +309,13 @@ function SuggestionForSelectedDatatype(props) {
 }
 
 function SuggestionForSelectedNode(props) {
-  const { type } = props;
+  const { type, info } = props;
   const { prefix, name } = props.property;
   let label, comment;
 
-  if (props.info) {
-    label = props.info.label;
-    comment = props.info.comment;
+  if (info) {
+    label = info.label;
+    comment = info.comment;
   }
 
   return (

@@ -71,7 +71,7 @@ ul {
     display: grid;
     grid-template-columns: 30px auto;
     grid-template-rows: minmax(30px, auto) minmax(30px, auto);
-    grid-template-areas: "img name" "from prefix";
+    grid-template-areas: "img name" "from prefix" "desc description";
     grid-auto-flow: column;
     align-items: center;
     column-gap: 7px;
