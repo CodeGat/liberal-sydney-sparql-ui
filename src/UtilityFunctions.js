@@ -1,7 +1,7 @@
 /**
- *
- * @param url
- * @param query
+ * submits a query to the given blazegraph instance rooted at a given url
+ * @param url {string} - blazegraph triplestore endpoint is located here
+ * @param query {string} - string-based query
  * @returns {Promise<Object>}
  */
 export async function submitQuery(url, query) {
@@ -19,8 +19,9 @@ export async function submitQuery(url, query) {
 }
 
 /**
- * Attempts to find the given prefix from prefix.cc
+ * Attempts to expand the given prefix from prefix.zazuko.com
  * @param prefix - the prefix to expand
+ * @returns {Promise<Response>}
  */
 export async function fetchExpansionOfPrefix(prefix) {
   const encodedPrefix = encodeURIComponent(prefix + ":a");
@@ -34,6 +35,11 @@ export async function fetchExpansionOfPrefix(prefix) {
   return response.json();
 }
 
+/**
+ * Attempts to contract the given expansion into a prefix from prefix.zazuko.com
+ * @param expansion - the expansion to contract
+ * @returns {Promise<Response>}
+ */
 export async function fetchPrefixOfExpansion(expansion) {
   const encodedExpansion = encodeURIComponent(expansion);
   const response = await fetch('https://prefix.zazuko.com/api/v1/shrink?q=' + encodedExpansion, {
