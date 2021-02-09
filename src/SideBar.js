@@ -183,7 +183,7 @@ class SuggestiveSearch extends React.Component {
     // when component mounts, fetch ontology and the associated data, caching it
     const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
     submitQuery(base_url, "SELECT DISTINCT ?s ?domain ?range WHERE {" +
-      "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] } ." +
+      "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] . FILTER (?s != owl:topObjectProperty) } " +
       "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
       .then(
         response => {
@@ -269,7 +269,12 @@ function SuggestionForSelectedEdge(props) {
 
 function SuggestionAsNode(props) {
   const { prefix, name } = props.node;
-  const { label, comment } = props.info;
+  let label, comment;
+
+  if (props.info) {
+    label = props.info.label;
+    comment = props.info.comment;
+  }
 
   return (
     <div className={'suggestion'}>
@@ -277,8 +282,12 @@ function SuggestionAsNode(props) {
       <p className={'grid-name'}>{name}</p>
       <p className={"grid-from small"}>From</p>
       <p className={'grid-prefix light small'}>{prefix}</p>
-      <p className={'grid-desc small'}>Desc.</p>
-      <p className={'grid-description light small'}>{comment}</p>
+      {comment !== undefined &&
+        <>
+          <p className={'grid-desc small'}>Desc.</p>
+          <p className={'grid-description light small'}>{comment}</p>
+        </>
+      }
     </div>
   );
 }
@@ -307,7 +316,12 @@ function SuggestionForSelectedDatatype(props) {
 function SuggestionForSelectedNode(props) {
   const { type } = props;
   const { prefix, name } = props.property;
-  const { label, comment } = props.info;
+  let label, comment;
+
+  if (props.info) {
+    label = props.info.label;
+    comment = props.info.comment;
+  }
 
   return (
     <div className={'suggestion'}>
@@ -315,8 +329,12 @@ function SuggestionForSelectedNode(props) {
       <p className={'grid-name'}>{name}</p>
       <p className={"grid-from small"}>From</p>
       <p className={'grid-prefix light small'}>{prefix}</p>
-      <p className={'grid-desc small'}>Desc.</p>
-      <p className={'grid-description light small'}>{comment}</p>
+      {comment !== undefined &&
+        <>
+          <p className={'grid-desc small'}>Desc.</p>
+          <p className={'grid-description light small'}>{comment}</p>
+        </>
+      }
     </div>
   );
 }
