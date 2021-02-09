@@ -21,10 +21,10 @@ export async function submitQuery(url, query) {
 /**
  * Attempts to find the given prefix from prefix.cc
  * @param prefix - the prefix to expand
- * @returns {Promise<Response>}
  */
 export async function fetchExpansionOfPrefix(prefix) {
-  const response = await fetch('http://prefix.cc/' + prefix + '.file.json', {
+  const encodedPrefix = encodeURIComponent(prefix + ":a");
+  const response = await fetch('https://prefix.zazuko.com/api/v1/expand?q=' + encodedPrefix, {
     method: 'GET',
     headers: {
       Accept: 'application/json'
@@ -35,13 +35,13 @@ export async function fetchExpansionOfPrefix(prefix) {
 }
 
 export async function fetchPrefixOfExpansion(expansion) {
-  const response = await fetch('http://prefix.cc/reverse', {
+  const encodedExpansion = encodeURIComponent(expansion);
+  const response = await fetch('https://prefix.zazuko.com/api/v1/shrink?q=' + encodedExpansion, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       Accepts: 'application/json'
-    },
-    body: new URLSearchParams({expansion})
+    }
   });
 
   return response.json();

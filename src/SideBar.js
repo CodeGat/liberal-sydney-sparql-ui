@@ -1,12 +1,11 @@
 import React from 'react';
 import { AnimateSharedLayout, motion } from 'framer-motion';
-import { submitQuery, fetchExpansionOfPrefix, fetchPrefixOfExpansion } from './UtilityFunctions'
+import { submitQuery, fetchExpansionOfPrefix } from './UtilityFunctions'
 import "./Sidebar.css";
 import arrowImg from './arrow_icon_black.png';
 import nodeImg from './node_icon_known.png';
 import litImg from './literal_icon_known.png';
 
-//todo: is state required if we click on a suggestion?
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
@@ -37,12 +36,13 @@ export default class SideBar extends React.Component {
   }
 }
 
-//todo: prefix, name, desc, domain, range, from (in case of ?)
+//todo: desc, domain, range, from (in case of ?)
 class SelectedItemViewer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      expandedPrefix: ''
+      expandedPrefix: '',
+      isLoaded: false
     };
   }
 
@@ -50,16 +50,22 @@ class SelectedItemViewer extends React.Component {
     const { prefix } = this.props;
 
     if (prevProps.prefix !== prefix) {
-      fetchExpansionOfPrefix(prefix)
-        .then(
-          data => this.setState({expandedPrefix: data[prefix]}),
-          error => this.setState(error))
+      this.setState({isLoaded: false, expandedPrefix: prefix});
+      fetchExpansionOfPrefix(prefix).then(
+        response =>
+          this.setState({
+            isLoaded: true,
+            expandedPrefix: response.success ? response.value.slice(0, -1) : prefix
+          }),
+        error =>
+          this.setState({isLoaded: true, error})
+      );
     }
   }
 
   render() {
-    const { type, prefix, name } = this.props;
-    const  { expandedPrefix } = this.state;
+    const { type, name } = this.props;
+    const { expandedPrefix, isLoaded } = this.state;
 
     return (
       <div id={'itemviewer'}>
@@ -68,7 +74,7 @@ class SelectedItemViewer extends React.Component {
             <SelectedItemViewerImage type={type} />
             <p className={'grid-name'}>{name}</p>
             <p className={'grid-from'}>From</p>
-            <p className={'grid-prefix light small'}>{expandedPrefix}</p>
+            <p className={'grid-prefix light small'}>{isLoaded ? expandedPrefix : 'Loading origin...'}</p>
           </>}
       </div>
     );
