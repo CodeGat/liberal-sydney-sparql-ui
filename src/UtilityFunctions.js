@@ -20,7 +20,7 @@ export async function submitQuery(url, query) {
 
 /**
  * Attempts to expand the given prefix from prefix.zazuko.com
- * @param prefix - the prefix to expand
+ * @param prefix {string} - the prefix to expand
  * @returns {Promise<Response>}
  */
 export async function fetchExpansionOfPrefix(prefix) {
@@ -37,7 +37,7 @@ export async function fetchExpansionOfPrefix(prefix) {
 
 /**
  * Attempts to contract the given expansion into a prefix from prefix.zazuko.com
- * @param expansion - the expansion to contract
+ * @param expansion {string} - the expansion to contract
  * @returns {Promise<Response>}
  */
 export async function fetchPrefixOfExpansion(expansion) {
