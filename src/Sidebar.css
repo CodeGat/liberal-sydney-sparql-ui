@@ -67,7 +67,7 @@ ul {
     align-self: start;
 }
 
-#itemviewer {
+.itemviewer {
     display: grid;
     grid-template-columns: 30px auto;
     grid-template-rows: minmax(30px, auto) minmax(30px, auto);
@@ -80,7 +80,7 @@ ul {
     padding: 0 8px 0 8px;
 }
 
-#itemviewer p {
+.itemviewer p {
     font-family: 'Roboto Condensed', sans-serif;
     margin-top: 5px;
     margin-bottom: 5px;
