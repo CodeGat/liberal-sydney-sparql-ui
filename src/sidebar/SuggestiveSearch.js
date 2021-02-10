@@ -1,6 +1,8 @@
 import React from "react";
 import {submitQuery} from "./UtilityFunctions";
 import {AnimateSharedLayout, motion} from "framer-motion";
+import './Sidebar.css';
+import './SuggestiveSearch.css';
 import nodeImg from "./node_icon_known.png";
 import litImg from "./literal_icon_known.png";
 import arrowImg from "./arrow_icon_black.png";

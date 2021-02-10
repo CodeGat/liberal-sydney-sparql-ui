@@ -1,4 +1,6 @@
 import React from "react";
+import './Sidebar.css';
+import './SelectedItemViewer.css';
 import nodeImg from "./node_icon_known.png";
 import arrowImg from "./arrow_icon_black.png";
 import litImg from "./literal_icon_known.png";

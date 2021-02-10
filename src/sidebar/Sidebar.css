@@ -16,31 +16,6 @@
     overflow-y: auto;
 }
 
-ul {
-    padding: 0;
-    list-style-type: none;
-}
-
-.suggestion {
-    display: grid;
-    grid-template-columns: 30px auto;
-    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
-    grid-template-areas: "img name" "from prefix"  "desc description";
-    grid-auto-flow: column;
-    align-items: center;
-    column-gap: 7px;
-    row-gap: 0;
-    background-color: #b3b3b3;
-    margin: 0.5em;
-    padding: 0 8px 0 8px;
-}
-
-.suggestion p {
-    font-family: 'Roboto Condensed', sans-serif;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
 .grid-name {
     grid-area: name;
 }
@@ -65,25 +40,6 @@ ul {
 .grid-prefix {
     grid-area: prefix;
     align-self: start;
-}
-
-.itemviewer {
-    display: grid;
-    grid-template-columns: 30px auto;
-    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
-    grid-template-areas: "img name" "from prefix" "desc description";
-    grid-auto-flow: column;
-    align-items: center;
-    column-gap: 7px;
-    row-gap: 0;
-    margin: 0.5em;
-    padding: 0 8px 0 8px;
-}
-
-.itemviewer p {
-    font-family: 'Roboto Condensed', sans-serif;
-    margin-top: 5px;
-    margin-bottom: 5px;
 }
 
 .light {
