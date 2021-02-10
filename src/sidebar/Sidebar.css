@@ -1,0 +1,95 @@
+:root {
+    --sidebarSize: 300px;
+}
+
+.sidebar {
+    height: 100%;
+    width: var(--sidebarSize);
+    position: fixed;
+    display: inline-block;
+    z-index: 1;
+    float: right;
+    top: 0;
+    right: 0;
+    background-color: darkgrey;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+.suggestion {
+    display: grid;
+    grid-template-columns: 30px auto;
+    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
+    grid-template-areas: "img name" "from prefix"  "desc description";
+    grid-auto-flow: column;
+    align-items: center;
+    column-gap: 7px;
+    row-gap: 0;
+    background-color: #b3b3b3;
+    margin: 0.5em;
+    padding: 0 8px 0 8px;
+}
+
+.suggestion p {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.grid-name {
+    grid-area: name;
+}
+
+.grid-img {
+    grid-area: img;
+}
+
+.grid-desc {
+    grid-area: desc;
+}
+
+.grid-description {
+    grid-area: description;
+}
+
+.grid-from {
+    grid-area: from;
+    justify-self: end;
+}
+
+.grid-prefix {
+    grid-area: prefix;
+    align-self: start;
+}
+
+.itemviewer {
+    display: grid;
+    grid-template-columns: 30px auto;
+    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
+    grid-template-areas: "img name" "from prefix" "desc description";
+    grid-auto-flow: column;
+    align-items: center;
+    column-gap: 7px;
+    row-gap: 0;
+    margin: 0.5em;
+    padding: 0 8px 0 8px;
+}
+
+.itemviewer p {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.light {
+    color: #999999;
+}
+
+.small {
+    font-size: small;
+}
