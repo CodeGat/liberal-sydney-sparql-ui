@@ -9,7 +9,8 @@ export default class SideBar extends React.Component {
     super(props);
     this.state = {
       info: {},
-      infoLoaded: false
+      infoLoaded: false,
+      basePrefix: ''
     };
   }
 
@@ -31,6 +32,16 @@ export default class SideBar extends React.Component {
       },
       error => this.setState({infoLoaded: true, error})
     );
+
+    submitQuery(base_url, "SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1"
+    ).then(
+      response => {
+        const results = response.results.bindings;
+
+        if (results.length > 0) this.setState({basePrefix: results[0].s.value})
+      },
+      error => console.warn("Something else went wrong while finding the base prefix: " + error)
+    );
   }
 
   handleSelectedItemChange(event){
@@ -39,11 +50,11 @@ export default class SideBar extends React.Component {
 
   render(){
     const { content, type, id } = this.props.selected;
-    const { info, infoLoaded } = this.state;
+    const { info, infoLoaded, basePrefix } = this.state;
 
     return (
       <div className="sidebar">
-        <SelectedItemViewer type={type} content={content}
+        <SelectedItemViewer type={type} content={content} basePrefix={basePrefix}
                             info={info} infoLoaded={infoLoaded} />
         <SuggestiveSearch id={id} type={type} content={content}
                           info={info} infoLoaded={infoLoaded} />

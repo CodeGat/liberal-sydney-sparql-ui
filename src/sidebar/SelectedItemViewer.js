@@ -15,11 +15,13 @@ export default class SelectedItemViewer extends React.Component {
   }
 
   render() {
-    const { type, content } = this.props;
+    const { type, content, basePrefix } = this.props;
 
     if (type === "uri") {
       // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //todo: used for full uris!
-      const [prefix, name] = content.split(':');
+      let [prefix, name] = content.split(':');
+
+      if (prefix === '') prefix = basePrefix;
 
       return (<SelectedUriItemViewer type={type} prefix={prefix} name={name}/>);
     } else if (type === "unknown") {
