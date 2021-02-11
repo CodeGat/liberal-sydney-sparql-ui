@@ -1,6 +1,7 @@
 import React from "react";
 import './Sidebar.css';
 import './SelectedItemViewer.css';
+import { fetchExpansionOfPrefix } from "./UtilityFunctions";
 import nodeImg from "./node_icon_known.png";
 import arrowImg from "./arrow_icon_black.png";
 import litImg from "./literal_icon_known.png";
@@ -11,17 +12,42 @@ import noneImg from "./none_icon.png";
 export default class SelectedItemViewer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      expandedPrefix: '',
+      expandedPrefixLoaded: false
+    };
+  }
+
+  async componentDidUpdate(prevProps, prevState, snapshot) {
+    const { content } = this.props;
+
+    if (prevProps.content !== content) {
+      const [ prefix ] = content.split(':');
+
+      if (prefix !== '') {
+        fetchExpansionOfPrefix(prefix)
+          .then(
+            result =>
+              this.setState({
+               expandedPrefixLoaded: true,
+               expandedPrefix: result.success ? result.value : prefix}),
+            error =>
+              console.log("An error occurred during connection to the prefix server: " + error)
+          );
+      }
+    }
   }
 
   render() {
     const { type, content, basePrefix } = this.props;
+    const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
     if (type === "uri") {
       // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //todo: used for full uris!
       let [prefix, name] = content.split(':');
 
       if (prefix === '') prefix = basePrefix;
+      if (expandedPrefixLoaded) prefix = expandedPrefix;
 
       return (<SelectedUriItemViewer type={type} prefix={prefix} name={name}/>);
     } else if (type === "unknown") {
