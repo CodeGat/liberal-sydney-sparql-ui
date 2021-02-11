@@ -21,7 +21,7 @@ export async function submitQuery(url, query) {
 /**
  * Attempts to expand the given prefix from prefix.zazuko.com
  * @param prefix {string} - the prefix to expand
- * @returns {Promise<Response>}
+ * @returns {Promise<any>}
  */
 export async function fetchExpansionOfPrefix(prefix) {
   const encodedPrefix = encodeURIComponent(prefix + ":a");

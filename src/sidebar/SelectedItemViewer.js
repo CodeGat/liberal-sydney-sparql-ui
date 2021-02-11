@@ -151,8 +151,6 @@ function SelectedItemViewerImageHeader(props) {
       </>
     );
   } else {
-    console.log("Unknown type: " + type);
-
     return (
       <>
         <img className={"grid-img"} src={noneImg} alt={'unknown type icon'} />
@@ -173,7 +171,9 @@ function SelectedItemViewerPrefix(props) {
   );
 }
 
+//todo: infer properties based on connections to a ? node
 function SelectedItemViewerInferredProps(props) {
+  console.log(props);
   return null;
 }
 
