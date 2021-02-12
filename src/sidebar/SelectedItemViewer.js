@@ -18,7 +18,7 @@ export default class SelectedItemViewer extends React.Component {
     };
   }
 
-  async componentDidUpdate(prevProps, prevState, snapshot) {
+  componentDidUpdate(prevProps, prevState, snapshot) {
     const { content } = this.props;
 
     if (prevProps.content !== content) {
@@ -39,7 +39,7 @@ export default class SelectedItemViewer extends React.Component {
   }
 
   render() {
-    const { type, content, basePrefix } = this.props;
+    const { type, content, basePrefix, info, infoLoaded } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
     if (type === "uri") {
@@ -49,13 +49,21 @@ export default class SelectedItemViewer extends React.Component {
       if (prefix === '') prefix = basePrefix;
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
-      return (<SelectedUriItemViewer type={type} prefix={prefix} name={name}/>);
+      return (<SelectedUriItemViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
     } else if (type === "unknown") {
       return (<SelectedUnknownItemViewer type={type} content={content} />);
     } else if (type === "literal") {
       return (<SelectedLiteralItemViewer type={type} content={content} />);
     } else if (type === "edge") {
-      return (<SelectedEdgeItemViewer type={type} content={content} />); //todo: doesn't include distinction between ? and uri edges! look in edge
+      let [prefix, name] = content.split(':');
+
+      if (prefix === '') prefix = basePrefix;
+      if (expandedPrefixLoaded) prefix = expandedPrefix;
+
+      //todo: doesn't include distinction between ? and uri edges! look in edge
+      return (
+        <SelectedEdgeItemViewer type={type} prefix={prefix} name={name} content={content}
+                                info={info} infoLoaded={infoLoaded}/>);
     } else {
       return (<SelectedNullItemViewer type={type} content={content} />);
     }
@@ -63,13 +71,29 @@ export default class SelectedItemViewer extends React.Component {
 }
 
 function SelectedUriItemViewer(props) {
-  const { type, prefix, name } = props;
+  const { type, prefix, name, info, infoLoaded } = props;
+  //todo: might need to take into account different delimiters such as '.', '#', '/'.
+  const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
 
   return (
     <div className={'itemviewer'}>
       <SelectedItemViewerImageHeader type={type} name={name} />
       <SelectedItemViewerPrefix prefix={prefix} />
+      {infoLoaded && selectedUriInfo &&
+        <SelectedItemViewerDesc desc={selectedUriInfo} />
+      }
     </div>
+  );
+}
+
+function SelectedItemViewerDesc(props) {
+  const { desc } = props;
+
+  return (
+    <>
+      <p className={'grid-desc'}>Desc.</p>
+      <p className={'grid-description light small'}>{desc}</p>
+    </>
   );
 }
 
@@ -98,13 +122,18 @@ function SelectedLiteralItemViewer(props) {
 
 //todo: remember about the case of ? edges!
 function SelectedEdgeItemViewer(props) {
-  const { type, content } = props;
-  const [name, prefix] = content.split(":");
+  const { type, prefix, name, info, infoLoaded } = props;
+  const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
+
+  console.log(props);
 
   return (
     <div className={'itemviewer'}>
       <SelectedItemViewerImageHeader type={type} name={name} />
       <SelectedItemViewerPrefix prefix={prefix} />
+      {infoLoaded && selectedUriInfo &&
+        <SelectedItemViewerDesc desc={selectedUriInfo} />
+      }
     </div>
   );
 }

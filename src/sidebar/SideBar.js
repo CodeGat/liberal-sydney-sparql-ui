@@ -56,6 +56,7 @@ export default class SideBar extends React.Component {
       <div className="sidebar">
         <SelectedItemViewer type={type} content={content} basePrefix={basePrefix}
                             info={info} infoLoaded={infoLoaded} />
+        <hr />
         <SuggestiveSearch id={id} type={type} content={content}
                           info={info} infoLoaded={infoLoaded} />
       </div>
