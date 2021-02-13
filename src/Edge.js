@@ -5,12 +5,12 @@ import "./Edge.css";
 
 export default class Edge extends React.Component {
   static variants = {
-    unknown: isOpt => ({
+    edgeUnknown: isOpt => ({
       stroke: '#8e9094',
       strokeWidth: 3,
       strokeDasharray: isOpt ? 5 : 0
     }),
-    known: isOpt => ({
+    edgeKnown: isOpt => ({
       stroke: '#656669',
       strokeWidth: 3,
       strokeDasharray: isOpt ? 5 : 0
@@ -31,7 +31,10 @@ export default class Edge extends React.Component {
   }
 
   handleEntryExit = (e) => {
-    this.props.onSelectedItemChange(e.target.value);
+    const { id } = this.props;
+    const { type } = this.state;
+
+    this.props.onSelectedItemChange({type: type, id: id, content: e.target.value});
   }
 
   handleChangedText = (e) => {
@@ -39,9 +42,9 @@ export default class Edge extends React.Component {
     this.setState({content: changedText});
 
     if (changedText.match(/\?.*/)){
-      this.setState({type: "unknown"});
+      this.setState({type: "edgeUnknown"});
     } else {
-      this.setState({type: "known"});
+      this.setState({type: "edgeKnown"});
     }
   }
 
@@ -61,7 +64,7 @@ export default class Edge extends React.Component {
     return (
       <g>
         <motion.path d={def} markerEnd={"url(#arrow)"}
-                     variants={Edge.variants} initial='unknown' animate={type} custom={isOptional} />
+                     variants={Edge.variants} initial='edgeUnknown' animate={type} custom={isOptional} />
         <foreignObject x={labelX} y={labelY} width={Edge.labelWidth} height={Edge.labelHeight}>
           <motion.input className={"edgeLabel"} value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}
                         onClick={(e) => e.preventDefault()}/>
