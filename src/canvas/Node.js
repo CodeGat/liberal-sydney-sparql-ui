@@ -6,7 +6,7 @@ import "./Canvas.css";
 //todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   static variants = {
-    unknown: isOpt => ({
+    nodeUnknown: isOpt => ({
       fill: isOpt ? '#1e90ff' : '#0000fe',
       rx: 50,
       height: "100px",
@@ -15,7 +15,7 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    selectedunknown: isOpt => ({
+    nodeSelectedUnknown: isOpt => ({
       fill: isOpt ? '1e90ff' : '#0000fe',
       rx: 50,
       height: "100px",
@@ -24,7 +24,7 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    uri: isOpt => ({
+    nodeUri: isOpt => ({
       fill: isOpt ? '#4e4e4e' : '#bebebe',
       rx: 50,
       height: "100px",
@@ -33,7 +33,7 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    literal: isOpt => ({
+    nodeLiteral: isOpt => ({
       fill: isOpt ? '#bebebe' : '#4e4e4e',
       rx: 0,
       height: "100px",
@@ -42,13 +42,13 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    amalgam: {
+    nodeAmalgam: {
       fill: '#444444',
       height: "100px",
       width: "100px",
       rx: 10
     },
-    unf: {
+    nodeUnf: {
       width: '40px',
       height: '40px'
     },
@@ -108,11 +108,11 @@ export default class Node extends React.Component {
     this.setState({content: changedText});
 
     if (changedText.match(/".*".*|true|false|[+-]?\d+|[+-]?\d*\.\d+|[+-]?(\d+\.\d*[eE][+-]?\d+|\d+[eE][+-]?\d+)/)){
-      this.setState({type: 'literal'});
+      this.setState({type: 'nodeLiteral'});
     } else if (changedText.match(/.*:.*/)){
-      this.setState({type: 'uri'});
+      this.setState({type: 'nodeUri'});
     } else if (changedText.match(/\?.*/)) {
-      this.setState({type: 'unknown'});
+      this.setState({type: 'nodeUnknown'});
     }
   }
 
@@ -120,12 +120,12 @@ export default class Node extends React.Component {
     const { type, isOptional, content, adjustedX, adjustedY } = this.state;
     // const { mode, init } = this.props;
     const { mode } = this.props;
-    const currentNodeWidth = type.match(/uri|unknown/) ? Node.nodeWidth : Node.literalWidth;
+    const currentNodeWidth = type.match(/node(Uri|Unknown)/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
       <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
         <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
-                     variants={Node.variants} initial="unknown" animate={type} custom={isOptional}
+                     variants={Node.variants} initial="nodeUnknown" animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         <foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2} y={adjustedY + Node.labelHeight}
                        width={Node.labelWidth} height={Node.labelHeight}

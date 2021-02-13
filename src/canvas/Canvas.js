@@ -50,7 +50,7 @@ export default class Canvas extends React.Component {
     if (event.defaultPrevented) return;
 
     if (mode === "node") {
-      this.createNode(event, 'unknown');
+      this.createNode(event, 'nodeUnknown');
     } else if (mode === "edge") {
       this.completeEdge(event);
       this.createNode(event, 'placeholder');
