@@ -1,11 +1,9 @@
 import React from "react";
-import {submitQuery} from "./UtilityFunctions";
+import { submitQuery } from "./UtilityFunctions";
+import {ItemDesc, ItemImageHeader, ItemPrefix} from "./ItemViewerComponents";
 import {AnimateSharedLayout, motion} from "framer-motion";
 import './Sidebar.css';
 import './SuggestiveSearch.css';
-import nodeImg from "./node_icon_known.png";
-import litImg from "./literal_icon_known.png";
-import arrowImg from "./arrow_icon_known_black.png";
 
 export default class SuggestiveSearch extends React.Component {
   constructor(props) {
@@ -17,7 +15,6 @@ export default class SuggestiveSearch extends React.Component {
     };
   }
 
-  // todo: should node type be in there as well? aka, literal string, literal node, ... oh wait, it is!
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { id, type, content } = this.props;
 
@@ -25,9 +22,10 @@ export default class SuggestiveSearch extends React.Component {
       // generate new suggestions based on the current content
       let newSuggestions;
 
-      if (type === "edge") newSuggestions = this.generateSuggestionsForSelectedEdge(content);
-      else if (type === "datatype") newSuggestions = this.generateSuggestionsForSelectedDatatype(content);
-      else newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
+      if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content);
+      else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
+      else if (type.indexOf('datatype') !== -1) newSuggestions = this.generateSuggestionsForSelectedDatatype(content);
+      else console.warn("Couldn't find suggestions for the selected item as it's type is not known");
 
       this.setState({suggestions: newSuggestions});
     }
@@ -50,7 +48,7 @@ export default class SuggestiveSearch extends React.Component {
     for (let def of elementDefs) {
       if (def.elem.name === name) {
         suggestions.push({
-          type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'literal' : 'node',
+          type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeKnown',
           elem: def.range
         });
       }
@@ -87,7 +85,7 @@ export default class SuggestiveSearch extends React.Component {
 
     for (let def of elementDefs) {
       if (def.domain.name === name) {
-        suggestions.push({type: 'edge', elem: def.elem});
+        suggestions.push({type: 'edgeKnown', elem: def.elem});
       }
     }
 
@@ -145,20 +143,22 @@ function SuggestionWrapper(props) {
   const { type, elem } = props.suggestion;
   const { info } = props;
 
-  if (type === 'edge') {
+  //todo: investigate whether we can support suggestions of unknown things?
+  if (type.indexOf('edge') !== -1) {
     return (<SuggestionForSelectedNode type={type} property={elem} info={info}/>);
+  } else if (type.indexOf('node') !== -1) {
+    return (<SuggestionForSelectedEdge type={type} node={elem} info={info}/>);
   } else if (type === 'datatype') {
     return (<SuggestionForSelectedDatatype />);
   } else {
-    return (<SuggestionForSelectedEdge type={type} node={elem} info={info}/>);
+    console.warn("Suggestion type does not conform in SuggestionWrapper");
   }
 }
 
-//todo: can be literals, known, unknown, optional......
 function SuggestionForSelectedEdge(props) {
   const { type, node } = props;
 
-  if (type === 'literal') {
+  if (type === 'nodeLiteral') {
     return (<SuggestionAsLiteral node={node}/>);
   } else {
     const { info } = props;
@@ -178,15 +178,10 @@ function SuggestionAsNode(props) {
 
   return (
     <div className={'suggestion'}>
-      <img className={'grid-img'} src={nodeImg} alt={'known node icon'} />
-      <p className={'grid-name'}>{name}</p>
-      <p className={"grid-from small"}>From</p>
-      <p className={'grid-prefix light small'}>{prefix}</p>
+      <ItemImageHeader type={'nodeKnown'} name={name} />
+      <ItemPrefix prefix={prefix}/>
       {comment !== undefined &&
-      <>
-        <p className={'grid-desc small'}>Desc.</p>
-        <p className={'grid-description light small'}>{comment}</p>
-      </>
+        <ItemDesc desc={info} />
       }
     </div>
   );
@@ -197,10 +192,8 @@ function SuggestionAsLiteral(props) {
 
   return (
     <div className={'suggestion'}>
-      <img className={'grid-img'} src={litImg} alt={'known literal icon'} />
-      <p className={'grid-name'}>{name}</p>
-      <p className={'grid-from small'}>From</p>
-      <p className={'grid-prefix light small'}>{prefix}</p>
+      <ItemImageHeader type={'nodeLiteral'} name={name} />
+      <ItemPrefix prefix={prefix} />
     </div>
   );
 }
@@ -225,15 +218,10 @@ function SuggestionForSelectedNode(props) {
 
   return (
     <div className={'suggestion'}>
-      <img className={'grid-img'} src={arrowImg} alt={"known property icon"} />
-      <p className={'grid-name'}>{name}</p>
-      <p className={"grid-from small"}>From</p>
-      <p className={'grid-prefix light small'}>{prefix}</p>
+      <ItemImageHeader type={type} name={name} />
+      <ItemPrefix prefix={prefix} />
       {comment !== undefined &&
-      <>
-        <p className={'grid-desc small'}>Desc.</p>
-        <p className={'grid-description light small'}>{comment}</p>
-      </>
+        <ItemDesc desc={comment} />
       }
     </div>
   );
