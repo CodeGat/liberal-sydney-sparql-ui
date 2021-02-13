@@ -169,10 +169,9 @@ function SuggestionForSelectedEdge(props) {
 function SuggestionAsNode(props) {
   const { info, node } = props;
   const { prefix, name } = node;
-  let label, comment;
+  let comment;
 
   if (info) {
-    label = info.label;
     comment = info.comment;
   }
 
@@ -209,10 +208,9 @@ function SuggestionForSelectedDatatype(props) {
 function SuggestionForSelectedNode(props) {
   const { type, info } = props;
   const { prefix, name } = props.property;
-  let label, comment;
+  let comment;
 
   if (info) {
-    label = info.label;
     comment = info.comment;
   }
 
