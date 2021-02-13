@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import Canvas from "./canvas/Canvas";
 import SideBar from "./sidebar/SideBar";
+import {AnimateSharedLayout} from "framer-motion";
 
 class App extends React.Component {
   constructor(props) {
@@ -26,10 +27,12 @@ class App extends React.Component {
     const { selected } = this.state;
 
     return (
-      <div className="App">
-        <Canvas selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
-        <SideBar selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
-      </div>
+      <AnimateSharedLayout>
+        <div className="App">
+          <Canvas selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
+          <SideBar selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
+        </div>
+      </AnimateSharedLayout>
     );
   }
 }

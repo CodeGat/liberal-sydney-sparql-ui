@@ -1,7 +1,7 @@
 import React from "react";
 import { submitQuery } from "./UtilityFunctions";
 import {ItemDesc, ItemImageHeader, ItemPrefix} from "./ItemViewerComponents";
-import {AnimateSharedLayout, motion} from "framer-motion";
+import {motion} from "framer-motion";
 import './Sidebar.css';
 import './SuggestiveSearch.css';
 
@@ -126,14 +126,12 @@ export default class SuggestiveSearch extends React.Component {
 
     return (
       <div>
-        <AnimateSharedLayout>
-          <motion.ul layout>
-            {defsLoaded && infoLoaded && suggestions.map((s, ix) =>
-              <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
-            {(!defsLoaded || !infoLoaded) &&
-            <p>Loading...</p>}
-          </motion.ul>
-        </AnimateSharedLayout>
+        <motion.ul layout>
+          {defsLoaded && infoLoaded && suggestions.map((s, ix) =>
+            <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
+          {(!defsLoaded || !infoLoaded) &&
+          <p>Loading...</p>}
+        </motion.ul>
       </div>
     );
   }
@@ -176,13 +174,13 @@ function SuggestionAsNode(props) {
   }
 
   return (
-    <div className={'suggestion'}>
+    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={'nodeKnown'} name={name} />
       <ItemPrefix prefix={prefix}/>
       {comment !== undefined &&
         <ItemDesc desc={info} />
       }
-    </div>
+    </motion.div>
   );
 }
 
@@ -190,18 +188,18 @@ function SuggestionAsLiteral(props) {
   const { prefix, name } = props.node;
 
   return (
-    <div className={'suggestion'}>
+    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={'nodeLiteral'} name={name} />
       <ItemPrefix prefix={prefix} />
-    </div>
+    </motion.div>
   );
 }
 
 function SuggestionForSelectedDatatype(props) {
   return (
-    <div className={'suggestion'}>
+    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <p>Placeholder Datatype suggestion {props}</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -215,12 +213,13 @@ function SuggestionForSelectedNode(props) {
   }
 
   return (
-    <div className={'suggestion'}>
+    <motion.div className={'suggestion'}
+                layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={type} name={name} />
       <ItemPrefix prefix={prefix} />
       {comment !== undefined &&
         <ItemDesc desc={comment} />
       }
-    </div>
+    </motion.div>
   );
 }
