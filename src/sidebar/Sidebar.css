@@ -16,32 +16,6 @@
     overflow-y: auto;
 }
 
-.grid-name {
-    grid-area: name;
-}
-
-.grid-img {
-    grid-area: img;
-}
-
-.grid-desc {
-    grid-area: desc;
-}
-
-.grid-description {
-    grid-area: description;
-}
-
-.grid-from {
-    grid-area: from;
-    justify-self: end;
-}
-
-.grid-prefix {
-    grid-area: prefix;
-    align-self: start;
-}
-
 .light {
     color: #999999;
 }
