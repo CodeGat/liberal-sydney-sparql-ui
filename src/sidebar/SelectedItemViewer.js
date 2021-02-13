@@ -3,12 +3,13 @@ import './Sidebar.css';
 import './SelectedItemViewer.css';
 import { fetchExpansionOfPrefix } from "./UtilityFunctions";
 import nodeImg from "./node_icon_known.png";
-import arrowImg from "./arrow_icon_black.png";
+import arrowKnownImg from "./arrow_icon_known_black.png";
+import arrowUnknownImg from './arrow_icon_unknown_black.png'
 import litImg from "./literal_icon_known.png";
 import unkImg from "./node_icon_unknown.png";
 import noneImg from "./none_icon.png";
 
-//todo: desc, domain, range, from (in case of ?)
+//todo: domain, range, from (in case of ?)
 export default class SelectedItemViewer extends React.Component {
   constructor(props) {
     super(props);
@@ -42,35 +43,34 @@ export default class SelectedItemViewer extends React.Component {
     const { type, content, basePrefix, info, infoLoaded } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
-    if (type === "uri") {
+    if (type === "nodeUri") {
       // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //todo: used for full uris!
       let [prefix, name] = content.split(':');
 
       if (prefix === '') prefix = basePrefix;
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
-      return (<SelectedUriItemViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
-    } else if (type === "unknown") {
-      return (<SelectedUnknownItemViewer type={type} content={content} />);
-    } else if (type === "literal") {
-      return (<SelectedLiteralItemViewer type={type} content={content} />);
-    } else if (type === "edge") {
+      return (<SelectedUriNodeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
+    } else if (type === "nodeUnknown") {
+      return (<SelectedUnknownNodeViewer type={type} content={content} />);
+    } else if (type === "nodeLiteral") {
+      return (<SelectedLiteralNodeViewer type={type} content={content} />);
+    } else if (type === "edgeKnown") {
       let [prefix, name] = content.split(':');
 
       if (prefix === '') prefix = basePrefix;
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
-      //todo: doesn't include distinction between ? and uri edges! look in edge
-      return (
-        <SelectedEdgeItemViewer type={type} prefix={prefix} name={name} content={content}
-                                info={info} infoLoaded={infoLoaded}/>);
+      return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
+    } else if (type === "edgeUnknown") {
+      return(<SelectedUnknownEdgeViewer type={type} content={content} />);
     } else {
-      return (<SelectedNullItemViewer type={type} content={content} />);
+      return (<SelectedNullViewer type={type} content={content} />);
     }
   }
 }
 
-function SelectedUriItemViewer(props) {
+function SelectedUriNodeViewer(props) {
   const { type, prefix, name, info, infoLoaded } = props;
   //todo: might need to take into account different delimiters such as '.', '#', '/'.
   const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
@@ -97,7 +97,7 @@ function SelectedItemViewerDesc(props) {
   );
 }
 
-function SelectedUnknownItemViewer(props) {
+function SelectedUnknownNodeViewer(props) {
   const { type, content } = props;
   return (
     <div className={'itemviewer'}>
@@ -107,7 +107,7 @@ function SelectedUnknownItemViewer(props) {
   );
 }
 
-function SelectedLiteralItemViewer(props) {
+function SelectedLiteralNodeViewer(props) {
   const { type, content } = props;
 
   const name = content.match(/".*".*/) ? content.split(/(?=[^"]*$)/)[0] : content;
@@ -120,8 +120,18 @@ function SelectedLiteralItemViewer(props) {
   );
 }
 
-//todo: remember about the case of ? edges!
-function SelectedEdgeItemViewer(props) {
+function SelectedUnknownEdgeViewer(props) {
+  const { type, content } = props;
+
+  return (
+    <div className={'itemviewer'}>
+      <SelectedItemViewerImageHeader type={type} content={content} />
+      <SelectedItemViewerInferredProps />
+    </div>
+  );
+}
+
+function SelectedKnownEdgeViewer(props) {
   const { type, prefix, name, info, infoLoaded } = props;
   const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
 
@@ -138,7 +148,7 @@ function SelectedEdgeItemViewer(props) {
   );
 }
 
-function SelectedNullItemViewer(props) {
+function SelectedNullViewer(props) {
   const { type } = props;
 
   return (
@@ -151,17 +161,24 @@ function SelectedNullItemViewer(props) {
 function SelectedItemViewerImageHeader(props) {
   const { type, name } = props;
 
-  if (type === 'uri') {
+  if (type === 'nodeUri') {
     return (
       <>
         <img className={'grid-img'} src={nodeImg} alt={'selected known node icon'}/>
         <p className={'grid-name'}>{name}</p>
       </>
     );
-  } else if (type === 'edge') {
+  } else if (type === 'edgeKnown') {
     return (
       <>
-        <img className={'grid-img'} src={arrowImg} alt={'selected known edge icon'}/>
+        <img className={'grid-img'} src={arrowKnownImg} alt={'selected known edge icon'}/>
+        <p className={'grid-name'}>{name}</p>
+      </>
+    );
+  } else if (type === 'edgeUnknown') {
+    return (
+      <>
+        <img className={'grid-img'} src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
         <p className={'grid-name'}>{name}</p>
       </>
     );
