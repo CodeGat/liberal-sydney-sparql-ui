@@ -1,7 +1,7 @@
-import React from "react";
+import React, {useState} from "react";
 import { submitQuery } from "./UtilityFunctions";
 import {ItemDesc, ItemImageHeader, ItemPrefix} from "./ItemViewerComponents";
-import {motion} from "framer-motion";
+import {AnimatePresence, AnimateSharedLayout, motion} from "framer-motion";
 import './Sidebar.css';
 import './SuggestiveSearch.css';
 
@@ -126,71 +126,105 @@ export default class SuggestiveSearch extends React.Component {
 
     return (
       <div>
-        <motion.ul layout>
-          {defsLoaded && infoLoaded && suggestions.map((s, ix) =>
-            <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
-          {(!defsLoaded || !infoLoaded) &&
-          <p>Loading...</p>}
-        </motion.ul>
+        <AnimateSharedLayout>
+          <motion.ul layout>
+            {defsLoaded && infoLoaded && suggestions.map((s, ix) =>
+              <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
+            {(!defsLoaded || !infoLoaded) &&
+            <p>Loading...</p>}
+          </motion.ul>
+        </AnimateSharedLayout>
       </div>
     );
   }
 }
 
+//todo: maybe use more hooks like this?
 function SuggestionWrapper(props) {
   const { type, elem } = props.suggestion;
   const { info } = props;
 
+  const [isOpen, setIsOpen] = useState(false);
+  const toggleIsOpen = () => setIsOpen(!isOpen);
+
   //todo: investigate whether we can support suggestions of unknown things?
+  let Suggestion = null;
   if (type.indexOf('edge') !== -1) {
-    return (<SuggestionForSelectedNode type={type} property={elem} info={info}/>);
+    Suggestion = <SuggestionForSelectedNode type={type} property={elem} info={info} isOpen={isOpen} />;
   } else if (type.indexOf('node') !== -1) {
-    return (<SuggestionForSelectedEdge type={type} node={elem} info={info}/>);
+    Suggestion = <SuggestionForSelectedEdge type={type} node={elem} info={info} isOpen={isOpen} />;
   } else if (type === 'datatype') {
-    return (<SuggestionForSelectedDatatype />);
-  } else {
-    console.warn("Suggestion type does not conform in SuggestionWrapper");
-  }
+    Suggestion = <SuggestionForSelectedDatatype isOpen={isOpen} />;
+  } else console.warn("SuggestionWrapper cannot create a suggestion for the given type " + type);
+
+  return (
+    <motion.li layout onClick={toggleIsOpen}>
+      {Suggestion}
+    </motion.li>
+  );
 }
 
 function SuggestionForSelectedEdge(props) {
-  const { type, node } = props;
+  const { type, node, isOpen } = props;
 
   if (type === 'nodeLiteral') {
-    return (<SuggestionAsLiteral node={node}/>);
+    return (<SuggestionAsLiteral node={node} isOpen={isOpen} />);
   } else {
     const { info } = props;
-    return (<SuggestionAsNode node={node} info={info} />);
+    return (<SuggestionAsNode node={node} info={info} isOpen={isOpen} />);
   }
 }
 
-function SuggestionAsNode(props) {
-  const { info, node } = props;
-  const { prefix, name } = node;
-  let comment;
-
-  if (info) {
-    comment = info.comment;
+const variants = {
+  vis: {
+    opacity: 1,
+    transition: {
+      duration: 0.5
+    }
+  },
+  invis: {
+    opacity: 0,
+    transition: {
+      duration: 0.2
+    }
   }
+};
+
+function SuggestionAsNode(props) {
+  const { info, node, isOpen } = props;
+  const { prefix, name } = node;
 
   return (
     <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
-      <ItemImageHeader type={'nodeKnown'} name={name} />
-      <ItemPrefix prefix={prefix}/>
-      {comment !== undefined &&
-        <ItemDesc desc={info} />
-      }
+      <ItemImageHeader type={'nodeUri'} name={name} />
+      <AnimatePresence>
+        {isOpen &&
+          <motion.div layout className={"suggestion-extra extra"}
+                      variants={variants} initial={'invis'} animate={'vis'} exit={'invis'}>
+            <ItemPrefix prefix={prefix}/>
+            {info ? <ItemDesc desc={info.comment} /> : null }
+          </motion.div>
+        }
+      </AnimatePresence>
     </motion.div>
   );
 }
 
 function SuggestionAsLiteral(props) {
   const { prefix, name } = props.node;
+  const { isOpen } = props;
 
   return (
     <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={'nodeLiteral'} name={name} />
-      <ItemPrefix prefix={prefix} />
+      <AnimatePresence>
+        {isOpen &&
+          <motion.div layout className={'suggestion-extra extra'}
+                      variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
+            <ItemPrefix prefix={prefix} />
+          </motion.div>
+        }
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -198,28 +232,27 @@ function SuggestionAsLiteral(props) {
 function SuggestionForSelectedDatatype(props) {
   return (
     <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
-      <p>Placeholder Datatype suggestion {props}</p>
+      <motion.p>Placeholder Datatype suggestion {props}</motion.p>
     </motion.div>
   );
 }
 
 function SuggestionForSelectedNode(props) {
-  const { type, info } = props;
+  const { type, info, isOpen } = props;
   const { prefix, name } = props.property;
-  let comment;
-
-  if (info) {
-    comment = info.comment;
-  }
 
   return (
-    <motion.div className={'suggestion'}
-                layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
+    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={type} name={name} />
-      <ItemPrefix prefix={prefix} />
-      {comment !== undefined &&
-        <ItemDesc desc={comment} />
-      }
+      <AnimatePresence>
+        {isOpen &&
+          <motion.div layout className={'suggestion-extra extra'}
+                      variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
+            <ItemPrefix prefix={prefix} />
+            {info ? <ItemDesc desc={info.comment} /> : null}
+          </motion.div>
+        }
+      </AnimatePresence>
     </motion.div>
   );
 }
