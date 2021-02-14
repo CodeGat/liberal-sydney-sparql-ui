@@ -195,7 +195,8 @@ function SuggestionAsNode(props) {
   const { prefix, name } = node;
 
   return (
-    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
+    <motion.div className={'suggestion'} layout
+                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={'nodeUri'} name={name} />
       <AnimatePresence>
         {isOpen &&
@@ -215,7 +216,8 @@ function SuggestionAsLiteral(props) {
   const { isOpen } = props;
 
   return (
-    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
+    <motion.div className={'suggestion'} layout
+                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={'nodeLiteral'} name={name} />
       <AnimatePresence>
         {isOpen &&
@@ -231,7 +233,8 @@ function SuggestionAsLiteral(props) {
 
 function SuggestionForSelectedDatatype(props) {
   return (
-    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
+    <motion.div className={'suggestion'} layout
+                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <motion.p>Placeholder Datatype suggestion {props}</motion.p>
     </motion.div>
   );
@@ -242,7 +245,8 @@ function SuggestionForSelectedNode(props) {
   const { prefix, name } = props.property;
 
   return (
-    <motion.div className={'suggestion'} layout drag dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
+    <motion.div className={'suggestion'} layout
+                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
       <ItemImageHeader type={type} name={name} />
       <AnimatePresence>
         {isOpen &&
