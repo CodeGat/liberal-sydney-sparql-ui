@@ -196,7 +196,7 @@ function SuggestionAsNode(props) {
 
   return (
     <motion.div className={'suggestion'}>
-      <ItemImageHeader type={'nodeKnown'} name={name} />
+      <ItemImageHeader type={'nodeUri'} name={name} />
       <AnimatePresence>
         {isOpen &&
           <motion.div layout className={"suggestion-extra extra"}
