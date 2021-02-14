@@ -5,53 +5,26 @@ import litImg from "./literal_icon_known.png";
 import unkImg from "./node_icon_unknown.png";
 import noneImg from "./none_icon.png";
 import React from "react";
+import {motion} from "framer-motion";
 
 export function ItemImageHeader(props) {
   const { type, name } = props;
 
-  if (type === 'nodeUri') {
-    return (
-      <>
-        <img className={'grid-img'} src={nodeImg} alt={'selected known node icon'}/>
-        <p className={'grid-name'}>{name}</p>
-      </>
-    );
-  } else if (type === 'edgeKnown') {
-    return (
-      <>
-        <img className={'grid-img'} src={arrowKnownImg} alt={'selected known edge icon'}/>
-        <p className={'grid-name'}>{name}</p>
-      </>
-    );
-  } else if (type === 'edgeUnknown') {
-    return (
-      <>
-        <img className={'grid-img'} src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
-        <p className={'grid-name'}>{name}</p>
-      </>
-    );
-  } else if (type === 'nodeLiteral') {
-    return (
-      <>
-        <img className={'grid-img'} src={litImg} alt={'selected known literal icon'}/>
-        <p className={'grid-name'}>{name}</p>
-      </>
-    );
-  } else if (type === 'nodeUnknown') {
-    return (
-      <>
-        <img className={'grid-img'} src={unkImg} alt={'selected unknown node icon'} />
-        <p className={'grid-name'}>{name}</p>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <img className={"grid-img"} src={noneImg} alt={'unknown type icon'} />
-        <p className={'grid-name'}>{type === '' ? 'Nothing is currently selected' : 'Unknown selected item'}</p>
-      </>
-    );
-  }
+  let Image;
+  if (type === 'nodeUri') Image = <motion.img layout src={nodeImg} alt={'selected known node icon'}/>
+  else if (type === 'edgeKnown') Image = <motion.img layout src={arrowKnownImg} alt={'selected known edge icon'}/>
+  else if (type === 'edgeUnknown') Image = <motion.img layout src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
+  else if (type === 'nodeLiteral') Image = <motion.img layout src={litImg} alt={'selected known literal icon'}/>
+  else if (type === 'nodeUnknown') Image = <motion.img layout src={unkImg} alt={'selected unknown node icon'}/>
+  else if (type === 'edgeUnknown') Image = <motion.img layout src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
+  else Image = <motion.img layout src={noneImg} alt={'unknown type icon'} />
+
+  return (
+    <>
+      {Image}
+      <motion.p layout>{type === '' ? "Nothing currently selected" : name}</motion.p>
+    </>
+  );
 }
 
 export function ItemPrefix(props) {
@@ -59,8 +32,8 @@ export function ItemPrefix(props) {
 
   return (
     <>
-      <p className={'grid-from'}>From</p>
-      <p className={'grid-prefix light small'}>{prefix}</p>
+      <motion.p layout>From</motion.p>
+      <motion.p layout className={'light small'}>{prefix}</motion.p>
     </>
   );
 }
@@ -70,8 +43,8 @@ export function ItemDesc(props) {
 
   return (
     <>
-      <p className={'grid-desc'}>Desc.</p>
-      <p className={'grid-description light small'}>{desc}</p>
+      <motion.p layout>Desc.</motion.p>
+      <motion.p layout className={'light small'}>{desc}</motion.p>
     </>
   );
 }
@@ -98,8 +71,8 @@ export function ItemLiteralType(props) {
 
   return (
     <>
-      <p>Type</p>
-      <p>{type}</p>
+      <motion.p layout>Type</motion.p>
+      <motion.p layout>{type}</motion.p>
     </>
   );
 }

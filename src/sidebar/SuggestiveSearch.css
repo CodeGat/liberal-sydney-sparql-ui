@@ -6,9 +6,8 @@ ul {
 .suggestion {
     display: grid;
     grid-template-columns: 30px auto;
-    grid-template-rows: minmax(30px, auto) minmax(30px, auto);
-    grid-template-areas: "img name" "from prefix"  "desc description";
-    grid-auto-flow: column;
+    grid-template-rows: minmax(30px, auto);
+    grid-auto-flow: row;
     align-items: center;
     column-gap: 7px;
     row-gap: 0;
@@ -23,3 +22,24 @@ ul {
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
+.extra {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+}
+
+.suggestion-extra {
+    display: grid;
+    grid-template-columns: 30px auto;
+    grid-template-rows: minmax(30px, auto);
+    column-gap: 7px;
+    row-gap: 0;
+}
+
+.suggestion-extra p {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+
