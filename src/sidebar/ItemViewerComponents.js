@@ -17,12 +17,12 @@ export function ItemImageHeader(props) {
   else if (type === 'nodeLiteral') Image = <motion.img layout src={litImg} alt={'selected known literal icon'}/>
   else if (type === 'nodeUnknown') Image = <motion.img layout src={unkImg} alt={'selected unknown node icon'}/>
   else if (type === 'edgeUnknown') Image = <motion.img layout src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
-  else Image = <motion.img layout src={noneImg} alt={'unknown type icon'} />
+  else Image = <motion.img layout drag src={noneImg} alt={'unknown type icon'} />
 
   return (
     <>
       {Image}
-      <motion.p layout>{type === '' ? "Nothing currently selected" : name}</motion.p>
+      <p>{type === '' ? "Nothing currently selected" : name}</p>
     </>
   );
 }
@@ -32,8 +32,8 @@ export function ItemPrefix(props) {
 
   return (
     <>
-      <motion.p layout>From</motion.p>
-      <motion.p layout className={'light small'}>{prefix}</motion.p>
+      <p>From</p>
+      <p className={'light small'}>{prefix}</p>
     </>
   );
 }
@@ -43,8 +43,8 @@ export function ItemDesc(props) {
 
   return (
     <>
-      <motion.p layout>Desc.</motion.p>
-      <motion.p layout className={'light small'}>{desc}</motion.p>
+      <p >Desc.</p>
+      <p className={'light small'}>{desc}</p>
     </>
   );
 }
@@ -71,8 +71,8 @@ export function ItemLiteralType(props) {
 
   return (
     <>
-      <motion.p layout>Type</motion.p>
-      <motion.p layout>{type}</motion.p>
+      <p>Type</p>
+      <p>{type}</p>
     </>
   );
 }

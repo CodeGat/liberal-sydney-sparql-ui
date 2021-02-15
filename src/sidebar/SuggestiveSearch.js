@@ -250,7 +250,7 @@ function SuggestionForSelectedNode(props) {
       <ItemImageHeader type={type} name={name} />
       <AnimatePresence>
         {isOpen &&
-          <motion.div layout className={'suggestion-extra extra'}
+          <motion.div className={'suggestion-extra extra'}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
             <ItemPrefix prefix={prefix} />
             {info ? <ItemDesc desc={info.comment} /> : null}
