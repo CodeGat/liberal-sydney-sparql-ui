@@ -49,12 +49,16 @@ export default class Node extends React.Component {
       rx: 10
     },
     nodeUnf: {
+      fill: '#0000fe',
       width: '40px',
-      height: '40px'
+      height: '40px',
+      rx: 70
     },
   };
   static nodeHeight = 100;
   static nodeWidth = 100;
+  static unfWidth = 40;
+  static unfHeight = 40;
   static literalWidth = 200;
   static labelHeight = 30;
   static labelWidth = 150;
@@ -66,8 +70,8 @@ export default class Node extends React.Component {
       isOptional: false,
       prefix: '',
       content: '?',
-      adjustedX: props.x - Node.nodeWidth / 2,
-      adjustedY: props.y - Node.nodeHeight / 2
+      adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
+      adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2
     };
   }
 
@@ -118,22 +122,24 @@ export default class Node extends React.Component {
 
   render(){
     const { type, isOptional, content, adjustedX, adjustedY } = this.state;
-    // const { mode, init } = this.props;
-    const { mode } = this.props;
+    const { mode, init } = this.props;
+
     const currentNodeWidth = type.match(/node(Uri|Unknown)/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
       <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
         <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
-                     variants={Node.variants} initial="nodeUnknown" animate={type} custom={isOptional}
+                     variants={Node.variants} initial={init} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
-        <foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2} y={adjustedY + Node.labelHeight}
-                       width={Node.labelWidth} height={Node.labelHeight}
-                       pointerEvents={mode === "edge" ? "none" : "auto"} >
-          <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
-                        onChange={this.handleChangedText} onBlur={this.handleEntryExit}
-                        onClick={(e) => e.preventDefault()}/>
-        </foreignObject>
+        {type !== 'nodeUnf' &&
+          <foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2} y={adjustedY + Node.labelHeight}
+                         width={Node.labelWidth} height={Node.labelHeight}
+                         pointerEvents={mode === "edge" ? "none" : "auto"} >
+            <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
+                          onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+                          onClick={(e) => e.preventDefault()}/>
+          </foreignObject>
+        }
       </motion.g>
     );
   }
