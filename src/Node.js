@@ -6,7 +6,7 @@ import "./Canvas.css";
 //todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   static variants = {
-    unknown: isOpt => ({
+    nodeUnknown: isOpt => ({
       fill: isOpt ? '#1e90ff' : '#0000fe',
       rx: 50,
       height: "100px",
@@ -15,7 +15,7 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    selectedunknown: isOpt => ({
+    nodeSelectedUnknown: isOpt => ({
       fill: isOpt ? '1e90ff' : '#0000fe',
       rx: 50,
       height: "100px",
@@ -24,7 +24,7 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    uri: isOpt => ({
+    nodeUri: isOpt => ({
       fill: isOpt ? '#4e4e4e' : '#bebebe',
       rx: 50,
       height: "100px",
@@ -33,7 +33,7 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    literal: isOpt => ({
+    nodeLiteral: isOpt => ({
       fill: isOpt ? '#bebebe' : '#4e4e4e',
       rx: 0,
       height: "100px",
@@ -42,19 +42,23 @@ export default class Node extends React.Component {
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
-    amalgam: {
+    nodeAmalgam: {
       fill: '#444444',
       height: "100px",
       width: "100px",
       rx: 10
     },
-    unf: {
+    nodeUnf: {
+      fill: '#0000fe',
       width: '40px',
-      height: '40px'
+      height: '40px',
+      rx: 70
     },
   };
   static nodeHeight = 100;
   static nodeWidth = 100;
+  static unfWidth = 40;
+  static unfHeight = 40;
   static literalWidth = 200;
   static labelHeight = 30;
   static labelWidth = 150;
@@ -66,19 +70,19 @@ export default class Node extends React.Component {
       isOptional: false,
       prefix: '',
       content: '?',
-      adjustedX: props.x - Node.nodeWidth / 2,
-      adjustedY: props.y - Node.nodeHeight / 2
+      adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
+      adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2
     };
   }
 
   handleEntryExit = (e) => {
     const { mode, edgeCompleting, id } = this.props;
-    const { content } = this.state;
+    const { content, type } = this.state;
     e.preventDefault();
 
     if (mode === "edge") {
       const { x, y } = this.props;
-      const { isOptional, type, adjustedX, adjustedY } = this.state;
+      const { isOptional, adjustedX, adjustedY } = this.state;
 
       if (edgeCompleting){ // we finish the edge here
         const variant = Node.variants[type](isOptional);
@@ -99,7 +103,7 @@ export default class Node extends React.Component {
         this.props.onEdgeCreation(e, info, shape);
       }
     } else {
-      this.props.onSelectedItemChange({id: id, content: content});
+      this.props.onSelectedItemChange({type: type, id: id, content: content});
     }
   }
 
@@ -108,31 +112,34 @@ export default class Node extends React.Component {
     this.setState({content: changedText});
 
     if (changedText.match(/".*".*|true|false|[+-]?\d+|[+-]?\d*\.\d+|[+-]?(\d+\.\d*[eE][+-]?\d+|\d+[eE][+-]?\d+)/)){
-      this.setState({type: 'literal'});
+      this.setState({type: 'nodeLiteral'});
     } else if (changedText.match(/.*:.*/)){
-      this.setState({type: 'uri'});
+      this.setState({type: 'nodeUri'});
     } else if (changedText.match(/\?.*/)) {
-      this.setState({type: 'unknown'});
+      this.setState({type: 'nodeUnknown'});
     }
   }
 
   render(){
     const { type, isOptional, content, adjustedX, adjustedY } = this.state;
     const { mode, init } = this.props;
-    const currentNodeWidth = type.match(/uri|unknown/) ? Node.nodeWidth : Node.literalWidth;
+
+    const currentNodeWidth = type.match(/node(Uri|Unknown)/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
       <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
         <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
-                     variants={Node.variants} initial="unknown" animate={type} custom={isOptional}
+                     variants={Node.variants} initial={init} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
-        <foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2} y={adjustedY + Node.labelHeight}
-                       width={Node.labelWidth} height={Node.labelHeight}
-                       pointerEvents={mode === "edge" ? "none" : "auto"} >
-          <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
-                        onChange={this.handleChangedText} onBlur={this.handleEntryExit}
-                        onClick={(e) => e.preventDefault()}/>
-        </foreignObject>
+        {type !== 'nodeUnf' &&
+          <foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2} y={adjustedY + Node.labelHeight}
+                         width={Node.labelWidth} height={Node.labelHeight}
+                         pointerEvents={mode === "edge" ? "none" : "auto"} >
+            <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
+                          onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+                          onClick={(e) => e.preventDefault()}/>
+          </foreignObject>
+        }
       </motion.g>
     );
   }
