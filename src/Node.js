@@ -71,7 +71,8 @@ export default class Node extends React.Component {
       prefix: '',
       content: '?',
       adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
-      adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2
+      adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2,
+      filters: []
     };
   }
 
@@ -127,7 +128,8 @@ export default class Node extends React.Component {
     const currentNodeWidth = type.match(/node(Uri|Unknown)/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
-      <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
+      <motion.g layout drag dragMomentum={false} whileHover={{scale: 1.2}} >
+        <FilterBubble x={adjustedX} y={adjustedY} />
         <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
                      variants={Node.variants} initial={init} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
@@ -141,6 +143,65 @@ export default class Node extends React.Component {
           </foreignObject>
         }
       </motion.g>
+    );
+  }
+}
+
+class FilterBubble extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      variant: 'vis'
+    };
+  }
+
+  static bubbleVariants = {
+    invis: {
+      opacity: 0,
+      rx: 50,
+      ry: 50,
+      width: 40,
+      height: 40
+    },
+    vis: {
+      opacity: 1,
+      rx: 50,
+      ry: 50,
+      width: 40,
+      height: 40
+    },
+    open: {
+      opacity: 1
+    }
+  };
+  static filterVariants = {
+    invis: {
+      opacity: 0,
+      pathLength: 0
+    },
+    vis: {
+      opacity: 1,
+      pathLength: 1
+    },
+    open: {
+
+    }
+  };
+
+  render() {
+    const { x, y } = this.props;
+    const { variant } = this.state;
+
+    return (
+      <g>
+        <motion.rect className={"filter-bubble"} x={x} y={y}
+                     variants={FilterBubble.bubbleVariants} initial={"invis"} animate={variant} />
+        <svg width={40} height={40} >
+          <motion.path className={"filter-icon"} d={"M18 26 L18 18 L10 10 L30 10 L22 18 L22 30 L18 26 Z"}
+                       stroke={'#000000'}
+                       variants={FilterBubble.filterVariants} initial={'invis'} animate={variant} />
+        </svg>
+      </g>
     );
   }
 }
