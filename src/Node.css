@@ -15,3 +15,12 @@
     font-family: 'Roboto Condensed', sans-serif;
     font-size: larger;
 }
+
+.filter-bubble {
+    fill: #e8da43;
+}
+
+.filter-icon {
+    stroke: black;
+    fill: transparent;
+}

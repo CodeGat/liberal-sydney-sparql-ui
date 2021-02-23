@@ -72,7 +72,8 @@ export default class Node extends React.Component {
       content: '?',
       adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
       adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2,
-      filters: []
+      filters: [],
+      hovering: false
     };
   }
 
@@ -121,26 +122,34 @@ export default class Node extends React.Component {
     }
   }
 
+  toggleHovering = () => {
+    this.setState(old => ({hovering: !old.hovering}));
+  }
+
   render(){
-    const { type, isOptional, content, adjustedX, adjustedY } = this.state;
+    const { type, isOptional, content, adjustedX, adjustedY, hovering } = this.state;
     const { mode, init } = this.props;
 
     const currentNodeWidth = type.match(/node(Uri|Unknown)/) ? Node.nodeWidth : Node.literalWidth;
 
     return (
-      <motion.g layout drag dragMomentum={false} whileHover={{scale: 1.2}} >
-        <FilterBubble x={adjustedX} y={adjustedY} />
-        <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
+      <motion.g layout drag dragMomentum={false} whileHover={{scale: 1.2}}>
+        <motion.rect layout x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
+                     onHoverStart={this.toggleHovering} onHoverEnd={this.toggleHovering}
                      variants={Node.variants} initial={init} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
-          <foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2} y={adjustedY + Node.labelHeight}
-                         width={Node.labelWidth} height={Node.labelHeight}
-                         pointerEvents={mode === "edge" ? "none" : "auto"} >
-            <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
-                          onChange={this.handleChangedText} onBlur={this.handleEntryExit}
-                          onClick={(e) => e.preventDefault()}/>
-          </foreignObject>
+          <>
+            <motion.foreignObject x={adjustedX - (Node.labelWidth - currentNodeWidth) / 2}
+                                  y={adjustedY + Node.labelHeight}
+                                  width={Node.labelWidth} height={Node.labelHeight}
+                                  pointerEvents={mode === "edge" ? "none" : "auto"} >
+              <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
+                            onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+                            onClick={(e) => e.preventDefault()}/>
+            </motion.foreignObject>
+            <FilterBubble x={adjustedX} y={adjustedY} hovering={hovering} nodeWidth={currentNodeWidth} />
+          </>
         }
       </motion.g>
     );
@@ -151,56 +160,78 @@ class FilterBubble extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      variant: 'vis'
+      variant: 'closed'
     };
   }
 
   static bubbleVariants = {
-    invis: {
-      opacity: 0,
+    closed: {
       rx: 50,
       ry: 50,
       width: 40,
       height: 40
+    },
+    simple: {
+      rx: 10,
+      ry: 10,
+      width: 150,
+      height: 40,
+      opacity: 1
+    },
+    extended: {
+      rx: 10,
+      ry: 10,
+      width: 500,
+      height: 500,
+      opacity: 1
     },
     vis: {
-      opacity: 1,
-      rx: 50,
-      ry: 50,
-      width: 40,
-      height: 40
-    },
-    open: {
       opacity: 1
+    },
+    invis: {
+      opacity: 0
     }
   };
   static filterVariants = {
-    invis: {
-      opacity: 0,
-      pathLength: 0
-    },
     vis: {
-      opacity: 1,
-      pathLength: 1
+      opacity: 1
     },
-    open: {
-
+    invis: {
+      opacity: 0
     }
-  };
+  }
+
+  toggleVariant = () => {
+    const { variant } = this.state;
+
+    if (variant !== 'extended'){
+      this.setState({variant: variant === 'closed' ? 'simple' : 'closed' });
+    }
+  }
+
+  changeVariantToExtended = () => {
+    this.setState({variant: 'extended'});
+  }
 
   render() {
-    const { x, y } = this.props;
+    const { x, y, hovering, nodeWidth } = this.props;
     const { variant } = this.state;
+    const visibility = hovering ? 'vis' : 'invis';
 
     return (
       <g>
-        <motion.rect className={"filter-bubble"} x={x} y={y}
-                     variants={FilterBubble.bubbleVariants} initial={"invis"} animate={variant} />
-        <svg width={40} height={40} >
+        <motion.rect className={"filter-bubble"} x={(x + nodeWidth / 2 + 10) / 2} y={(y + 60) / 2}
+                     variants={FilterBubble.bubbleVariants}
+                     initial={['invis', 'closed']} animate={[visibility, variant]}
+                     onHoverStart={this.toggleVariant} onHoverEnd={this.toggleVariant}
+                     onClickCapture={this.changeVariantToExtended} />
+        <svg x={x + nodeWidth / 2 + 10} y={y + 60} width={40} height={40} >
           <motion.path className={"filter-icon"} d={"M18 26 L18 18 L10 10 L30 10 L22 18 L22 30 L18 26 Z"}
-                       stroke={'#000000'}
-                       variants={FilterBubble.filterVariants} initial={'invis'} animate={variant} />
+                       variants={FilterBubble.filterVariants} initial={'invis'} animate={visibility} />
         </svg>
+        {
+
+        }
       </g>
     );
   }
