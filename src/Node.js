@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { motion } from "framer-motion";
 import "./Node.css";
 import "./Canvas.css";
@@ -148,7 +148,7 @@ export default class Node extends React.Component {
                             onChange={this.handleChangedText} onBlur={this.handleEntryExit}
                             onClick={(e) => e.preventDefault()}/>
             </motion.foreignObject>
-            <FilterBubble x={adjustedX} y={adjustedY} hovering={hovering} nodeWidth={currentNodeWidth} />
+            <FilterWrapper x={adjustedX} y={adjustedY} hovering={hovering} nodeWidth={currentNodeWidth} />
           </>
         }
       </motion.g>
@@ -156,15 +156,41 @@ export default class Node extends React.Component {
   }
 }
 
-class FilterBubble extends React.Component {
+class FilterWrapper extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      variant: 'closed'
-    };
+      type: 'closed',
+      filters: []
+    }
   }
 
-  static bubbleVariants = {
+  toggleWrapperType = (type) => {
+    console.log(type);
+    this.setState({type: type});
+  }
+
+  render() {
+    const { x, y, hovering, nodeWidth } = this.props;
+    const { type } = this.state;
+
+    if (type !== 'extended') {
+      return (
+        <FilterBubble x={x} y={y} hovering={hovering} nodeWidth={nodeWidth} variant={type}
+                      onChangeWrapperToExtended={this.toggleWrapperType('extended')}
+                      onChangeWrapperToSimple={this.toggleWrapperType('simple')}
+                      onChangeWrapperToClosed={this.toggleWrapperType('closed')}/>
+      );
+    } else {
+      return (
+        <FilterPage onChangeWrapperToSimple={this.toggleWrapperType('simple')}/>
+      );
+    }
+  }
+}
+
+function FilterBubble(props) {
+  const bubbleVariants = {
     closed: {
       rx: 50,
       ry: 50,
@@ -178,13 +204,6 @@ class FilterBubble extends React.Component {
       height: 40,
       opacity: 1
     },
-    extended: {
-      rx: 10,
-      ry: 10,
-      width: 500,
-      height: 500,
-      opacity: 1
-    },
     vis: {
       opacity: 1
     },
@@ -192,7 +211,7 @@ class FilterBubble extends React.Component {
       opacity: 0
     }
   };
-  static filterVariants = {
+  const filterVariants = {
     vis: {
       opacity: 1
     },
@@ -200,39 +219,30 @@ class FilterBubble extends React.Component {
       opacity: 0
     }
   }
+  const { x, y, hovering, nodeWidth, variant } = props;
+  const visibility = hovering ? 'vis' : 'invis';
 
-  toggleVariant = () => {
-    const { variant } = this.state;
+  return (
+    <g>
+      <motion.rect className={"filter-bubble"} x={(x + nodeWidth / 2 + 10) / 2} y={(y + 60) / 2}
+                   variants={bubbleVariants}
+                   initial={['invis', 'closed']} animate={[visibility, variant]}
+                   onHoverStart={props.onChangeWrapperToSimple} onHoverEnd={props.onChangeWrapperToClosed}
+                   onClickCapture={props.onChangeWrapperToExtended} />
+      <svg x={x + nodeWidth / 2 + 10} y={y + 60} width={40} height={40} >
+        <motion.path className={"filter-icon"} d={"M18 26 L18 18 L10 10 L30 10 L22 18 L22 30 L18 26 Z"}
+                     variants={filterVariants} initial={'invis'} animate={visibility} />
+      </svg>
+    </g>
+  );
+}
 
-    if (variant !== 'extended'){
-      this.setState({variant: variant === 'closed' ? 'simple' : 'closed' });
-    }
-  }
-
-  changeVariantToExtended = () => {
-    this.setState({variant: 'extended'});
+class FilterPage extends React.Component {
+  constructor(props) {
+    super(props);
   }
 
   render() {
-    const { x, y, hovering, nodeWidth } = this.props;
-    const { variant } = this.state;
-    const visibility = hovering ? 'vis' : 'invis';
-
-    return (
-      <g>
-        <motion.rect className={"filter-bubble"} x={(x + nodeWidth / 2 + 10) / 2} y={(y + 60) / 2}
-                     variants={FilterBubble.bubbleVariants}
-                     initial={['invis', 'closed']} animate={[visibility, variant]}
-                     onHoverStart={this.toggleVariant} onHoverEnd={this.toggleVariant}
-                     onClickCapture={this.changeVariantToExtended} />
-        <svg x={x + nodeWidth / 2 + 10} y={y + 60} width={40} height={40} >
-          <motion.path className={"filter-icon"} d={"M18 26 L18 18 L10 10 L30 10 L22 18 L22 30 L18 26 Z"}
-                       variants={FilterBubble.filterVariants} initial={'invis'} animate={visibility} />
-        </svg>
-        {
-
-        }
-      </g>
-    );
+    return null;
   }
 }
