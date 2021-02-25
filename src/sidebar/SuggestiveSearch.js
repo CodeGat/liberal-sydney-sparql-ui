@@ -200,7 +200,7 @@ function SuggestionAsNode(props) {
       <ItemImageHeader type={'nodeUri'} name={name} />
       <AnimatePresence>
         {isOpen &&
-          <motion.div layout className={"suggestion-extra extra"}
+          <motion.div className={"suggestion-extra extra"}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'}>
             <ItemPrefix prefix={prefix}/>
             {info ? <ItemDesc desc={info.comment} /> : null }
@@ -221,7 +221,7 @@ function SuggestionAsLiteral(props) {
       <ItemImageHeader type={'nodeLiteral'} name={name} />
       <AnimatePresence>
         {isOpen &&
-          <motion.div layout className={'suggestion-extra extra'}
+          <motion.div className={'suggestion-extra extra'}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
             <ItemPrefix prefix={prefix} />
           </motion.div>

@@ -43,7 +43,7 @@ export function ItemDesc(props) {
 
   return (
     <>
-      <p >Desc.</p>
+      <p>Desc.</p>
       <p className={'light small'}>{desc}</p>
     </>
   );
