@@ -72,7 +72,7 @@ export default class Node extends React.Component {
       content: '?',
       adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
       adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2,
-      filters: [],
+      filter: '',
       hovering: false
     };
   }
@@ -131,11 +131,16 @@ export default class Node extends React.Component {
   }
 
   updateHoveringFromFilter = (isHoveringOverFilter) => {
+    console.log(this.state.hovering + " || " + isHoveringOverFilter);
     this.setState(old => ({hovering: old.hovering || isHoveringOverFilter}));
   }
 
+  updateFilter = (newFilter) => {
+    this.setState({filter: newFilter});
+  }
+
   render(){
-    const { type, isOptional, content, adjustedX, adjustedY, hovering } = this.state;
+    const { type, isOptional, content, adjustedX, adjustedY, hovering, filter } = this.state;
     const { mode, init } = this.props;
 
     const currentNodeWidth = type.match(/node(Uri|Unknown)/) ? Node.nodeWidth : Node.literalWidth;
@@ -156,8 +161,8 @@ export default class Node extends React.Component {
                             onChange={this.handleChangedText} onBlur={this.handleEntryExit}
                             onClick={(e) => e.preventDefault()}/>
             </motion.foreignObject>
-            <FilterWrapper x={adjustedX} y={adjustedY} hovering={hovering} nodeWidth={currentNodeWidth}
-                           onHoveringOnFilterChange={this.updateHoveringFromFilter} />
+            <FilterWrapper x={adjustedX} y={adjustedY} hovering={hovering} nodeWidth={currentNodeWidth} filter={filter}
+                           updateHoverOnFilterChange={this.updateHoveringFromFilter} updateFilter={this.updateFilter}/>
           </>
         }
       </motion.g>
@@ -169,28 +174,36 @@ class FilterWrapper extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: 'closed',
-      filters: []
+      type: 'closed'
     }
   }
 
-  changeWrapperType = (type) => {
+  /**
+   * change the wrapper type to either closed, simple or extended, and propagate whether the mouse is hovering over
+   *   the filter to the parent Node
+   * @param {string} type - the type that the wrapper will be changed into
+   * @param e - the event that called the function
+   */
+  changeWrapperType = (type, e) => {
+    e.preventDefault();
     this.setState({type: type});
-    this.props.onHoveringOnFilterChange(type !== 'closed');
+    this.props.updateHoverOnFilterChange(type !== 'closed');
   }
 
   render() {
-    const { x, y, nodeWidth, hovering } = this.props;
+    const { x, y, nodeWidth, hovering, filter } = this.props;
     const { type } = this.state;
 
     if (type !== 'extended') {
       return (
-        <FilterBubble x={x} y={y} hovering={hovering} nodeWidth={nodeWidth} variant={type}
-                      onChangeWrapper={(type) => this.changeWrapperType(type)}/>
+        <FilterBubble x={x} y={y} hovering={hovering} nodeWidth={nodeWidth} variant={type} filter={filter}
+                      onChangeWrapper={(type, e) => this.changeWrapperType(type, e)}
+                      updateHoverOnFilterChange={(isHovering) => this.props.updateHoverOnFilterChange(isHovering)}
+                      updateFilter={(filter) => this.props.updateFilter(filter)} />
       );
     } else {
       return (
-        <FilterPage onChangeWrapperToSimple={this.toggleWrapperType('simple')}/>
+        <FilterPage onChangeWrapperToSimple={() => this.changeWrapperType('simple')}/>
       );
     }
   }
@@ -226,21 +239,35 @@ function FilterBubble(props) {
       opacity: 0
     }
   }
-  const { x, y, hovering, nodeWidth, variant } = props;
+  const { x, y, hovering, nodeWidth, variant, filter } = props;
   const visibility = hovering ? 'vis' : 'invis';
+
+  const handleChangedText = (e) => props.updateFilter(e.target.content);
+
+  console.log(variant);
 
   return (
     <g>
       <motion.rect className={"filter-bubble"} x={(x + nodeWidth / 2 + 10) / 2} y={(y + 60) / 2}
                    variants={bubbleVariants}
                    initial={['invis', 'closed']} animate={[visibility, variant]}
-                   onHoverStart={() => props.onChangeWrapper('simple')}
-                   onHoverEnd={() => props.onChangeWrapper('closed')}
-                   onClickCapture={() => props.onChangeWrapper('extended')} />
+                   onClickCapture={(e) =>
+                     props.onChangeWrapper(variant === 'closed' ? 'simple' : 'extended', e)}
+                   onPointerEnter={() => props.updateHoverOnFilterChange(true)}
+                   onPointerLeave={(e) => props.onChangeWrapper('closed', e)} />
       <svg x={x + nodeWidth / 2 + 10} y={y + 60} width={40} height={40} >
         <motion.path className={"filter-icon"} d={"M18 26 L18 18 L10 10 L30 10 L22 18 L22 30 L18 26 Z"}
-                     variants={filterVariants} initial={'invis'} animate={visibility} />
+                     variants={filterVariants} initial={'invis'} animate={visibility}
+                     onClickCapture={(e) =>
+                       props.onChangeWrapper(variant === 'closed' ? 'simple' : 'extended', e)} />
       </svg>
+      {variant === 'simple' &&
+        <motion.foreignObject x={x + nodeWidth / 2 + 50} y={y + 70} width={60} height={100} >
+          <motion.input value={filter}
+                        onChange={(e) => handleChangedText(e)}
+                        onClick={(e) => e.preventDefault()}/>
+        </motion.foreignObject>
+      }
     </g>
   );
 }
