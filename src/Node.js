@@ -242,19 +242,19 @@ function FilterBubble(props) {
   const { x, y, hovering, nodeWidth, variant, filter } = props;
   const visibility = hovering ? 'vis' : 'invis';
 
-  const handleChangedText = (e) => props.updateFilter(e.target.content);
-
-  console.log(variant);
+  const handleChangedText = (e) => props.updateFilter(e.target.value);
 
   return (
-    <g>
+    <g onPointerEnter={() => {
+      console.log('entered group');
+      props.updateHoverOnFilterChange(true)
+    }}
+       onPointerLeave={(e) => {console.log('left group'); props.onChangeWrapper('closed', e)}}>
       <motion.rect className={"filter-bubble"} x={(x + nodeWidth / 2 + 10) / 2} y={(y + 60) / 2}
                    variants={bubbleVariants}
                    initial={['invis', 'closed']} animate={[visibility, variant]}
                    onClickCapture={(e) =>
-                     props.onChangeWrapper(variant === 'closed' ? 'simple' : 'extended', e)}
-                   onPointerEnter={() => props.updateHoverOnFilterChange(true)}
-                   onPointerLeave={(e) => props.onChangeWrapper('closed', e)} />
+                     props.onChangeWrapper(variant === 'closed' ? 'simple' : 'extended', e)} />
       <svg x={x + nodeWidth / 2 + 10} y={y + 60} width={40} height={40} >
         <motion.path className={"filter-icon"} d={"M18 26 L18 18 L10 10 L30 10 L22 18 L22 30 L18 26 Z"}
                      variants={filterVariants} initial={'invis'} animate={visibility}
@@ -262,8 +262,8 @@ function FilterBubble(props) {
                        props.onChangeWrapper(variant === 'closed' ? 'simple' : 'extended', e)} />
       </svg>
       {variant === 'simple' &&
-        <motion.foreignObject x={x + nodeWidth / 2 + 50} y={y + 70} width={60} height={100} >
-          <motion.input value={filter}
+        <motion.foreignObject x={x + nodeWidth / 2 + 50} y={y + 68} width={95} height={100} >
+          <motion.input className={'filter-input'} value={filter}
                         onChange={(e) => handleChangedText(e)}
                         onClick={(e) => e.preventDefault()}/>
         </motion.foreignObject>

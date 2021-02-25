@@ -16,6 +16,15 @@
     font-size: larger;
 }
 
+.filter-input {
+    fill: #999999;
+    background: #bdb23a;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: larger;
+}
+
 .filter-bubble {
     fill: #e8da43;
 }
