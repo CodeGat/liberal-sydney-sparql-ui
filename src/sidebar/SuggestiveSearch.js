@@ -34,9 +34,9 @@ export default class SuggestiveSearch extends React.Component {
   /**
    * Generates suggestions for the currently selected Edge
    * @typedef {Object} EdgeSuggestion
-   * @property {Object} range
-   * @property {string} range.prefix
-   * @property {string} range.name
+   * @property {string} type - type of the suggestion (either a literal or a known iri)
+   * @property {Object} elem - range of the suggested Node
+   * @property {number} ix - suggestion index
    * @param {string} content - the content of the selected Edge
    * @returns {EdgeSuggestion[]}
    */
@@ -44,13 +44,16 @@ export default class SuggestiveSearch extends React.Component {
     const suggestions = [];
     const { elementDefs } = this.state;
     const [ , name ] = content.split(':');
+    let ix = 0;
 
     for (let def of elementDefs) {
       if (def.elem.name === name) {
         suggestions.push({
           type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeKnown',
-          elem: def.range
+          elem: def.range,
+          ix: ix
         });
+        ix++;
       }
     }
 
@@ -72,8 +75,9 @@ export default class SuggestiveSearch extends React.Component {
   /**
    * Generates suggestions for the currently selected Node
    * @typedef {Object} NodeSuggestion
-   * @property {string} prefix - prefix of suggested edge
-   * @property {string} name - name of suggested edge
+   * @property {string} type - type of suggestion for a Node (namely, a known edge)
+   * @property {Object} elem - the Node suggestion
+   * @property {number} ix - suggestion index
    * @param type - type of the node: is it a literal, iri, unknown?
    * @param content - content of the selected node
    * @returns {NodeSuggestion[]}
@@ -82,14 +86,26 @@ export default class SuggestiveSearch extends React.Component {
     const suggestions = [];
     const { elementDefs } = this.state;
     const [ , name ] = content.split(':');
+    let ix = 0;
 
     for (let def of elementDefs) {
       if (def.domain.name === name) {
-        suggestions.push({type: 'edgeKnown', elem: def.elem});
+        suggestions.push({type: 'edgeKnown', elem: def.elem, ix: ix});
+        ix++;
       }
     }
 
     return suggestions;
+  }
+
+  /**
+   * Deletes a suggestion located at ix from the state array of suggestions.
+   * @param ix - the index of the suggestion about to be deleted
+   */
+  deleteSuggestion = (ix) => {
+    this.setState(old => ({
+      suggestions: old.suggestions.filter(s => s.ix !== ix)
+    }));
   }
 
   componentDidMount() {
@@ -128,8 +144,9 @@ export default class SuggestiveSearch extends React.Component {
       <div>
         <AnimateSharedLayout>
           <motion.ul layout>
-            {defsLoaded && infoLoaded && suggestions.map((s, ix) =>
-              <SuggestionWrapper key={ix} suggestion={s} info={info[s.elem.iri]} />)}
+            {defsLoaded && infoLoaded && suggestions.map(s =>
+              <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={info[s.elem.iri]}
+                                 onDeleteSuggestion={(ix) => this.deleteSuggestion(ix)} />)}
             {(!defsLoaded || !infoLoaded) &&
             <p>Loading...</p>}
           </motion.ul>
@@ -142,7 +159,7 @@ export default class SuggestiveSearch extends React.Component {
 //todo: maybe use more hooks like this?
 function SuggestionWrapper(props) {
   const { type, elem } = props.suggestion;
-  const { info } = props;
+  const { info, ix } = props;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
@@ -161,10 +178,8 @@ function SuggestionWrapper(props) {
     Suggestion = <SuggestionForSelectedDatatype isOpen={isOpen} isDragged={isDragged} />;
   } else console.warn("SuggestionWrapper cannot create a suggestion for the given type " + type);
 
-  console.log(isDragged);
-
   return (
-    <motion.li layout onClick={toggleIsOpen}>
+    <motion.li layout onClick={toggleIsOpen} >
       <motion.div className={'suggestion'} layout
                   drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
                   onDragStart={toggleIsDragged} onDragEnd={toggleIsDragged}>
