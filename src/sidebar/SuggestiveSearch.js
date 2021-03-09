@@ -145,33 +145,43 @@ function SuggestionWrapper(props) {
   const { info } = props;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isDragged, setIsDragged] = useState(false);
   const toggleIsOpen = () => setIsOpen(!isOpen);
+  const toggleIsDragged = () => setIsDragged(!isDragged);
 
   //todo: investigate whether we can support suggestions of unknown things?
   let Suggestion = null;
   if (type.indexOf('edge') !== -1) {
-    Suggestion = <SuggestionForSelectedNode type={type} property={elem} info={info} isOpen={isOpen} />;
+    Suggestion = <SuggestionForSelectedNode type={type} property={elem} info={info}
+                                            isOpen={isOpen} isDragged={isDragged} />;
   } else if (type.indexOf('node') !== -1) {
-    Suggestion = <SuggestionForSelectedEdge type={type} node={elem} info={info} isOpen={isOpen} />;
+    Suggestion = <SuggestionForSelectedEdge type={type} node={elem} info={info}
+                                            isOpen={isOpen} isDragged={isDragged} />;
   } else if (type === 'datatype') {
-    Suggestion = <SuggestionForSelectedDatatype isOpen={isOpen} />;
+    Suggestion = <SuggestionForSelectedDatatype isOpen={isOpen} isDragged={isDragged} />;
   } else console.warn("SuggestionWrapper cannot create a suggestion for the given type " + type);
+
+  console.log(isDragged);
 
   return (
     <motion.li layout onClick={toggleIsOpen}>
-      {Suggestion}
+      <motion.div className={'suggestion'} layout
+                  drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
+                  onDragStart={toggleIsDragged} onDragEnd={toggleIsDragged}>
+        {Suggestion}
+      </motion.div>
     </motion.li>
   );
 }
 
 function SuggestionForSelectedEdge(props) {
-  const { type, node, isOpen } = props;
+  const { type, node, isOpen, isDragged } = props;
 
   if (type === 'nodeLiteral') {
-    return (<SuggestionAsLiteral node={node} isOpen={isOpen} />);
+    return (<SuggestionAsLiteral node={node} isOpen={isOpen} isDragged={isDragged} />);
   } else {
     const { info } = props;
-    return (<SuggestionAsNode node={node} info={info} isOpen={isOpen} />);
+    return (<SuggestionAsNode node={node} info={info} isOpen={isOpen} isDragged={isDragged} />);
   }
 }
 
@@ -191,34 +201,32 @@ const variants = {
 };
 
 function SuggestionAsNode(props) {
-  const { info, node, isOpen } = props;
+  const { info, node, isOpen, isDragged } = props;
   const { prefix, name } = node;
 
   return (
-    <motion.div className={'suggestion'} layout
-                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
-      <ItemImageHeader type={'nodeUri'} name={name} />
+    <>
+      <ItemImageHeader type={'nodeUri'} name={name} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
           <motion.div className={"suggestion-extra extra"}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'}>
             <ItemPrefix prefix={prefix}/>
-            {info ? <ItemDesc desc={info.comment} /> : null }
+            {info && <ItemDesc desc={info.comment} />}
           </motion.div>
         }
       </AnimatePresence>
-    </motion.div>
+    </>
   );
 }
 
 function SuggestionAsLiteral(props) {
   const { prefix, name } = props.node;
-  const { isOpen } = props;
+  const { isOpen, isDragged } = props;
 
   return (
-    <motion.div className={'suggestion'} layout
-                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
-      <ItemImageHeader type={'nodeLiteral'} name={name} />
+    <>
+      <ItemImageHeader type={'nodeLiteral'} name={name} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
           <motion.div className={'suggestion-extra extra'}
@@ -227,36 +235,34 @@ function SuggestionAsLiteral(props) {
           </motion.div>
         }
       </AnimatePresence>
-    </motion.div>
+    </>
   );
 }
 
 function SuggestionForSelectedDatatype(props) {
   return (
-    <motion.div className={'suggestion'} layout
-                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
+    <>
       <motion.p>Placeholder Datatype suggestion {props}</motion.p>
-    </motion.div>
+    </>
   );
 }
 
 function SuggestionForSelectedNode(props) {
-  const { type, info, isOpen } = props;
+  const { type, info, isOpen, isDragged } = props;
   const { prefix, name } = props.property;
 
   return (
-    <motion.div className={'suggestion'} layout
-                drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}>
-      <ItemImageHeader type={type} name={name} />
+    <>
+      <ItemImageHeader type={type} name={name} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
           <motion.div className={'suggestion-extra extra'}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
             <ItemPrefix prefix={prefix} />
-            {info ? <ItemDesc desc={info.comment} /> : null}
+            {info && <ItemDesc desc={info.comment} />}
           </motion.div>
         }
       </AnimatePresence>
-    </motion.div>
+    </>
   );
 }

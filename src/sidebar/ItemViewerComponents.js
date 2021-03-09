@@ -8,20 +8,32 @@ import React from "react";
 import {motion} from "framer-motion";
 
 export function ItemImageHeader(props) {
-  const { type, name } = props;
+  const { type, name, isDragged } = props;
+  let src = noneImg, alt = 'unknown type';
 
-  let Image;
-  if (type === 'nodeUri') Image = <motion.img layout src={nodeImg} alt={'selected known node icon'}/>
-  else if (type === 'edgeKnown') Image = <motion.img layout src={arrowKnownImg} alt={'selected known edge icon'}/>
-  else if (type === 'edgeUnknown') Image = <motion.img layout src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
-  else if (type === 'nodeLiteral') Image = <motion.img layout src={litImg} alt={'selected known literal icon'}/>
-  else if (type === 'nodeUnknown') Image = <motion.img layout src={unkImg} alt={'selected unknown node icon'}/>
-  else if (type === 'edgeUnknown') Image = <motion.img layout src={arrowUnknownImg} alt={'selected unknown edge icon'}/>
-  else Image = <motion.img layout drag src={noneImg} alt={'unknown type icon'} />
+  if (type === 'nodeUri') {
+    src = nodeImg;
+    alt = 'selected known node';
+  } else if (type === 'edgeKnown') {
+    src = arrowKnownImg;
+    alt = 'selected known edge';
+  } else if (type === 'edgeUnknown') {
+    src = arrowUnknownImg;
+    alt = 'selected unknown edge';
+  } else if (type === 'nodeLiteral') {
+    src = litImg;
+    alt = 'selected known literal';
+  } else if (type === 'nodeUnknown') {
+    src = unkImg;
+    alt = 'selected unknown node';
+  } else if (type === 'edgeUnknown') {
+    src = arrowUnknownImg;
+    alt = 'selected unknown edge';
+  }
 
   return (
     <>
-      {Image}
+      <motion.img layout animate={{opacity: isDragged ? 0 : 1}} transition={{duration: 0.1}} src={src} alt={alt}/>
       <p>{type === '' ? "Nothing currently selected" : name}</p>
     </>
   );
