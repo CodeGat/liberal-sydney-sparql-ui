@@ -182,7 +182,7 @@ function SuggestionWrapper(props) {
     <motion.li layout onClick={toggleIsOpen} >
       <motion.div className={'suggestion'} layout
                   drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
-                  onDragStart={toggleIsDragged} onDragEnd={toggleIsDragged}>
+                  onDragStart={toggleIsDragged} onDragTransitionEnd={toggleIsDragged}>
         {Suggestion}
       </motion.div>
     </motion.li>

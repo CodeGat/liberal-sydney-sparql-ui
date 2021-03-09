@@ -33,7 +33,8 @@ export function ItemImageHeader(props) {
 
   return (
     <>
-      <motion.img layout animate={{opacity: isDragged ? 0 : 1}} transition={{duration: 0.1}} src={src} alt={alt}/>
+      <motion.img layout src={src} alt={alt}
+                  animate={{opacity: isDragged ? 0 : 1}} transition={{opacity: {duration: 0.1}}} />
       <p>{type === '' ? "Nothing currently selected" : name}</p>
     </>
   );
