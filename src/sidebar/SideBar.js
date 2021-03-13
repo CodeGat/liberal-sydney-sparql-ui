@@ -58,7 +58,8 @@ export default class SideBar extends React.Component {
                             info={info} infoLoaded={infoLoaded} />
         <hr />
         <SuggestiveSearch id={id} type={type} content={content}
-                          info={info} infoLoaded={infoLoaded} />
+                          info={info} infoLoaded={infoLoaded}
+                          onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
       </div>
     );
   }

@@ -146,7 +146,8 @@ export default class SuggestiveSearch extends React.Component {
           <motion.ul layout>
             {defsLoaded && infoLoaded && suggestions.map(s =>
               <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={info[s.elem.iri]}
-                                 onDeleteSuggestion={(ix) => this.deleteSuggestion(ix)} />)}
+                                 onDeleteSuggestionFromSidebar={this.deleteSuggestion}
+                                 onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
             {(!defsLoaded || !infoLoaded) &&
             <p>Loading...</p>}
           </motion.ul>
@@ -166,6 +167,13 @@ function SuggestionWrapper(props) {
   const toggleIsOpen = () => setIsOpen(!isOpen);
   const toggleIsDragged = () => setIsDragged(!isDragged);
 
+  const checkSuggestionIsOutsideSidebar = (type, elem, point, offset, ix) => {
+    if (offset.x < -300) {
+      props.onTransferSuggestionToCanvas(type, elem, point);
+      props.onDeleteSuggestionFromSidebar(ix);
+    }
+  };
+
   //todo: investigate whether we can support suggestions of unknown things?
   let Suggestion = null;
   if (type.indexOf('edge') !== -1) {
@@ -178,11 +186,14 @@ function SuggestionWrapper(props) {
     Suggestion = <SuggestionForSelectedDatatype isOpen={isOpen} isDragged={isDragged} />;
   } else console.warn("SuggestionWrapper cannot create a suggestion for the given type " + type);
 
+  //todo: use drag info.offset.x < -(side-bar-size) <300 atm> for creation of new object
   return (
     <motion.li layout onClick={toggleIsOpen} >
       <motion.div className={'suggestion'} layout
                   drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
-                  onDragStart={toggleIsDragged} onDragTransitionEnd={toggleIsDragged}>
+                  onDragStart={toggleIsDragged} onDragTransitionEnd={toggleIsDragged}
+                  onDragEnd={(e, i) =>
+                    checkSuggestionIsOutsideSidebar(type, elem, i.point, i.offset, ix) } >
         {Suggestion}
       </motion.div>
     </motion.li>

@@ -7,7 +7,10 @@ import {AnimateSharedLayout} from "framer-motion";
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {selected: {type: '', id: '', content: ''}};
+    this.state = {
+      selected: {type: '', id: '', content: ''},
+      transferredSuggestion: {exists: false}
+    };
   }
 
 
@@ -23,14 +26,32 @@ class App extends React.Component {
     this.setState({selected: selected});
   }
 
+  /**
+   *
+   * @param type
+   * @param elem
+   * @param point
+   */
+  handleTransferSuggestionToCanvas = (type, elem, point) => {
+    this.setState({transferredSuggestion: {exists: true, type: type, elem: elem, point: point}});
+  }
+
+  handleAknowledgedSuggestion = () => {
+    this.setState({transferredSuggestion: {exists: false}});
+  }
+
   render(){
-    const { selected } = this.state;
+    const { selected, transferredSuggestion } = this.state;
 
     return (
       <AnimateSharedLayout>
         <div className="App">
-          <Canvas selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
-          <SideBar selected={selected} onSelectedItemChange={this.handleSelectedItemChange}/>
+          <Canvas selected={selected} transferredSuggestion={transferredSuggestion}
+                  onSelectedItemChange={this.handleSelectedItemChange}
+                  acknowledgeTransferredSuggestion={this.handleAknowledgedSuggestion}/>
+          <SideBar selected={selected}
+                   onSelectedItemChange={this.handleSelectedItemChange}
+                   onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}/>
         </div>
       </AnimateSharedLayout>
     );

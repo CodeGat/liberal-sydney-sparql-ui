@@ -15,6 +15,7 @@ export default class Canvas extends React.Component {
       edgeCounter: 0,
       mode: 'drag',
       edgeCompleting: false,
+      nodeCompleting: false,
       graph: {nodes: [], edges: []}
     };
   }
@@ -24,6 +25,21 @@ export default class Canvas extends React.Component {
    * {nodes: [{id, x, y, init}...], edges: [{id, from {id, x, y}, to {id, x, y}, done}...]}
    */
 
+  /**
+   * checks if a transferred suggestion needs to be added to the canvas
+   * @param prevProps
+   * @param prevState
+   * @param snapshot
+   */
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
+      const { elem, point, type } = this.props.transferredSuggestion;
+
+      console.log(this.props.transferredSuggestion);
+      this.props.acknowledgeTransferredSuggestion();
+      this.createNode(point.x, point.y, type);
+    }
+  }
 
   /**
    * Propagates a change on canvas to the root - eventually the sidebar
@@ -50,16 +66,16 @@ export default class Canvas extends React.Component {
     if (event.defaultPrevented) return;
 
     if (mode === "node") {
-      this.createNode(event, 'nodeUnknown');
+      this.createNode(event.clientX, event.clientY, 'nodeUnknown');
     } else if (mode === "edge") {
       this.completeEdge(event);
-      this.createNode(event, 'placeholder');
+      this.createNode(event.clientX, event.clientY, 'placeholder');
     }
   }
 
-  createNode = (e, initState) => {
+  createNode = (x, y, initState) => {
     const { nodeCounter } = this.state;
-    const newNode = {x: e.clientX, y: e.clientY, id: nodeCounter + 1, initState: initState};
+    const newNode = {x: x, y: y, id: nodeCounter + 1, initState: initState};
 
     this.setState(old => ({
       nodeCounter: old.nodeCounter + 1,
