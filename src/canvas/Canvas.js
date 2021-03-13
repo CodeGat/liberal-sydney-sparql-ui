@@ -37,7 +37,12 @@ export default class Canvas extends React.Component {
 
       console.log(this.props.transferredSuggestion);
       this.props.acknowledgeTransferredSuggestion();
-      this.createNode(point.x, point.y, type);
+
+      if (type === "edgeKnown"){
+        this.createEdgeWithExistingNode();
+      } else if (type === "nodeKnown") {
+        this.createNode(point.x, point.y, type, elem.name);
+      }
     }
   }
 
@@ -60,7 +65,6 @@ export default class Canvas extends React.Component {
     this.setState({mode: newMode});
   }
 
-  //todo: need to take into account canvas click on no node!
   /**
    * Method that handles a click to the svg canvas, unless it has been handled by one of the Canvas' children, such as
    *   a node or edge.
@@ -72,30 +76,29 @@ export default class Canvas extends React.Component {
     if (event.defaultPrevented) return;
 
     if (mode === "node") {
-      this.createNode(event.clientX, event.clientY, 'nodeUnknown');
+      this.createNode(event.clientX, event.clientY, 'nodeUnknown', "");
     } else if (mode === "edge") {
-      const newNodeId = this.createNode(event.clientX, event.clientY, 'nodeUnf');
+      const newNodeId = this.createNode(event.clientX, event.clientY, 'nodeUnf', "");
       if (edgeCompleting){
         this.completeEdgeWithNewNode(event.clientX, event.clientY, newNodeId);
       } else {
         this.createEdgeWithNewNode(event.clientX, event.clientY, newNodeId);
       }
-      this.completeEdge(event);
-      this.createNode(event.clientX, event.clientY, 'placeholder');
     }
   }
 
   /**
    * Creates the underlying representation of a node to be kept in this.state until it can be rendered by the Node class
-   * @param x - the x-value that the position of the node will be based on
-   * @param y - the y-value that the position of the node will be based on
-   * @param initState {string} - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
-   *   fully formed node ('nodeUnknown')
+   * @param {number} x - the x-value that the position of the node will be based on
+   * @param {number} y - the y-value that the position of the node will be based on
+   * @param {string} initState - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
+   *   fully formed node ('nodeUnknown'/'nodeKnown')
+   * @param {string} content - content that the node starts with
    * @returns {number} - id of node just created.
    */
-  createNode = (x, y, initState) => {
+  createNode = (x, y, initState, content) => {
     const { nodeCounter } = this.state;
-    const newNode = {x: x, y: y, id: nodeCounter + 1, initState: initState};
+    const newNode = {x: x, y: y, id: nodeCounter + 1, initState: initState, content: content};
 
     this.setState(old => ({
       nodeCounter: old.nodeCounter + 1,
@@ -141,15 +144,16 @@ export default class Canvas extends React.Component {
   /**
    * Creates the underlying representation of the edge whose subject does not yet exist.
    *  This happens when one clicks on the canvas in 'edge' mode while not in 'edgeCompleting' mode
-   * @param event - the click event that spawned the new node
+   * @param x - the x position that spawned the new node
+   * @param y - the y position that spawned the new node
    * @param id {number} - the id of the newly-created node
    */
-  createEdgeWithNewNode = (event, id) => {
+  createEdgeWithNewNode = (x, y, id) => {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
       from: {id: id},
-      to: {x: event.clientX + 1, y: event.clientY + 1},
+      to: {x: x + 1, y: y + 1},
       complete: false
     };
 
@@ -187,21 +191,22 @@ export default class Canvas extends React.Component {
   //todo: find optimisation for all these `find` calls - O(n)
   /**
    *
-   * @param event - the clickEvent that spawned the node
+   * @param x - the x position that spawned the node
+   * @param y - the y position that spawned the node
    * @param {number} id - the id of the created node
    */
-  completeEdgeWithNewNode(event, id) {
+  completeEdgeWithNewNode(x, y, id) {
     const { nodes, edges } = this.state.graph;
     const edge = edges.find(edge => !edge.complete);
     const subjectNode = nodes.find(node => node.id === edge.from.id);
-    const objectNodeX = event.clientX - Node.unfWidth / 2;
-    const objectNodeY = event.clientY - Node.unfHeight / 2;
+    const objectNodeX = x - Node.unfWidth / 2;
+    const objectNodeY = y - Node.unfHeight / 2;
     const objectNodeShape = {
       x: objectNodeX, y: objectNodeY,
       width: Node.unfWidth, height: Node.unfHeight,
       rx: 70, ry:70
     };
-    const basicPathDef = `M${subjectNode.x} ${subjectNode.y} L${event.clientX} ${event.clientY}`;
+    const basicPathDef = `M${subjectNode.x} ${subjectNode.y} L${x} ${y}`;
 
     const intersections = intersect(shape('path', {d: basicPathDef}), shape('rect', objectNodeShape));
     const firstIntersect = intersections.points[0];
