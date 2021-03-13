@@ -49,7 +49,7 @@ export default class SuggestiveSearch extends React.Component {
     for (let def of elementDefs) {
       if (def.elem.name === name) {
         suggestions.push({
-          type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeKnown',
+          type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
           elem: def.range,
           ix: ix
         });

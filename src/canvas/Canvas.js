@@ -39,8 +39,9 @@ export default class Canvas extends React.Component {
       this.props.acknowledgeTransferredSuggestion();
 
       if (type === "edgeKnown"){
-        this.createEdgeWithExistingNode();
-      } else if (type === "nodeKnown") {
+        // this.createEdgeWithExistingNode();
+        console.log("unimplemented. try an edge instead");
+      } else if (type === "nodeUri") {
         this.createNode(point.x, point.y, type, elem.name);
       }
     }
@@ -76,7 +77,7 @@ export default class Canvas extends React.Component {
     if (event.defaultPrevented) return;
 
     if (mode === "node") {
-      this.createNode(event.clientX, event.clientY, 'nodeUnknown', "");
+      this.createNode(event.clientX, event.clientY, 'nodeUnknown', "?");
     } else if (mode === "edge") {
       const newNodeId = this.createNode(event.clientX, event.clientY, 'nodeUnf', "");
       if (edgeCompleting){
@@ -257,10 +258,11 @@ export default class Canvas extends React.Component {
           </g>
           <g id="nodes">
             {nodes.map(node =>
-              <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState}
+              <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState} content={node.content}
                     mode={mode} edgeCompleting={edgeCompleting}
                     onSelectedItemChange={this.handleElementChange}
-                    onEdgeCreation={this.createEdgeWithExistingNode} onEdgeCompletion={this.completeEdgeWithExistingNode} />)}
+                    onEdgeCreation={this.createEdgeWithExistingNode}
+                    onEdgeCompletion={this.completeEdgeWithExistingNode} />)}
           </g>
         </svg>
       </div>

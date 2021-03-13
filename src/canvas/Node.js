@@ -69,7 +69,7 @@ export default class Node extends React.Component {
       type: props.init,
       isOptional: false,
       prefix: '',
-      content: '?',
+      content: props.content,
       adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
       adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2
     };
