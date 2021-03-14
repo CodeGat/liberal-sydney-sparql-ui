@@ -6,7 +6,7 @@ import Edge from "./Edge"
 import arrow from './arrow_icon.png';
 
 //todo: where to store the underlying SPARQL representation?
-// this.state.modes: drag, edge, edit
+// this.state.modes: drag, edge, node
 export default class Canvas extends React.Component {
   constructor(props) {
     super(props);
@@ -33,17 +33,19 @@ export default class Canvas extends React.Component {
    */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
+      const { nodes } = this.state.graph;
       const { elem, point, type } = this.props.transferredSuggestion;
 
-      console.log(this.props.transferredSuggestion);
       this.props.acknowledgeTransferredSuggestion();
 
       if (type === "edgeKnown"){
         // if off click is on node do regular createEdgeWithExistingNode else do it anyway (move edge to selected item
         // this.createEdgeWithExistingNode();
-        console.log("unimplemented. try an edge instead");
       } else if (type === "nodeUri") {
         const prefixedElem = elem.prefix + ":" + elem.name;
+        const selectedElement = nodes.find(node => node.id === this.props.selected.id);
+
+        console.log(selectedElement);
 
         this.createNode(point.x, point.y, type, prefixedElem);
       } else if (type === "nodeLiteral"){
@@ -120,6 +122,7 @@ export default class Canvas extends React.Component {
         nodes: [...old.graph.nodes, newNode]
       }
     }));
+    this.props.onSelectedItemChange({id: nodeCounter + 1, content: content, type: initState});
 
     return nodeCounter + 1;
   }
@@ -127,7 +130,6 @@ export default class Canvas extends React.Component {
   /**
    * Creates the underlying representation of an Edge whose subject exists. Called from Node.js when the existing Node
    *  was clicked
-   * @param event - the click event as seen by the existing Node
    * @param nodeInfo {Object} - Object that contains information about the nodes content and id
    * @param {number} nodeInfo.id - the id of the existing node that will be the subject of the new Edge
    * @param {string} nodeInfo.content - the text within the existing Node
@@ -135,7 +137,7 @@ export default class Canvas extends React.Component {
    * @param {number} nodeShape.x - the x-coordinate of the Node
    * @param {number} nodeShape.y - the y-coordinate of the Node
    */
-  createEdgeWithExistingNode = (event, nodeInfo, nodeShape) => {
+  createEdgeWithExistingNode = (nodeInfo, nodeShape) => {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
@@ -152,6 +154,7 @@ export default class Canvas extends React.Component {
       },
       edgeCompleting: true
     }));
+    this.props.onSelectedItemChange({id: edgeCounter + 1, content: '?', type: "edgeUnknown"});
   }
 
   /**

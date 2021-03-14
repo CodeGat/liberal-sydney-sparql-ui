@@ -100,7 +100,7 @@ export default class Node extends React.Component {
         const info = {id: id, content: content};
         const shape = {x: x, y: y};
 
-        this.props.onEdgeCreation(e, info, shape);
+        this.props.onEdgeCreation(info, shape);
       }
     } else {
       this.props.onSelectedItemChange({type: type, id: id, content: content});
@@ -128,7 +128,7 @@ export default class Node extends React.Component {
 
     return (
       <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
-        <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit}
+        <motion.rect x={adjustedX} y={adjustedY} onClickCapture={this.handleEntryExit} onMouseUpCapture={() => console.log("mouseup")}
                      variants={Node.variants} initial={init} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
