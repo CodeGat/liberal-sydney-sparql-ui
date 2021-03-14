@@ -44,10 +44,6 @@ export default class SideBar extends React.Component {
     );
   }
 
-  handleSelectedItemChange(event){
-    this.props.onSelectedItemChange(event.target.value);
-  }
-
   render(){
     const { content, type, id } = this.props.selected;
     const { info, infoLoaded, basePrefix } = this.state;
@@ -57,7 +53,7 @@ export default class SideBar extends React.Component {
         <SelectedItemViewer type={type} content={content} basePrefix={basePrefix}
                             info={info} infoLoaded={infoLoaded} />
         <hr />
-        <SuggestiveSearch id={id} type={type} content={content}
+        <SuggestiveSearch id={id} type={type} content={content} basePrefix={basePrefix}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
       </div>

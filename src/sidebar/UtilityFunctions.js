@@ -41,7 +41,7 @@ export async function fetchExpansionOfPrefix(prefix) {
  * @returns {Promise<Response>}
  */
 export async function fetchPrefixOfExpansion(expansion) {
-  const encodedExpansion = encodeURIComponent(expansion);
+  const encodedExpansion = encodeURIComponent(expansion + '#a');
   const response = await fetch('https://prefix.zazuko.com/api/v1/shrink?q=' + encodedExpansion, {
     method: 'GET',
     headers: {

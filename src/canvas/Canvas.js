@@ -39,11 +39,23 @@ export default class Canvas extends React.Component {
       this.props.acknowledgeTransferredSuggestion();
 
       if (type === "edgeKnown"){
+        // if off click is on node do regular createEdgeWithExistingNode else do it anyway (move edge to selected item
         // this.createEdgeWithExistingNode();
         console.log("unimplemented. try an edge instead");
       } else if (type === "nodeUri") {
-        this.createNode(point.x, point.y, type, elem.name);
-      }
+        const prefixedElem = elem.prefix + ":" + elem.name;
+
+        this.createNode(point.x, point.y, type, prefixedElem);
+      } else if (type === "nodeLiteral"){
+        let content = '';
+
+        if (elem.name === 'string'){
+          content = '""';
+        } else if (elem.name === 'int' || elem.name === 'integer') {
+          content = '0';
+        }
+        this.createNode(point.x, point.y, type, content);
+      } else console.warn('unknown type when adding suggestion to canvas');
     }
   }
 

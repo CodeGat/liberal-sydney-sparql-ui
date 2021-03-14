@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import { submitQuery } from "./UtilityFunctions";
+import { submitQuery, fetchPrefixOfExpansion } from "./UtilityFunctions";
 import {ItemDesc, ItemImageHeader, ItemPrefix} from "./ItemViewerComponents";
 import {AnimatePresence, AnimateSharedLayout, motion} from "framer-motion";
 import './Sidebar.css';
@@ -49,7 +49,7 @@ export default class SuggestiveSearch extends React.Component {
     for (let def of elementDefs) {
       if (def.elem.name === name) {
         suggestions.push({
-          type: def.range.prefix === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
+          type: def.range.expansion === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
           elem: def.range,
           ix: ix
         });
@@ -118,22 +118,51 @@ export default class SuggestiveSearch extends React.Component {
         response => {
           const results = response.results.bindings;
           const defs = [];
+          const myPrefixes = {};
 
           for (const { s, domain, range } of results) {
-            const [ sPrefix, sName ] = s.value.split("#");
-            const [ dPrefix, dName ] = domain.value.split("#");
-            const [ rPrefix, rName ] = range.value.split("#");
+            const [ sExpansion, sName ] = s.value.split("#");
+            const [ dExpansion, dName ] = domain.value.split("#");
+            const [ rExpansion, rName ] = range.value.split("#");
+
+            const sPrefix = this.findPrefixOfExpansion(sExpansion, myPrefixes);
+            const dPrefix = this.findPrefixOfExpansion(dExpansion, myPrefixes);
+            const rPrefix = this.findPrefixOfExpansion(rExpansion, myPrefixes);
 
             defs.push({
-              elem: {iri: s.value, prefix: sPrefix, name: sName},
-              domain: {iri: domain.value, prefix: dPrefix, name: dName},
-              range: {iri: range.value, prefix: rPrefix, name: rName}
+              elem: {iri: s.value, expansion: sExpansion, prefix: sPrefix, name: sName},
+              domain: {iri: domain.value, expansion: dExpansion, prefix: dPrefix, name: dName},
+              range: {iri: range.value, expansion: rExpansion, prefix: rPrefix, name: rName}
             });
           }
           this.setState({defsLoaded: true, elementDefs: defs});
         },
         error => this.setState({defsLoaded: true, error})
       );
+  }
+
+  findPrefixOfExpansion = (expansion, cachedPrefixes) => {
+    let prefix;
+    const { basePrefix } = this.props;
+
+    if (expansion === basePrefix) {
+      prefix = '';
+    } else if (cachedPrefixes[expansion]) {
+      console.log(expansion + ' was cached prefix');
+      prefix = cachedPrefixes[expansion];
+    } else {
+      fetchPrefixOfExpansion(expansion)
+        .then(res => {
+          if (res.success) {
+            const onlyPrefix = res.value.split("#")[0];
+
+            cachedPrefixes[expansion] = onlyPrefix;
+            prefix = onlyPrefix;
+          }
+        });
+    }
+
+    return prefix;
   }
 
   render(){
@@ -164,9 +193,9 @@ function SuggestionWrapper(props) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
+
   const toggleIsOpen = () => setIsOpen(!isOpen);
   const toggleIsDragged = () => setIsDragged(!isDragged);
-
   const checkSuggestionIsOutsideSidebar = (type, elem, point, offset, ix) => {
     if (offset.x < -300) {
       props.onTransferSuggestionToCanvas(type, elem, point);
@@ -228,7 +257,7 @@ const variants = {
 
 function SuggestionAsNode(props) {
   const { info, node, isOpen, isDragged } = props;
-  const { prefix, name } = node;
+  const { expansion, name } = node;
 
   return (
     <>
@@ -237,7 +266,7 @@ function SuggestionAsNode(props) {
         {isOpen &&
           <motion.div className={"suggestion-extra extra"}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'}>
-            <ItemPrefix prefix={prefix}/>
+            <ItemPrefix prefix={expansion}/>
             {info && <ItemDesc desc={info.comment} />}
           </motion.div>
         }
@@ -247,7 +276,7 @@ function SuggestionAsNode(props) {
 }
 
 function SuggestionAsLiteral(props) {
-  const { prefix, name } = props.node;
+  const { expansion, name } = props.node;
   const { isOpen, isDragged } = props;
 
   return (
@@ -257,7 +286,7 @@ function SuggestionAsLiteral(props) {
         {isOpen &&
           <motion.div className={'suggestion-extra extra'}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
-            <ItemPrefix prefix={prefix} />
+            <ItemPrefix prefix={expansion} />
           </motion.div>
         }
       </AnimatePresence>
@@ -275,7 +304,7 @@ function SuggestionForSelectedDatatype(props) {
 
 function SuggestionForSelectedNode(props) {
   const { type, info, isOpen, isDragged } = props;
-  const { prefix, name } = props.property;
+  const { expansion, name } = props.property;
 
   return (
     <>
@@ -284,7 +313,7 @@ function SuggestionForSelectedNode(props) {
         {isOpen &&
           <motion.div className={'suggestion-extra extra'}
                       variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
-            <ItemPrefix prefix={prefix} />
+            <ItemPrefix prefix={expansion} />
             {info && <ItemDesc desc={info.comment} />}
           </motion.div>
         }

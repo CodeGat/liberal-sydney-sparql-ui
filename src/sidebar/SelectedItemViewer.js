@@ -15,9 +15,9 @@ export default class SelectedItemViewer extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const { content } = this.props;
+    const { type, content } = this.props;
 
-    if (prevProps.content !== content) {
+    if (prevProps.content !== content && type === 'nodeUri') {
       const [ prefix ] = content.split(':');
 
       if (prefix !== '') {
