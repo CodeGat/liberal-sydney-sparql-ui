@@ -63,13 +63,14 @@ export default class Node extends React.Component {
   static labelHeight = 30;
   static labelWidth = 150;
 
+  //todo: make defaultContent care about prefix! right now it just ignores it
   constructor(props) {
     super(props);
     this.state = {
       type: props.init,
       isOptional: false,
       prefix: '',
-      content: props.content,
+      content: props.defaultContent,
       adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
       adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2
     };
@@ -100,7 +101,7 @@ export default class Node extends React.Component {
         const info = {id: id, content: content};
         const shape = {x: x, y: y};
 
-        this.props.onEdgeCreation(info, shape);
+        this.props.onEdgeCreation(info, shape, '?');
       }
     } else {
       this.props.onSelectedItemChange({type: type, id: id, content: content});

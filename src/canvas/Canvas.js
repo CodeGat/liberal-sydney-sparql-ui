@@ -22,7 +22,7 @@ export default class Canvas extends React.Component {
 
   /**
    * this.state.graph:
-   * {nodes: [{id, x, y, init}...], edges: [{id, from {id, x, y}, to {id, x, y}, done}...]}
+   * {nodes: [{id, x, y, init}...], edges: [{id, content, from {id, x, y}, to {id, x, y}, done}...]}
    */
 
   /**
@@ -40,14 +40,21 @@ export default class Canvas extends React.Component {
 
       if (type === "edgeKnown"){
         // if off click is on node do regular createEdgeWithExistingNode else do it anyway (move edge to selected item
-        // this.createEdgeWithExistingNode();
-      } else if (type === "nodeUri") {
-        const prefixedElem = elem.prefix + ":" + elem.name;
         const selectedElement = nodes.find(node => node.id === this.props.selected.id);
 
-        console.log(selectedElement);
+        if (selectedElement){
+          const nodeInfo = {id: selectedElement.id, content: selectedElement.content};
+          const nodeShape = {x: selectedElement.x, y: selectedElement.y};
+          const prefixedEdgeLabel = elem.prefix + ':' + elem.name;
 
-        this.createNode(point.x, point.y, type, prefixedElem);
+          this.createEdgeWithExistingNode(nodeInfo, nodeShape, prefixedEdgeLabel);
+          this.setState({mode: 'edge', edgeCompleting: true});
+        } else console.warn("No selected element for Edge to anchor");
+      } else if (type === "nodeUri") {
+        const prefixedNodeLabel = elem.prefix + ":" + elem.name;
+        const selectedElement = nodes.find(node => node.id === this.props.selected.id);
+
+        this.createNode(point.x, point.y, type, prefixedNodeLabel);
       } else if (type === "nodeLiteral"){
         let content = '';
 
@@ -113,7 +120,7 @@ export default class Canvas extends React.Component {
    */
   createNode = (x, y, initState, content) => {
     const { nodeCounter } = this.state;
-    const newNode = {x: x, y: y, id: nodeCounter + 1, initState: initState, content: content};
+    const newNode = {x: x, y: y, id: nodeCounter + 1, initState: initState, defaultContent: content};
 
     this.setState(old => ({
       nodeCounter: old.nodeCounter + 1,
@@ -122,7 +129,10 @@ export default class Canvas extends React.Component {
         nodes: [...old.graph.nodes, newNode]
       }
     }));
-    this.props.onSelectedItemChange({id: nodeCounter + 1, content: content, type: initState});
+
+    if (initState !== 'nodeUnf') {
+      this.props.onSelectedItemChange({id: nodeCounter + 1, content: content, type: initState});
+    }
 
     return nodeCounter + 1;
   }
@@ -136,11 +146,13 @@ export default class Canvas extends React.Component {
    * @param nodeShape {Object}
    * @param {number} nodeShape.x - the x-coordinate of the Node
    * @param {number} nodeShape.y - the y-coordinate of the Node
+   * @param {string} content - initial content of the given Edge
    */
-  createEdgeWithExistingNode = (nodeInfo, nodeShape) => {
+  createEdgeWithExistingNode = (nodeInfo, nodeShape, content) => {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
+      defaultContent: content,
       from: {id: nodeInfo.id, content: nodeInfo.content, x: nodeShape.x, y: nodeShape.y},
       to: {x: nodeShape.x + 1, y: nodeShape.y + 1},
       complete: false
@@ -154,7 +166,9 @@ export default class Canvas extends React.Component {
       },
       edgeCompleting: true
     }));
-    this.props.onSelectedItemChange({id: edgeCounter + 1, content: '?', type: "edgeUnknown"});
+    this.props.onSelectedItemChange(
+      {id: edgeCounter + 1, content: content, type: content === '?' ? 'edgeUnknown' : 'edgeKnown'}
+    );
   }
 
   /**
@@ -168,6 +182,7 @@ export default class Canvas extends React.Component {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
+      defaultContent: '?',
       from: {id: id},
       to: {x: x + 1, y: y + 1},
       complete: false
@@ -268,12 +283,13 @@ export default class Canvas extends React.Component {
           <g id="edges">
             {edges.map(edge =>
               <Edge id={edge.id} key={edge.id}
-                    from={nodes.find(x => x.id === edge.from.id)} to={edge.to}
+                    from={nodes.find(x => x.id === edge.from.id)} to={edge.to} defaultContent={edge.defaultContent}
                     onSelectedItemChange={this.handleElementChange}/>)}
           </g>
           <g id="nodes">
             {nodes.map(node =>
-              <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState} content={node.content}
+              <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState}
+                    defaultContent={node.defaultContent}
                     mode={mode} edgeCompleting={edgeCompleting}
                     onSelectedItemChange={this.handleElementChange}
                     onEdgeCreation={this.createEdgeWithExistingNode}

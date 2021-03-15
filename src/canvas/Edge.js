@@ -19,14 +19,14 @@ export default class Edge extends React.Component {
   static labelHeight = 30;
   static labelWidth = 175;
 
+  //todo: make initial state respect default prefix, right now in content
   constructor(props) {
     super(props);
     this.state = {
       type: "unknown",
       isOptional: false,
       prefix: '',
-      content: '?',
-
+      content: props.defaultContent
     };
   }
 
@@ -66,7 +66,9 @@ export default class Edge extends React.Component {
         <motion.path d={def} markerEnd={"url(#arrow)"}
                      variants={Edge.variants} initial='edgeUnknown' animate={type} custom={isOptional} />
         <foreignObject x={labelX} y={labelY} width={Edge.labelWidth} height={Edge.labelHeight}>
-          <motion.input className={"edgeLabel"} value={content} onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+          <motion.input className={"edgeLabel"} value={content}
+                        onChange={this.handleChangedText}
+                        onBlur={this.handleEntryExit}
                         onClick={(e) => e.preventDefault()}/>
         </foreignObject>
       </g>
