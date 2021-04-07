@@ -55,11 +55,13 @@ export default class Canvas extends React.Component {
         const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
         const currentUnfNode = nodes.find(node => node.id === selectedElement.to.id);
 
-        this.updateNode(currentUnfNode.id, prefixedNodeLabel, 'nodeUri');
+        this.updateNode(currentUnfNode.id, prefixedNodeLabel, type);
         // this.createNode(point.x, point.y, type, prefixedNodeLabel); // creates node to drag point
         // this.createNode(currentUnfNode.x, currentUnfNode.y, type, prefixedNodeLabel); // creates node on top of last unf
       } else if (type === "nodeLiteral"){
         //todo: fix similarly to the above
+        const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
+        const currentUnfNode = nodes.find(node => node.id === selectedElement.to.id);
         let content = '';
 
         if (elem.name === 'string'){
@@ -67,7 +69,9 @@ export default class Canvas extends React.Component {
         } else if (elem.name === 'int' || elem.name === 'integer') {
           content = '0';
         }
-        this.createNode(point.x, point.y, type, content);
+
+        this.updateNode(currentUnfNode.id, content, type);
+        // this.createNode(point.x, point.y, type, content);
       } else console.warn('unknown type when adding suggestion to canvas');
     }
   }
