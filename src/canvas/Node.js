@@ -9,17 +9,19 @@ export default class Node extends React.Component {
     nodeUnknown: isOpt => ({
       fill: isOpt ? '#1e90ff' : '#0000fe',
       rx: 50,
-      height: "100px",
-      width: '100px',
+      ry: 50,
+      height: 100,
+      width: 100,
       strokeWidth: isOpt ? 5 :  0,
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
     nodeSelectedUnknown: isOpt => ({
-      fill: isOpt ? '1e90ff' : '#0000fe',
+      fill: isOpt ? '#1e90ff' : '#0000fe',
       rx: 50,
-      height: "100px",
-      width: '100px',
+      ry: 50,
+      height: 100,
+      width: 100,
       strokeWidth: isOpt ? 5 :  0,
       strokeDasharray: 3,
       stroke: '#0000fe'
@@ -27,8 +29,9 @@ export default class Node extends React.Component {
     nodeUri: isOpt => ({
       fill: isOpt ? '#4e4e4e' : '#bebebe',
       rx: 50,
-      height: "100px",
-      width: '100px',
+      ry: 50,
+      height: 100,
+      width: 100,
       strokeWidth: isOpt ? 5 :  0,
       strokeDasharray: 3,
       stroke: '#0000fe'
@@ -36,8 +39,9 @@ export default class Node extends React.Component {
     nodeLiteral: isOpt => ({
       fill: isOpt ? '#bebebe' : '#4e4e4e',
       rx: 0,
-      height: "100px",
-      width: "200px",
+      ry: 0,
+      height: 100,
+      width: 200,
       strokeWidth: isOpt ? 5 : 0,
       strokeDasharray: 3,
       stroke: '#0000fe'
@@ -46,16 +50,18 @@ export default class Node extends React.Component {
       fill: '#444444',
       height: "100px",
       width: "100px",
-      rx: 10
+      rx: 10,
+      ry: 10
     },
     nodeUnf: {
       fill: '#0000fe',
       strokeWidth: 0,
       strokeDasharray: 3,
       stroke: '#0000fe',
-      width: '40px',
-      height: '40px',
-      rx: 70
+      width: 40,
+      height: 40,
+      rx: 70,
+      ry: 70
     },
   };
   static nodeHeight = 100;

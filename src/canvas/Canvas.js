@@ -52,14 +52,14 @@ export default class Canvas extends React.Component {
         } else console.warn("No selected element for Edge to anchor");
       } else if (type === "nodeUri") {
         const prefixedNodeLabel = elem.prefix + ":" + elem.name;
-        const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
-        const currentUnfNode = nodes.find(node => node.id === selectedElement.to.id);
+        const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
+        const currentUnfNode = nodes.find(node => node.id === selectedEdge.to.id);
 
         this.updateNode(currentUnfNode.id, prefixedNodeLabel, type);
+        this.updateEdge(selectedEdge, currentUnfNode);
         // this.createNode(point.x, point.y, type, prefixedNodeLabel); // creates node to drag point
         // this.createNode(currentUnfNode.x, currentUnfNode.y, type, prefixedNodeLabel); // creates node on top of last unf
       } else if (type === "nodeLiteral"){
-        //todo: fix similarly to the above
         const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
         const currentUnfNode = nodes.find(node => node.id === selectedElement.to.id);
         let content = '';
@@ -254,15 +254,10 @@ export default class Canvas extends React.Component {
    */
   completeEdgeWithNewNode(x, y, id) {
     const { nodes, edges } = this.state.graph;
-    const edge = edges.find(edge => !edge.complete);
-    const subjectNode = nodes.find(node => node.id === edge.from.id);
-    const objectNodeX = x - Node.unfWidth / 2;
-    const objectNodeY = y - Node.unfHeight / 2;
-    const objectNodeShape = {
-      x: objectNodeX, y: objectNodeY,
-      width: Node.unfWidth, height: Node.unfHeight,
-      rx: 70, ry:70
-    };
+
+    const edgeToComplete = edges.find(edge => !edge.complete);
+    const subjectNode = nodes.find(node => node.id === edgeToComplete.from.id);
+    const objectNodeShape = {...Node.variants.nodeUnf, x: x - Node.unfWidth / 2, y: y - Node.unfHeight / 2};
     const basicPathDef = `M${subjectNode.x} ${subjectNode.y} L${x} ${y}`;
 
     const intersections = intersect(shape('path', {d: basicPathDef}), shape('rect', objectNodeShape));
@@ -289,6 +284,37 @@ export default class Canvas extends React.Component {
         edges: old.graph.edges.map(edge => !edge.complete ? {...edge, to: {x: e.clientX, y: e.clientY}} : edge)
       }
     }));
+  }
+
+  /**
+   *
+   * @param edgeToUpdate
+   * @param connectedNode
+   */
+    //todo: slight error on intersections
+  updateEdge = (edgeToUpdate, connectedNode) => {
+    const pathDef = `M${edgeToUpdate.from.x} ${edgeToUpdate.from.y} L${connectedNode.x + Node.nodeWidth / 2} ${connectedNode.y + Node.nodeHeight / 2}`;
+    const nodeShape = {...Node.variants.nodeUri(false), x: connectedNode.x, y: connectedNode.y};
+
+    console.log(pathDef)
+    console.log(nodeShape);
+
+    const intersections = intersect(shape('path', {d: pathDef}), shape('rect', nodeShape));
+
+    if (intersections.points[0]) {
+      const firstIntersection = intersections.points[0];
+      const dest = {id: connectedNode.id, x: firstIntersection.x, y: firstIntersection.y};
+
+      console.log(dest);
+
+      this.setState(old => ({
+        graph: {
+          ...old.graph,
+          edges: old.graph.edges.map(edge =>
+            edge.id === edgeToUpdate.id ? {...edge, to: dest} : edge)
+        }
+      }));
+    } else console.warn("couldn't find intersection between selected edge and expanded unf node");
   }
 
   render() {
