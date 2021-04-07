@@ -131,10 +131,10 @@ export default class Node extends React.Component {
 
     if (changedText.match(/".*".*|true|false|[+-]?\d+|[+-]?\d*\.\d+|[+-]?(\d+\.\d*[eE][+-]?\d+|\d+[eE][+-]?\d+)/)){
       this.setState({type: 'nodeLiteral'});
-    } else if (changedText.match(/.*:.*/)){
-      this.setState({type: 'nodeUri'});
     } else if (changedText.match(/\?.*/)) {
       this.setState({type: 'nodeUnknown'});
+    } else {
+      this.setState({type: 'nodeUri'});
     }
   }
 

@@ -18,15 +18,15 @@ export default class SelectedItemViewer extends React.Component {
     const { type, content } = this.props;
 
     if (prevProps.content !== content && type === 'nodeUri') {
-      const [ prefix ] = content.split(':');
+      const contentSegments = content.split(':');
 
-      if (prefix !== '') {
-        fetchExpansionOfPrefix(prefix)
+      if (contentSegments[0] !== '') {
+        fetchExpansionOfPrefix(contentSegments[0])
           .then(
             result =>
               this.setState({
                expandedPrefixLoaded: true,
-               expandedPrefix: result.success ? result.value : prefix}),
+               expandedPrefix: result.success ? result.value : contentSegments[0]}),
             error =>
               console.warn("An error occurred during connection to the prefix server: " + error)
           );
@@ -39,10 +39,12 @@ export default class SelectedItemViewer extends React.Component {
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
     if (type === "nodeUri") {
-      // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //todo: used for full uris!
-      let [prefix, name] = content.split(':');
+      // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //used for full uris!
+      const contentSegments = content.split(':');
+      let prefix = 'Unknown';
+      let name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
 
-      if (prefix === '') prefix = basePrefix;
+      if (contentSegments[0] === '') prefix = basePrefix;
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
       return (<SelectedUriNodeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
@@ -51,9 +53,11 @@ export default class SelectedItemViewer extends React.Component {
     } else if (type === "nodeLiteral") {
       return (<SelectedLiteralNodeViewer type={type} content={content} />);
     } else if (type === "edgeKnown") {
-      let [prefix, name] = content.split(':');
+      const contentSegments = content.split(':');
+      let prefix = 'Unknown';
+      let name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
 
-      if (prefix === '') prefix = basePrefix;
+      if (contentSegments[0] === '') prefix = basePrefix;
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
       return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);

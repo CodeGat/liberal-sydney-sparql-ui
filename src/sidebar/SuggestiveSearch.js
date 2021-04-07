@@ -44,11 +44,12 @@ export default class SuggestiveSearch extends React.Component {
   generateSuggestionsForSelectedEdge(content) {
     const suggestions = [];
     const { elementDefs, suggestionNo } = this.state;
-    const [ , name ] = content.split(':');
+    const contentSegments = content.split(':');
+    const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
     let ix = suggestionNo;
 
     for (let def of elementDefs) {
-      if (def.elem.name === name) {
+      if (def.elem.label === name) {
         suggestions.push({
           type: def.range.expansion === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
           elem: def.range,
@@ -87,13 +88,16 @@ export default class SuggestiveSearch extends React.Component {
    * @returns {NodeSuggestion[]}
    */
   generateSuggestionsForSelectedNode(type, content) {
+    if (type === 'nodeLiteral') return [];
+
     const suggestions = [];
     const { elementDefs, suggestionNo } = this.state;
-    const [ , name ] = content.split(':');
+    const contentSegments = content.split(':');
+    const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
     let ix = suggestionNo;
 
     for (let def of elementDefs) {
-      if (def.domain.name === name) {
+      if (def.domain.label === name) {
         suggestions.push({type: 'edgeKnown', elem: def.elem, ix: ix});
         ix++;
       }
@@ -131,15 +135,18 @@ export default class SuggestiveSearch extends React.Component {
             const [ sExpansion, sName ] = s.value.split("#");
             const [ dExpansion, dName ] = domain.value.split("#");
             const [ rExpansion, rName ] = range.value.split("#");
+            const sLabel = sName.replace(/_/g, ' ');
+            const dLabel = dName.replace(/_/g, ' ');
+            const rLabel = rName.replace(/_/g, ' ');
 
             const sPrefix = this.findPrefixOfExpansion(sExpansion, myPrefixes);
             const dPrefix = this.findPrefixOfExpansion(dExpansion, myPrefixes);
             const rPrefix = this.findPrefixOfExpansion(rExpansion, myPrefixes);
 
             defs.push({
-              elem: {iri: s.value, expansion: sExpansion, prefix: sPrefix, name: sName},
-              domain: {iri: domain.value, expansion: dExpansion, prefix: dPrefix, name: dName},
-              range: {iri: range.value, expansion: rExpansion, prefix: rPrefix, name: rName}
+              elem: {iri: s.value, expansion: sExpansion, prefix: sPrefix, name: sName, label: sLabel},
+              domain: {iri: domain.value, expansion: dExpansion, prefix: dPrefix, name: dName, label: dLabel},
+              range: {iri: range.value, expansion: rExpansion, prefix: rPrefix, name: rName, label: rLabel}
             });
           }
           this.setState({defsLoaded: true, elementDefs: defs});
@@ -263,11 +270,11 @@ const variants = {
 
 function SuggestionAsNode(props) {
   const { info, node, isOpen, isDragged } = props;
-  const { expansion, name } = node;
+  const { expansion, label } = node;
 
   return (
     <>
-      <ItemImageHeader type={'nodeUri'} name={name} isDragged={isDragged} />
+      <ItemImageHeader type={'nodeUri'} name={label} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
           <motion.div className={"suggestion-extra extra"}
@@ -282,12 +289,12 @@ function SuggestionAsNode(props) {
 }
 
 function SuggestionAsLiteral(props) {
-  const { expansion, name } = props.node;
+  const { expansion, label } = props.node;
   const { isOpen, isDragged } = props;
 
   return (
     <>
-      <ItemImageHeader type={'nodeLiteral'} name={name} isDragged={isDragged} />
+      <ItemImageHeader type={'nodeLiteral'} name={label} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
           <motion.div className={'suggestion-extra extra'}
@@ -310,11 +317,11 @@ function SuggestionForSelectedDatatype(props) {
 
 function SuggestionForSelectedNode(props) {
   const { type, info, isOpen, isDragged } = props;
-  const { expansion, name } = props.property;
+  const { expansion, label } = props.property;
 
   return (
     <>
-      <ItemImageHeader type={type} name={name} isDragged={isDragged} />
+      <ItemImageHeader type={type} name={label} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
           <motion.div className={'suggestion-extra extra'}
