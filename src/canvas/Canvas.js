@@ -33,7 +33,7 @@ export default class Canvas extends React.Component {
    */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
-      const { nodes } = this.state.graph;
+      const { nodes, edges } = this.state.graph;
       const { elem, point, type } = this.props.transferredSuggestion;
 
       this.props.acknowledgeTransferredSuggestion();
@@ -52,10 +52,14 @@ export default class Canvas extends React.Component {
         } else console.warn("No selected element for Edge to anchor");
       } else if (type === "nodeUri") {
         const prefixedNodeLabel = elem.prefix + ":" + elem.name;
-        const selectedElement = nodes.find(node => node.id === this.props.selected.id);
+        const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
+        const currentUnfNode = nodes.find(node => node.id === selectedElement.to.id);
 
-        this.createNode(point.x, point.y, type, prefixedNodeLabel);
+        this.updateNode(currentUnfNode.id, prefixedNodeLabel, 'nodeUri');
+        // this.createNode(point.x, point.y, type, prefixedNodeLabel); // creates node to drag point
+        // this.createNode(currentUnfNode.x, currentUnfNode.y, type, prefixedNodeLabel); // creates node on top of last unf
       } else if (type === "nodeLiteral"){
+        //todo: fix similarly to the above
         let content = '';
 
         if (elem.name === 'string'){
@@ -135,6 +139,24 @@ export default class Canvas extends React.Component {
     }
 
     return nodeCounter + 1;
+  }
+
+  /**
+   * Updates a node from an unfinished node to one with the given content
+   * @param {number} id - id of the node to be updated
+   * @param {string} content - the new content of the node to be updated
+   * @param {string} type - the new type of the node to be updated
+   */
+  updateNode = (id, content, type) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        nodes: old.graph.nodes.map(node =>
+          id === node.id ? {...node, initState: type, defaultContent: content} : node)
+      }
+    }));
+
+    this.props.onSelectedItemChange({id: id, content: content, type: type});
   }
 
   /**

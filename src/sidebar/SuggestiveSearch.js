@@ -12,6 +12,7 @@ export default class SuggestiveSearch extends React.Component {
       suggestions: [],
       elementDefs: [],
       defsLoaded: false,
+      suggestionNo: 0
     };
   }
 
@@ -42,9 +43,9 @@ export default class SuggestiveSearch extends React.Component {
    */
   generateSuggestionsForSelectedEdge(content) {
     const suggestions = [];
-    const { elementDefs } = this.state;
+    const { elementDefs, suggestionNo } = this.state;
     const [ , name ] = content.split(':');
-    let ix = 0;
+    let ix = suggestionNo;
 
     for (let def of elementDefs) {
       if (def.elem.name === name) {
@@ -56,6 +57,8 @@ export default class SuggestiveSearch extends React.Component {
         ix++;
       }
     }
+
+    this.setState({suggestionNo: ix});
 
     return suggestions;
   }
@@ -69,6 +72,7 @@ export default class SuggestiveSearch extends React.Component {
    * @returns {DatatypeSuggestion[]}
    */
   generateSuggestionsForSelectedDatatype(content) {
+    console.warn("generateSuggestionsForSelectedDatatype unimplemented");
     return [];
   }
 
@@ -84,9 +88,9 @@ export default class SuggestiveSearch extends React.Component {
    */
   generateSuggestionsForSelectedNode(type, content) {
     const suggestions = [];
-    const { elementDefs } = this.state;
+    const { elementDefs, suggestionNo } = this.state;
     const [ , name ] = content.split(':');
-    let ix = 0;
+    let ix = suggestionNo;
 
     for (let def of elementDefs) {
       if (def.domain.name === name) {
@@ -95,6 +99,8 @@ export default class SuggestiveSearch extends React.Component {
       }
     }
 
+    this.setState({suggestionNo: ix});
+
     return suggestions;
   }
 
@@ -102,6 +108,7 @@ export default class SuggestiveSearch extends React.Component {
    * Deletes a suggestion located at ix from the state array of suggestions.
    * @param ix - the index of the suggestion about to be deleted
    */
+    //todo: deletes suggestions of the NEXT!! Remove...?
   deleteSuggestion = (ix) => {
     this.setState(old => ({
       suggestions: old.suggestions.filter(s => s.ix !== ix)
@@ -173,7 +180,7 @@ export default class SuggestiveSearch extends React.Component {
       <div>
         <AnimateSharedLayout>
           <motion.ul layout>
-            {defsLoaded && infoLoaded && suggestions.map(s =>
+            {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>
               <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={info[s.elem.iri]}
                                  onDeleteSuggestionFromSidebar={this.deleteSuggestion}
                                  onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
@@ -215,13 +222,12 @@ function SuggestionWrapper(props) {
     Suggestion = <SuggestionForSelectedDatatype isOpen={isOpen} isDragged={isDragged} />;
   } else console.warn("SuggestionWrapper cannot create a suggestion for the given type " + type);
 
-  //todo: use drag info.offset.x < -(side-bar-size) <300 atm> for creation of new object
   return (
     <motion.li layout onClick={toggleIsOpen} >
       <motion.div className={'suggestion'} layout
                   drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
                   onDragStart={toggleIsDragged} onDragTransitionEnd={toggleIsDragged}
-                  onDragEnd={(e, i) =>
+                  onDrag={(e, i) =>
                     checkSuggestionIsOutsideSidebar(type, elem, i.point, i.offset, ix) } >
         {Suggestion}
       </motion.div>

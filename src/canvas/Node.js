@@ -38,7 +38,7 @@ export default class Node extends React.Component {
       rx: 0,
       height: "100px",
       width: "200px",
-      strokeWidth: isOpt ? 5 :  0,
+      strokeWidth: isOpt ? 5 : 0,
       strokeDasharray: 3,
       stroke: '#0000fe'
     }),
@@ -50,6 +50,9 @@ export default class Node extends React.Component {
     },
     nodeUnf: {
       fill: '#0000fe',
+      strokeWidth: 0,
+      strokeDasharray: 3,
+      stroke: '#0000fe',
       width: '40px',
       height: '40px',
       rx: 70
@@ -74,6 +77,14 @@ export default class Node extends React.Component {
       adjustedX: props.x - (props.init === "nodeUnf" ? Node.unfWidth : Node.nodeWidth) / 2,
       adjustedY: props.y - (props.init === "nodeUnf" ? Node.unfHeight : Node.nodeHeight) / 2
     };
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const { init, defaultContent } = this.props;
+
+    if (prevProps.init !== init && prevProps.init === 'nodeUnf'){
+      this.setState({type: init, content: defaultContent});
+    }
   }
 
   handleEntryExit = (e) => {
