@@ -155,6 +155,7 @@ export default class SuggestiveSearch extends React.Component {
       );
   }
 
+  //todo: find a better way to cache incoming responses
   findPrefixOfExpansion = (expansion, cachedPrefixes) => {
     let prefix;
     const { basePrefix } = this.props;
@@ -172,6 +173,9 @@ export default class SuggestiveSearch extends React.Component {
 
             cachedPrefixes[expansion] = onlyPrefix;
             prefix = onlyPrefix;
+          } else {
+            cachedPrefixes[expansion] = '';
+            prefix = '';
           }
         });
     }

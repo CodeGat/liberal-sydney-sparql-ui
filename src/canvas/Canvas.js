@@ -45,13 +45,13 @@ export default class Canvas extends React.Component {
         if (selectedElement){
           const nodeInfo = {id: selectedElement.id, content: selectedElement.content};
           const nodeShape = {x: selectedElement.x, y: selectedElement.y};
-          const prefixedEdgeLabel = elem.prefix + ':' + elem.name;
+          const prefixedEdgeLabel = (elem.prefix !== '' ? elem.prefix + ':' : '') + elem.label;
 
           this.createEdgeWithExistingNode(nodeInfo, nodeShape, prefixedEdgeLabel);
           this.setState({mode: 'edge', edgeCompleting: true});
         } else console.warn("No selected element for Edge to anchor");
       } else if (type === "nodeUri") {
-        const prefixedNodeLabel = elem.prefix + ":" + elem.name;
+        const prefixedNodeLabel = (elem.prefix !== '' ? elem.prefix + ":" : '') + elem.name;
         const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
         const currentUnfNode = nodes.find(node => node.id === selectedEdge.to.id);
 

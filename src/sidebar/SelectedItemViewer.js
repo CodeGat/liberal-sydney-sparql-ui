@@ -20,7 +20,7 @@ export default class SelectedItemViewer extends React.Component {
     if (prevProps.content !== content && type === 'nodeUri') {
       const contentSegments = content.split(':');
 
-      if (contentSegments[0] !== '') {
+      if (contentSegments.length > 1 && contentSegments[0] !== '') {
         fetchExpansionOfPrefix(contentSegments[0])
           .then(
             result =>
@@ -38,29 +38,24 @@ export default class SelectedItemViewer extends React.Component {
     const { type, content, basePrefix, info, infoLoaded } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
-    if (type === "nodeUri") {
+    if (type === "nodeUri" || type === "edgeKnown") {
       // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //used for full uris!
       const contentSegments = content.split(':');
       let prefix = 'Unknown';
       let name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
 
-      if (contentSegments[0] === '') prefix = basePrefix;
+      if (contentSegments[0] === '' || contentSegments.length === 1) prefix = basePrefix;
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
-      return (<SelectedUriNodeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
+      if (type === "nodeUri") {
+        return (<SelectedUriNodeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded}/>);
+      } else {
+        return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
+      }
     } else if (type === "nodeUnknown") {
       return (<SelectedUnknownNodeViewer type={type} content={content} />);
     } else if (type === "nodeLiteral") {
       return (<SelectedLiteralNodeViewer type={type} content={content} />);
-    } else if (type === "edgeKnown") {
-      const contentSegments = content.split(':');
-      let prefix = 'Unknown';
-      let name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
-
-      if (contentSegments[0] === '') prefix = basePrefix;
-      if (expandedPrefixLoaded) prefix = expandedPrefix;
-
-      return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
     } else if (type === "edgeUnknown") {
       return(<SelectedUnknownEdgeViewer type={type} content={content} />);
     } else {
