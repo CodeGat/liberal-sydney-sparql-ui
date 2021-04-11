@@ -24,7 +24,7 @@ export default class Canvas extends React.Component {
 
   /**
    * this.state.graph:
-   * {nodes: [{id, x, y, init}...], edges: [{id, content, from {id, x, y}, to {id, x, y}, done}...]}
+   * NEW: {nodes: [{id, x, y, type, isOptional, content}...] edges: [{id, content, from: id to: id, done}]}
    */
 
   /**
@@ -57,8 +57,9 @@ export default class Canvas extends React.Component {
         const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
         const currentUnfNode = nodes.find(node => node.id === selectedEdge.to.id);
 
-        this.updateNode(currentUnfNode.id, prefixedNodeLabel, type);
+        this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
         this.updateEdge(selectedEdge, currentUnfNode);
+        this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
         // this.createNode(point.x, point.y, type, prefixedNodeLabel); // creates node to drag point
         // this.createNode(currentUnfNode.x, currentUnfNode.y, type, prefixedNodeLabel); // creates node on top of last unf
       } else if (type === "nodeLiteral"){
@@ -72,7 +73,8 @@ export default class Canvas extends React.Component {
           content = '0';
         }
 
-        this.updateNode(currentUnfNode.id, content, type);
+        this.changeNodeState(currentUnfNode.id, {content: content, type: type});
+        this.props.onSelectedItemChange({id: currentUnfNode.id, content: content, type: type});
         // this.createNode(point.x, point.y, type, content);
       } else console.warn('unknown type when adding suggestion to canvas');
     }
@@ -123,14 +125,14 @@ export default class Canvas extends React.Component {
    * Creates the underlying representation of a node to be kept in this.state until it can be rendered by the Node class
    * @param {number} x - the x-value that the position of the node will be based on
    * @param {number} y - the y-value that the position of the node will be based on
-   * @param {string} initState - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
+   * @param {string} type - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
    *   fully formed node ('nodeUnknown'/'nodeKnown')
    * @param {string} content - content that the node starts with
    * @returns {number} - id of node just created.
    */
-  createNode = (x, y, initState, content) => {
+  createNode = (x, y, type, content) => {
     const { nodeCounter } = this.state;
-    const newNode = {x: x, y: y, id: nodeCounter + 1, initState: initState, defaultContent: content};
+    const newNode = {x: x, y: y, id: nodeCounter + 1, type: type, content: content, isOptional: false};
 
     this.setState(old => ({
       nodeCounter: old.nodeCounter + 1,
@@ -140,29 +142,11 @@ export default class Canvas extends React.Component {
       }
     }));
 
-    if (initState !== 'nodeUnf') {
-      this.props.onSelectedItemChange({id: nodeCounter + 1, content: content, type: initState});
+    if (type !== 'nodeUnf') {
+      this.props.onSelectedItemChange({id: nodeCounter + 1, content: content, type: type});
     }
 
     return nodeCounter + 1;
-  }
-
-  /**
-   * Updates a node from an unfinished node to one with the given content
-   * @param {number} id - id of the node to be updated
-   * @param {string} content - the new content of the node to be updated
-   * @param {string} type - the new type of the node to be updated
-   */
-  updateNode = (id, content, type) => {
-    this.setState(old => ({
-      graph: {
-        ...old.graph,
-        nodes: old.graph.nodes.map(node =>
-          id === node.id ? {...node, initState: type, defaultContent: content} : node)
-      }
-    }));
-
-    this.props.onSelectedItemChange({id: id, content: content, type: type});
   }
 
   /**
@@ -321,6 +305,20 @@ export default class Canvas extends React.Component {
     } else console.warn("couldn't find intersection between selected edge and expanded unf node");
   }
 
+  /**
+   * Changes the state of the node with the given id.
+   * @param {number} id - id of the node to be changed
+   * @param {Object} changes - object of all changes to the nodes state
+   */
+  changeNodeState = (id, changes) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        nodes: old.graph.nodes.map(node => node.id === id ? {...node, ...changes} : node)
+      }
+    }));
+  }
+
   render() {
     const { nodes, edges } = this.state.graph;
     const { mode, edgeCompleting, testpath, testcircle } = this.state;
@@ -344,9 +342,10 @@ export default class Canvas extends React.Component {
           </g>
           <g id="nodes">
             {nodes.map(node =>
-              <Node id={node.id} key={node.id} x={node.x} y={node.y} init={node.initState}
-                    defaultContent={node.defaultContent}
+              <Node id={node.id} key={node.id} x={node.x} y={node.y} type={node.type}
+                    content={node.content} isOptional={node.isOptional}
                     mode={mode} edgeCompleting={edgeCompleting}
+                    onChangeNodeState={this.changeNodeState}
                     onSelectedItemChange={this.handleElementChange}
                     onEdgeCreation={this.createEdgeWithExistingNode}
                     onEdgeCompletion={this.completeEdgeWithExistingNode} />)}
