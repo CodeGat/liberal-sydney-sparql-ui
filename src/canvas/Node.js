@@ -72,11 +72,6 @@ export default class Node extends React.Component {
   static labelHeight = 30;
   static labelWidth = 150;
 
-  //todo: make defaultContent care about prefix! right now it just ignores it
-  constructor(props) {
-    super(props);
-  }
-
   /**
    *
    * @param e - event that triggered the function
@@ -136,16 +131,14 @@ export default class Node extends React.Component {
     const variant = Node.variants[type](isOptional);
     const currentNodeWidth = variant.width;
     const currentNodeHeight = variant.height;
-    const actualX = x - currentNodeWidth / 2;
-    const actualY = y - currentNodeHeight / 2;
 
     return (
-      <motion.g drag dragMomentum={false} whileHover={{scale: 1.2}}>
-        <motion.rect x={actualX} y={actualY} onClickCapture={this.handleEntryExit} onMouseUpCapture={() => console.log("mouseup")}
+      <motion.g whileHover={{scale: 1.2}}>
+        <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit} onMouseUpCapture={() => console.log("mouseup")}
                      variants={Node.variants} initial={false} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
-          <foreignObject x={actualX - (Node.labelWidth - currentNodeWidth) / 2} y={actualY + Node.labelHeight}
+          <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2} y={y + Node.labelHeight}
                          width={Node.labelWidth} height={Node.labelHeight}
                          pointerEvents={mode === "edge" ? "none" : "auto"} >
             <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}

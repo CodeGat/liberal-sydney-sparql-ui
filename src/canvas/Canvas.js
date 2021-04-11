@@ -132,7 +132,12 @@ export default class Canvas extends React.Component {
    */
   createNode = (x, y, type, content) => {
     const { nodeCounter } = this.state;
-    const newNode = {x: x, y: y, id: nodeCounter + 1, type: type, content: content, isOptional: false};
+    const variant = Node.variants[type](false);
+    const newNode = {
+      x: x - variant.width / 2, y: y - variant.height / 2,
+      midX: x, midY: y,
+      id: nodeCounter + 1, type: type, content: content, isOptional: false
+    };
 
     this.setState(old => ({
       nodeCounter: old.nodeCounter + 1,
@@ -186,9 +191,9 @@ export default class Canvas extends React.Component {
   /**
    * Creates the underlying representation of the edge whose subject does not yet exist.
    *  This happens when one clicks on the canvas in 'edge' mode while not in 'edgeCompleting' mode
-   * @param x - the x position that spawned the new node
-   * @param y - the y position that spawned the new node
-   * @param id {number} - the id of the newly-created node
+   * @param {number} x - the x position that spawned the new node
+   * @param {number} y - the y position that spawned the new node
+   * @param {number} id  - the id of the newly-created node
    */
   createEdgeWithNewNode = (x, y, id) => {
     const { edgeCounter } = this.state;
