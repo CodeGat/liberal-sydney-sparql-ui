@@ -23,7 +23,7 @@ export default class Edge extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: "unknown",
+      type: "edgeKnown",
       isOptional: false,
       prefix: '',
       content: props.defaultContent
@@ -69,7 +69,10 @@ export default class Edge extends React.Component {
           <motion.input className={"edgeLabel"} value={content}
                         onChange={this.handleChangedText}
                         onBlur={this.handleEntryExit}
-                        onClick={(e) => e.preventDefault()}/>
+                        onClick={(e) => {
+                          e.preventDefault();
+                          this.handleEntryExit(e);
+                        }}/>
         </foreignObject>
       </g>
     );
