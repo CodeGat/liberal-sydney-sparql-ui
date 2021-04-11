@@ -16,7 +16,9 @@ export default class Canvas extends React.Component {
       mode: 'drag',
       edgeCompleting: false,
       nodeCompleting: false,
-      graph: {nodes: [], edges: []}
+      graph: {nodes: [], edges: []},
+      testpath: '',
+      testcircle: ''
     };
   }
 
@@ -258,7 +260,7 @@ export default class Canvas extends React.Component {
     const edgeToComplete = edges.find(edge => !edge.complete);
     const subjectNode = nodes.find(node => node.id === edgeToComplete.from.id);
     const objectNodeShape = {...Node.variants.nodeUnf, x: x - Node.unfWidth / 2, y: y - Node.unfHeight / 2};
-    const basicPathDef = `M${subjectNode.x} ${subjectNode.y} L${x} ${y}`;
+    const basicPathDef = `M${subjectNode.x} ${subjectNode.y} L${x} ${y}`; //todo: when adding an edge, it uses the old unf midpoint!
 
     const intersections = intersect(shape('path', {d: basicPathDef}), shape('rect', objectNodeShape));
     const firstIntersect = intersections.points[0];
@@ -293,19 +295,21 @@ export default class Canvas extends React.Component {
    */
     //todo: slight error on intersections
   updateEdge = (edgeToUpdate, connectedNode) => {
-    const pathDef = `M${edgeToUpdate.from.x} ${edgeToUpdate.from.y} L${connectedNode.x + Node.nodeWidth / 2} ${connectedNode.y + Node.nodeHeight / 2}`;
-    const nodeShape = {...Node.variants.nodeUri(false), x: connectedNode.x, y: connectedNode.y};
+    const pathDef = `M${edgeToUpdate.from.x} ${edgeToUpdate.from.y} L${connectedNode.x + Node.nodeHeight/2} ${connectedNode.y + Node.nodeHeight/2}`;
+    const nodeShape = {...Node.variants.nodeUri(false), x: connectedNode.x - Node.nodeHeight / 4, y: connectedNode.y - Node.nodeHeight/4};
 
     console.log(pathDef)
     console.log(nodeShape);
 
     const intersections = intersect(shape('path', {d: pathDef}), shape('rect', nodeShape));
 
+    this.setState({testpath: pathDef, testcircle: {x: connectedNode.x - Node.nodeHeight/4, y: connectedNode.y - Node.nodeHeight/4}});
+
+    console.log(intersections);
+
     if (intersections.points[0]) {
       const firstIntersection = intersections.points[0];
       const dest = {id: connectedNode.id, x: firstIntersection.x, y: firstIntersection.y};
-
-      console.log(dest);
 
       this.setState(old => ({
         graph: {
@@ -319,7 +323,7 @@ export default class Canvas extends React.Component {
 
   render() {
     const { nodes, edges } = this.state.graph;
-    const { mode, edgeCompleting } = this.state;
+    const { mode, edgeCompleting, testpath, testcircle } = this.state;
 
     return (
       <div className="canvas">
@@ -347,10 +351,24 @@ export default class Canvas extends React.Component {
                     onEdgeCreation={this.createEdgeWithExistingNode}
                     onEdgeCompletion={this.completeEdgeWithExistingNode} />)}
           </g>
+          {testpath !== '' && testcircle !== '' &&
+            <Testpath path={testpath} circle={testcircle}/>}
         </svg>
       </div>
     );
   }
+}
+
+function Testpath(props){
+  return (
+    <g>
+      <path d={props.path} stroke={'red'} strokeWidth={3} strokeDasharray={0}/>
+      <rect x={props.circle.x} y={props.circle.y} width={100} height={100} rx={50} ry={50} stroke={'black'} fill={'transparent'}/>
+      <rect x={props.circle.x} y={props.circle.y} width={100} height={100} stroke={'black'} fill={'transparent'}/>
+      <rect x={props.circle.x} y={props.circle.y} width={40} height={40} rx={70} ry={70} stroke={'blue'} fill={'transparent'}/>
+      <rect x={props.circle.x} y={props.circle.y} width={40} height={40} stroke={'blue'} fill={'transparent'}/>
+    </g>
+  );
 }
 
 function ModeSelector(props){
