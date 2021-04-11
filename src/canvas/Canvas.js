@@ -49,7 +49,7 @@ export default class Canvas extends React.Component {
           const prefixedEdgeLabel = (elem.prefix !== '' ? elem.prefix + ':' : '') + elem.label;
           const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
 
-          this.createEdgeWithExistingNode(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
+          this.createEdge(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
           this.setState({mode: 'edge', edgeCompleting: true});
         } else console.warn("No selected element for Edge to anchor");
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
@@ -107,10 +107,16 @@ export default class Canvas extends React.Component {
       this.createNode(event.clientX, event.clientY, 'nodeUnknown', "?");
     } else if (mode === "edge") {
       const newNodeId = this.createNode(event.clientX, event.clientY, 'nodeUnf', "");
-      if (edgeCompleting){
-        this.completeEdgeWithNewNode(event.clientX, event.clientY, newNodeId);
-      } else {
-        this.createEdgeWithNewNode(event.clientX, event.clientY, newNodeId);
+      const variant = Node.variants['nodeUnf'](false);
+      const newNodePos = {
+        x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
+        midX: event.clientX, midY: event.clientY
+      };
+
+      if (edgeCompleting){ // we'll complete the edge with a new, unfinished Node as object
+        this.completeEdge(newNodeId, 'nodeUnf', newNodePos);
+      } else { // we'll create a new edge with a new, unfinished Node as subject
+        this.createEdge('?', newNodeId, newNodePos)
       }
     }
   }
@@ -155,7 +161,7 @@ export default class Canvas extends React.Component {
    * @param {Object} subjectPos - positional information of the existing Subject Node the Edge is connected to: it's
    *   intersecting x/y (which is just the midpoint of the Subject, for simplicity sake
    */
-  createEdgeWithExistingNode = (content, subjectId, subjectPos) => {
+  createEdge = (content, subjectId, subjectPos) => {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
@@ -180,43 +186,17 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   * Creates the underlying representation of the edge whose subject does not yet exist.
-   *  This happens when one clicks on the canvas in 'edge' mode while not in 'edgeCompleting' mode
-   * @param {number} x - the x position that spawned the new node
-   * @param {number} y - the y position that spawned the new node
-   * @param {number} id  - the id of the newly-created node
-   */
-  createEdgeWithNewNode = (x, y, id) => {
-    const { edgeCounter } = this.state;
-    const newEdge = {
-      id: edgeCounter + 1,
-      defaultContent: '?',
-      from: {id: id},
-      to: {x: x + 1, y: y + 1},
-      complete: false
-    };
-
-    this.setState(old => ({
-      edgeCounter: old.edgeCounter + 1,
-      graph: {
-        ...old.graph,
-        edges: [...old.graph.edges, newEdge]
-      },
-      edgeCompleting: true
-    }));
-  }
-
-  /**
    * Finalizes the Edge, getting it's intersection with the object Node for more natural arrowheads, and
    *   adds the completed Edge to the Canvas state, ready for another Edge to be added.
-   * @param {number} objectId - the id of the existing Object Node.
-   * @param {string} objectType - the type of the existing Object Node.
-   * @param {Object} objectPos - object containing positional data about the existing Object Node, such as it's
+   * @param {number} objectId - the id of the Object Node.
+   * @param {string} objectType - the type of the Object Node.
+   * @param {Object} objectPos - object containing positional data about the Object Node, such as it's
    *   top-left x/y, and midpoint x/y.
    */
-  completeEdgeWithExistingNode = (objectId, objectType, objectPos) => {
+  completeEdge = (objectId, objectType, objectPos) => {
     const { nodes, edges } = this.state.graph;
     const edge = edges.find(edge => !edge.complete);
+
     const subject = nodes.find(node => node.id === edge.from);
     const objectVariant = Node.variants[objectType](false);
 
@@ -225,43 +205,12 @@ export default class Canvas extends React.Component {
 
     const intersections = intersect(shape("path", pathDef), shape("rect", objectShape));
     const firstIntersect = intersections.points[0];
-
     const object = {id: objectId, intersectX: firstIntersect.x, intersectY: firstIntersect.y};
 
     this.setState(old => ({
       graph: {
         ...old.graph,
         edges: old.graph.edges.map(edge => !edge.complete ? {...edge, object: object, complete: true} : edge)
-      },
-      edgeCompleting: false
-    }));
-  }
-
-  //todo: find optimisation for all these `find` calls - O(n)
-  /**
-   *
-   * @param x - the x position that spawned the node
-   * @param y - the y position that spawned the node
-   * @param {number} id - the id of the created node
-   */
-  completeEdgeWithNewNode(x, y, id) {
-    const { nodes, edges } = this.state.graph;
-
-    const edgeToComplete = edges.find(edge => !edge.complete);
-    const subjectNode = nodes.find(node => node.id === edgeToComplete.from.id);
-    const objectNodeShape = {...Node.variants.nodeUnf, x: x - Node.unfWidth / 2, y: y - Node.unfHeight / 2};
-    const basicPathDef = `M${subjectNode.x} ${subjectNode.y} L${x} ${y}`; //todo: when adding an edge, it uses the old unf midpoint!
-
-    const intersections = intersect(shape('path', {d: basicPathDef}), shape('rect', objectNodeShape));
-    const firstIntersect = intersections.points[0];
-    const dest = {id: id, x: firstIntersect.x, y: firstIntersect.y};
-
-    this.setState(old => ({
-      graph: {
-        ...old.graph,
-        edges: old.graph.edges.map(edge =>
-          !edge.complete ? {...edge, to: dest, complete: true} : edge
-        )
       },
       edgeCompleting: false
     }));
@@ -368,8 +317,8 @@ export default class Canvas extends React.Component {
                     mode={mode} edgeCompleting={edgeCompleting}
                     onChangeNodeState={this.changeNodeState}
                     onSelectedItemChange={this.handleElementChange}
-                    onEdgeCreation={this.createEdgeWithExistingNode}
-                    onEdgeCompletion={this.completeEdgeWithExistingNode} />)}
+                    onEdgeCreation={this.createEdge}
+                    onEdgeCompletion={this.completeEdge} />)}
           </g>
           {testpath !== '' && testcircle !== '' &&
             <Testpath path={testpath} circle={testcircle}/>}
