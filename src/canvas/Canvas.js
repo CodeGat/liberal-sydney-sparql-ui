@@ -16,9 +16,7 @@ export default class Canvas extends React.Component {
       mode: 'drag',
       edgeCompleting: false,
       nodeCompleting: false,
-      graph: {nodes: [], edges: []},
-      testpath: '',
-      testcircle: ''
+      graph: {nodes: [], edges: []}
     };
   }
 
@@ -235,27 +233,26 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   *
-   * @param edgeToUpdate
-   * @param connectedNode
+   * Updates the given Edges intersection points due to expansion of a node from unf to known/unknown
+   * @param {Object} edgeToUpdate - the Edge whose intersection points need to be updated
+   * @param {Object} objectNode - the Object Node whose boundary has changed
    */
-    //todo: slight error on intersections
-  updateEdge = (edgeToUpdate, connectedNode) => {
+  updateEdge = (edgeToUpdate, objectNode) => {
     const subX = edgeToUpdate.subject.intersectX;
     const subY = edgeToUpdate.subject.intersectY;
     const nodeVariant = Node.variants['nodeUri'](false);
+    const updatedObjectNodeX = objectNode.x + nodeVariant.width / 2;
+    const updatedObjectNodeY = objectNode.y + nodeVariant.height / 2;
 
-    const pathDef = {d: `M${subX} ${subY} L${connectedNode.midX} ${connectedNode.midY}`};
-    const nodeShape = {...nodeVariant, x: connectedNode.x, y: connectedNode.y};
+    const pathDef = {d: `M${subX} ${subY} L${updatedObjectNodeX} ${updatedObjectNodeY}`};
+    const nodeShape = {...nodeVariant, x: objectNode.x, y: objectNode.y};
 
     const intersections = intersect(shape('path', pathDef), shape('rect', nodeShape));
-
-    this.setState({testpath: pathDef, testcircle: {x: connectedNode.x, y: connectedNode.y}});
 
     if (intersections.points[0]) {
       const firstIntersection = intersections.points[0];
       const objectChanges = {
-        object: {id: connectedNode.id, intersectX: firstIntersection.x, intersectY: firstIntersection.y}
+        object: {id: objectNode.id, intersectX: firstIntersection.x, intersectY: firstIntersection.y}
       };
 
       this.changeEdgeState(edgeToUpdate.id, objectChanges);
@@ -292,7 +289,7 @@ export default class Canvas extends React.Component {
 
   render() {
     const { nodes, edges } = this.state.graph;
-    const { mode, edgeCompleting, testpath, testcircle } = this.state;
+    const { mode, edgeCompleting } = this.state;
 
     return (
       <div className="canvas">
@@ -322,24 +319,10 @@ export default class Canvas extends React.Component {
                     onEdgeCreation={this.createEdge}
                     onEdgeCompletion={this.completeEdge} />)}
           </g>
-          {testpath !== '' && testcircle !== '' &&
-            <Testpath path={testpath} circle={testcircle}/>}
         </svg>
       </div>
     );
   }
-}
-
-function Testpath(props){
-  return (
-    <g>
-      <path d={props.path.d} stroke={'red'} strokeWidth={3} strokeDasharray={0}/>
-      <rect x={props.circle.x} y={props.circle.y} width={100} height={100} rx={50} ry={50} stroke={'black'} fill={'transparent'}/>
-      <rect x={props.circle.x} y={props.circle.y} width={100} height={100} stroke={'black'} fill={'transparent'}/>
-      <rect x={props.circle.x} y={props.circle.y} width={40} height={40} rx={70} ry={70} stroke={'blue'} fill={'transparent'}/>
-      <rect x={props.circle.x} y={props.circle.y} width={40} height={40} stroke={'blue'} fill={'transparent'}/>
-    </g>
-  );
 }
 
 function ModeSelector(props){
