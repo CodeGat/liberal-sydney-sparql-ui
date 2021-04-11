@@ -85,10 +85,8 @@ export default class Node extends React.Component {
         const objectNodePos = {x: x, y: y, midX: midX, midY: midY};
         this.props.onEdgeCompletion(id, type, objectNodePos);
       } else { // we are starting a new Edge from this Node
-        const info = {id: id, content: content};
-        const shape = {x: x, y: y};
-
-        this.props.onEdgeCreation(info, shape, '?');
+        const subjectNodePos = {midX: midX, midY: midY};
+        this.props.onEdgeCreation('?', id, subjectNodePos);
       }
     } else {
       this.props.onSelectedItemChange({type: type, id: id, content: content});
@@ -120,7 +118,6 @@ export default class Node extends React.Component {
 
     const variant = Node.variants[type](isOptional);
     const currentNodeWidth = variant.width;
-    const currentNodeHeight = variant.height;
 
     return (
       <motion.g whileHover={{scale: 1.2}}>

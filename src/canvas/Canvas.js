@@ -29,7 +29,8 @@ export default class Canvas extends React.Component {
    */
 
   /**
-   * checks if a transferred suggestion needs to be added to the canvas
+   * If a transferred suggestion exists, find out it's type (Node or Edge) and how it will connect to the element it
+   *   is making a suggestion for.
    * @param prevProps
    * @param prevState
    * @param snapshot
@@ -37,46 +38,38 @@ export default class Canvas extends React.Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
       const { nodes, edges } = this.state.graph;
-      const { elem, point, type } = this.props.transferredSuggestion;
+      const { elem, type } = this.props.transferredSuggestion;
 
       this.props.acknowledgeTransferredSuggestion();
 
-      if (type === "edgeKnown"){
-        // if off click is on node do regular createEdgeWithExistingNode else do it anyway (move edge to selected item
-        const selectedElement = nodes.find(node => node.id === this.props.selected.id);
+      if (type === "edgeKnown") { //if type of transferred suggestion is a known Edge, the selected item is a Node
+        const selectedNode = nodes.find(node => node.id === this.props.selected.id);
 
-        if (selectedElement){
-          const nodeInfo = {id: selectedElement.id, content: selectedElement.content};
-          const nodeShape = {x: selectedElement.x, y: selectedElement.y};
+        if (selectedNode){
           const prefixedEdgeLabel = (elem.prefix !== '' ? elem.prefix + ':' : '') + elem.label;
+          const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
 
-          this.createEdgeWithExistingNode(nodeInfo, nodeShape, prefixedEdgeLabel);
+          this.createEdgeWithExistingNode(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
           this.setState({mode: 'edge', edgeCompleting: true});
         } else console.warn("No selected element for Edge to anchor");
-      } else if (type === "nodeUri") {
+      } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
         const prefixedNodeLabel = (elem.prefix !== '' ? elem.prefix + ":" : '') + elem.name;
         const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
-        const currentUnfNode = nodes.find(node => node.id === selectedEdge.to.id);
+        const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
 
         this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
         this.updateEdge(selectedEdge, currentUnfNode);
         this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
-        // this.createNode(point.x, point.y, type, prefixedNodeLabel); // creates node to drag point
-        // this.createNode(currentUnfNode.x, currentUnfNode.y, type, prefixedNodeLabel); // creates node on top of last unf
-      } else if (type === "nodeLiteral"){
+      } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
         const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
-        const currentUnfNode = nodes.find(node => node.id === selectedElement.to.id);
+        const currentUnfNode = nodes.find(node => node.id === selectedElement.object.id);
         let content = '';
 
-        if (elem.name === 'string'){
-          content = '""';
-        } else if (elem.name === 'int' || elem.name === 'integer') {
-          content = '0';
-        }
+        if (elem.name === 'string') content = '""';
+        else if (elem.name === 'int' || elem.name === 'integer') content = '0';
 
         this.changeNodeState(currentUnfNode.id, {content: content, type: type});
         this.props.onSelectedItemChange({id: currentUnfNode.id, content: content, type: type});
-        // this.createNode(point.x, point.y, type, content);
       } else console.warn('unknown type when adding suggestion to canvas');
     }
   }
@@ -156,23 +149,19 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   * Creates the underlying representation of an Edge whose subject exists. Called from Node.js when the existing Node
-   *  was clicked
-   * @param nodeInfo {Object} - Object that contains information about the nodes content and id
-   * @param {number} nodeInfo.id - the id of the existing node that will be the subject of the new Edge
-   * @param {string} nodeInfo.content - the text within the existing Node
-   * @param nodeShape {Object}
-   * @param {number} nodeShape.x - the x-coordinate of the Node
-   * @param {number} nodeShape.y - the y-coordinate of the Node
-   * @param {string} content - initial content of the given Edge
+   * Creates the representation of a new Edge that has an existing subject Node.
+   * @param {string} content - content of the new Edge.
+   * @param {number} subjectId - id of the existing Subject Node the Edge is connected to.
+   * @param {Object} subjectPos - positional information of the existing Subject Node the Edge is connected to: it's
+   *   intersecting x/y (which is just the midpoint of the Subject, for simplicity sake
    */
-  createEdgeWithExistingNode = (nodeInfo, nodeShape, content) => {
+  createEdgeWithExistingNode = (content, subjectId, subjectPos) => {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
-      defaultContent: content,
-      from: {id: nodeInfo.id, content: nodeInfo.content, x: nodeShape.x, y: nodeShape.y},
-      to: {x: nodeShape.x + 1, y: nodeShape.y + 1},
+      content: content,
+      from: {id: subjectId, intersectX: subjectPos.midX, intersectY: subjectPos.midY},
+      to: {x: subjectPos.midX + 1, y: subjectPos.midY + 1},
       complete: false
     }
 
@@ -184,6 +173,7 @@ export default class Canvas extends React.Component {
       },
       edgeCompleting: true
     }));
+
     this.props.onSelectedItemChange(
       {id: edgeCounter + 1, content: content, type: content === '?' ? 'edgeUnknown' : 'edgeKnown'}
     );
@@ -219,16 +209,16 @@ export default class Canvas extends React.Component {
   /**
    * Finalizes the Edge, getting it's intersection with the object Node for more natural arrowheads, and
    *   adds the completed Edge to the Canvas state, ready for another Edge to be added.
-   * @param {number} id - the id of the existing Object Node.
-   * @param {string} type - the type of the existing Object Node.
+   * @param {number} objectId - the id of the existing Object Node.
+   * @param {string} objectType - the type of the existing Object Node.
    * @param {Object} objectPos - object containing positional data about the existing Object Node, such as it's
    *   top-left x/y, and midpoint x/y.
    */
-  completeEdgeWithExistingNode = (id, type, objectPos) => {
+  completeEdgeWithExistingNode = (objectId, objectType, objectPos) => {
     const { nodes, edges } = this.state.graph;
     const edge = edges.find(edge => !edge.complete);
     const subject = nodes.find(node => node.id === edge.from);
-    const objectVariant = Node.variants[type](false);
+    const objectVariant = Node.variants[objectType](false);
 
     const objectShape = {...objectVariant, x: objectPos.x, y: objectPos.y};
     const pathDef = {d: `M${subject.midX} ${subject.midY} L${objectPos.midX} ${objectPos.midY}`};
@@ -236,7 +226,7 @@ export default class Canvas extends React.Component {
     const intersections = intersect(shape("path", pathDef), shape("rect", objectShape));
     const firstIntersect = intersections.points[0];
 
-    const object = {id: id, intersectX: firstIntersect.x, intersectY: firstIntersect.y};
+    const object = {id: objectId, intersectX: firstIntersect.x, intersectY: firstIntersect.y};
 
     this.setState(old => ({
       graph: {
