@@ -112,7 +112,6 @@ export default class SuggestiveSearch extends React.Component {
    * Deletes a suggestion located at ix from the state array of suggestions.
    * @param ix - the index of the suggestion about to be deleted
    */
-    //todo: deletes suggestions of the NEXT!! Remove...?
   deleteSuggestion = (ix) => {
     this.setState(old => ({
       suggestions: old.suggestions.filter(s => s.ix !== ix)
@@ -158,14 +157,14 @@ export default class SuggestiveSearch extends React.Component {
   //todo: find a better way to cache incoming responses
   findPrefixOfExpansion = (expansion, cachedPrefixes) => {
     let prefix;
-    const { basePrefix } = this.props;
+    const { basePrefix, basePrefixLoaded } = this.props;
 
     if (expansion === basePrefix) {
       prefix = '';
     } else if (cachedPrefixes[expansion]) {
       console.log(expansion + ' was cached prefix');
       prefix = cachedPrefixes[expansion];
-    } else {
+    } else if (basePrefixLoaded) {
       fetchPrefixOfExpansion(expansion)
         .then(res => {
           if (res.success) {
