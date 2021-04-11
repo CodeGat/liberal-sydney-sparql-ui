@@ -1,0 +1,25 @@
+:root {
+    --sidebarSize: 300px;
+}
+
+.sidebar {
+    height: 100%;
+    width: var(--sidebarSize);
+    position: fixed;
+    display: inline-block;
+    z-index: 1;
+    float: right;
+    top: 0;
+    right: 0;
+    background-color: darkgrey;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.light {
+    color: #707070;
+}
+
+.small {
+    font-size: small;
+}
