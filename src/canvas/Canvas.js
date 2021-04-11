@@ -166,8 +166,9 @@ export default class Canvas extends React.Component {
     const newEdge = {
       id: edgeCounter + 1,
       content: content,
-      from: {id: subjectId, intersectX: subjectPos.midX, intersectY: subjectPos.midY},
-      to: {x: subjectPos.midX + 1, y: subjectPos.midY + 1},
+      type: content === '?' ? 'edgeUnknown' : 'edgeKnown', isOptional: false,
+      subject: {id: subjectId, intersectX: subjectPos.midX, intersectY: subjectPos.midY},
+      object: {x: subjectPos.midX + 1, y: subjectPos.midY + 1},
       complete: false
     }
 
@@ -197,7 +198,7 @@ export default class Canvas extends React.Component {
     const { nodes, edges } = this.state.graph;
     const edge = edges.find(edge => !edge.complete);
 
-    const subject = nodes.find(node => node.id === edge.from);
+    const subject = nodes.find(node => node.id === edge.subject.id);
     const objectVariant = Node.variants[objectType](false);
 
     const objectShape = {...objectVariant, x: objectPos.x, y: objectPos.y};
@@ -216,13 +217,19 @@ export default class Canvas extends React.Component {
     }));
   }
 
+  /**
+   * the Edge arrowhead follows the users mouse as they find a suitable place to finish it.
+   * @param e - event that triggered the function.
+   */
   moveEdgePlacement = (e) => {
     if (e.defaultPrevented) return;
 
     this.setState(old => ({
       graph: {
         ...old.graph,
-        edges: old.graph.edges.map(edge => !edge.complete ? {...edge, to: {x: e.clientX, y: e.clientY}} : edge)
+        edges: old.graph.edges.map(edge =>
+          !edge.complete ? {...edge, object: {intersectX: e.clientX, intersectY: e.clientY}} : edge
+        )
       }
     }));
   }
@@ -234,29 +241,24 @@ export default class Canvas extends React.Component {
    */
     //todo: slight error on intersections
   updateEdge = (edgeToUpdate, connectedNode) => {
-    const pathDef = `M${edgeToUpdate.from.x} ${edgeToUpdate.from.y} L${connectedNode.x + Node.nodeHeight/2} ${connectedNode.y + Node.nodeHeight/2}`;
-    const nodeShape = {...Node.variants.nodeUri(false), x: connectedNode.x - Node.nodeHeight / 4, y: connectedNode.y - Node.nodeHeight/4};
+    const subX = edgeToUpdate.subject.intersectX;
+    const subY = edgeToUpdate.subject.intersectY;
+    const nodeVariant = Node.variants['nodeUri'](false);
 
-    console.log(pathDef)
-    console.log(nodeShape);
+    const pathDef = {d: `M${subX} ${subY} L${connectedNode.midX} ${connectedNode.midY}`};
+    const nodeShape = {...nodeVariant, x: connectedNode.x, y: connectedNode.y};
 
-    const intersections = intersect(shape('path', {d: pathDef}), shape('rect', nodeShape));
+    const intersections = intersect(shape('path', pathDef), shape('rect', nodeShape));
 
-    this.setState({testpath: pathDef, testcircle: {x: connectedNode.x - Node.nodeHeight/4, y: connectedNode.y - Node.nodeHeight/4}});
-
-    console.log(intersections);
+    this.setState({testpath: pathDef, testcircle: {x: connectedNode.x, y: connectedNode.y}});
 
     if (intersections.points[0]) {
       const firstIntersection = intersections.points[0];
-      const dest = {id: connectedNode.id, x: firstIntersection.x, y: firstIntersection.y};
+      const objectChanges = {
+        object: {id: connectedNode.id, intersectX: firstIntersection.x, intersectY: firstIntersection.y}
+      };
 
-      this.setState(old => ({
-        graph: {
-          ...old.graph,
-          edges: old.graph.edges.map(edge =>
-            edge.id === edgeToUpdate.id ? {...edge, to: dest} : edge)
-        }
-      }));
+      this.changeEdgeState(edgeToUpdate.id, objectChanges);
     } else console.warn("couldn't find intersection between selected edge and expanded unf node");
   }
 
@@ -331,7 +333,7 @@ export default class Canvas extends React.Component {
 function Testpath(props){
   return (
     <g>
-      <path d={props.path} stroke={'red'} strokeWidth={3} strokeDasharray={0}/>
+      <path d={props.path.d} stroke={'red'} strokeWidth={3} strokeDasharray={0}/>
       <rect x={props.circle.x} y={props.circle.y} width={100} height={100} rx={50} ry={50} stroke={'black'} fill={'transparent'}/>
       <rect x={props.circle.x} y={props.circle.y} width={100} height={100} stroke={'black'} fill={'transparent'}/>
       <rect x={props.circle.x} y={props.circle.y} width={40} height={40} rx={70} ry={70} stroke={'blue'} fill={'transparent'}/>
