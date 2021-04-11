@@ -19,51 +19,45 @@ export default class Edge extends React.Component {
   static labelHeight = 30;
   static labelWidth = 175;
 
-  //todo: make initial state respect default prefix, right now in content
-  constructor(props) {
-    super(props);
-    this.state = {
-      type: "edgeKnown",
-      isOptional: false,
-      prefix: '',
-      content: props.defaultContent
-    };
-  }
-
   handleEntryExit = (e) => {
-    const { id } = this.props;
-    const { type } = this.state;
+    const { id, type } = this.props;
 
     this.props.onSelectedItemChange({type: type, id: id, content: e.target.value});
   }
 
+  /**
+   * Send the updated input to the Canvas
+   * @param e - the event that triggered the function
+   */
   handleChangedText = (e) => {
+    const { id } = this.props;
     const changedText = e.target.value;
-    this.setState({content: changedText});
+    let changedType;
 
     if (changedText.match(/\?.*/)){
-      this.setState({type: "edgeUnknown"});
+      changedType = 'edgeUnknown';
     } else {
-      this.setState({type: "edgeKnown"});
+      changedType = 'edgeKnown';
     }
+
+    this.props.onChangeEdgeState(id, {type: changedType, content: changedText});
   }
 
   render() {
-    const { from, to } = this.props;
-    const { type, isOptional, content } = this.state;
-    const def = `M${from.x} ${from.y} L${to.x} ${to.y}`;
+    const { subject, object, type, isOptional, content } = this.props;
+    const pathDef = `M${subject.intersectX} ${subject.intersectY} L${object.intersectX} ${object.intersectY}`;
 
-    const smallX = from.x <= to.x ? from.x : to.x;
-    const largeX = from.x >  to.x ? from.x : to.x;
-    const smallY = from.y <= to.y ? from.y : to.y;
-    const largeY = from.y >  to.y ? from.y : to.y;
+    const smallX = subject.intersectX <= object.intersectX ? subject.intersectX : object.intersectX;
+    const largeX = subject.intersectX >  object.intersectX ? subject.intersectX : object.intersectX;
+    const smallY = subject.intersectY <= object.intersectY ? subject.intersectY : object.intersectY;
+    const largeY = subject.intersectY >  object.intersectY ? subject.intersectY : object.intersectY;
 
     const labelX = (smallX + (largeX - smallX) / 2) - Edge.labelWidth / 2;
     const labelY = (smallY + (largeY - smallY) / 2) - Edge.labelHeight / 2;
 
     return (
       <g>
-        <motion.path d={def} markerEnd={"url(#arrow)"}
+        <motion.path d={pathDef} markerEnd={"url(#arrow)"}
                      variants={Edge.variants} initial='edgeUnknown' animate={type} custom={isOptional} />
         <foreignObject x={labelX} y={labelY} width={Edge.labelWidth} height={Edge.labelHeight}>
           <motion.input className={"edgeLabel"} value={content}

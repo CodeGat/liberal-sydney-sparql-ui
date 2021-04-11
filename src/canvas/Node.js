@@ -77,24 +77,14 @@ export default class Node extends React.Component {
    * @param e - event that triggered the function
    */
   handleEntryExit = (e) => {
-    const { mode, edgeCompleting, id, type, isOptional, content, x, y } = this.props;
+    const { mode, edgeCompleting, id, type, content, x, y, midX, midY } = this.props;
     e.preventDefault();
 
     if (mode === "edge") {
-      if (edgeCompleting){ // we finish the edge here
-        const variant = Node.variants[type](isOptional);
-        const info = {id: id, content: content};
-        const shape = {
-          x: x + variant.height / 2,
-          y: y + variant.width / 2,
-          width: variant.width,
-          height: variant.height,
-          rx: variant.rx, ry: variant.rx
-        };
-        const aux = {midX: x, midY: y};
-
-        this.props.onEdgeCompletion(e, info, shape, aux);
-      } else { // we are starting a new one
+      if (edgeCompleting){ // we finish the Edge at this Node
+        const objectNodePos = {x: x, y: y, midX: midX, midY: midY};
+        this.props.onEdgeCompletion(id, type, objectNodePos);
+      } else { // we are starting a new Edge from this Node
         const info = {id: id, content: content};
         const shape = {x: x, y: y};
 

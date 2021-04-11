@@ -24,7 +24,8 @@ export default class Canvas extends React.Component {
 
   /**
    * this.state.graph:
-   * NEW: {nodes: [{id, x, y, type, isOptional, content}...] edges: [{id, content, from: id to: id, done}]}
+   * NEW: {nodes: [{id, type, isOptional, content, midX, midY, x, y}...]
+   *       edges: [{id, type, isOptional, content, subject: {id, intersectX, intersectY}, object: {id, intersectX, intersectY}, done}]}
    */
 
   /**
@@ -215,22 +216,32 @@ export default class Canvas extends React.Component {
     }));
   }
 
-  completeEdgeWithExistingNode = (event, nodeInfo, nodeShape, nodeAux) => {
+  /**
+   * Finalizes the Edge, getting it's intersection with the object Node for more natural arrowheads, and
+   *   adds the completed Edge to the Canvas state, ready for another Edge to be added.
+   * @param {number} id - the id of the existing Object Node.
+   * @param {string} type - the type of the existing Object Node.
+   * @param {Object} objectPos - object containing positional data about the existing Object Node, such as it's
+   *   top-left x/y, and midpoint x/y.
+   */
+  completeEdgeWithExistingNode = (id, type, objectPos) => {
     const { nodes, edges } = this.state.graph;
     const edge = edges.find(edge => !edge.complete);
-    const subjectNode = nodes.find(x => x.id === edge.from.id);
-    const incompleteEdgeDef = `M${subjectNode.x} ${subjectNode.y} L${nodeAux.midX} ${nodeAux.midY}`;
+    const subject = nodes.find(node => node.id === edge.from);
+    const objectVariant = Node.variants[type](false);
 
-    const intersections = intersect(shape("path", {d: incompleteEdgeDef}), shape("rect", nodeShape));
+    const objectShape = {...objectVariant, x: objectPos.x, y: objectPos.y};
+    const pathDef = {d: `M${subject.midX} ${subject.midY} L${objectPos.midX} ${objectPos.midY}`};
+
+    const intersections = intersect(shape("path", pathDef), shape("rect", objectShape));
     const firstIntersect = intersections.points[0];
 
-    const dest = {id: nodeInfo.id, x: firstIntersect.x, y: firstIntersect.y};
+    const object = {id: id, intersectX: firstIntersect.x, intersectY: firstIntersect.y};
 
     this.setState(old => ({
       graph: {
         ...old.graph,
-        edges: old.graph.edges.map(edge =>
-          !edge.complete ? {...edge, to: dest, complete: true} : edge)
+        edges: old.graph.edges.map(edge => !edge.complete ? {...edge, object: object, complete: true} : edge)
       },
       edgeCompleting: false
     }));
@@ -324,6 +335,20 @@ export default class Canvas extends React.Component {
     }));
   }
 
+  /**
+   * Changes the state of the edge with the given id.
+   * @param {number} id - id of the edge to be changed
+   * @param {Object} changes - object of all changes to the edges state
+   */
+  changeEdgeState = (id, changes) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        edges: old.graph.edges.map(edge => edge.id === id ? {...edge, ...changes} : edge)
+      }
+    }));
+  }
+
   render() {
     const { nodes, edges } = this.state.graph;
     const { mode, edgeCompleting, testpath, testcircle } = this.state;
@@ -341,13 +366,14 @@ export default class Canvas extends React.Component {
           </defs>
           <g id="edges">
             {edges.map(edge =>
-              <Edge id={edge.id} key={edge.id}
-                    from={nodes.find(x => x.id === edge.from.id)} to={edge.to} defaultContent={edge.defaultContent}
+              <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
+                    subject={edge.subject} object={edge.object}
+                    onChangeEdgeState={this.changeEdgeState}
                     onSelectedItemChange={this.handleElementChange}/>)}
           </g>
           <g id="nodes">
             {nodes.map(node =>
-              <Node id={node.id} key={node.id} x={node.x} y={node.y} type={node.type}
+              <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
                     content={node.content} isOptional={node.isOptional}
                     mode={mode} edgeCompleting={edgeCompleting}
                     onChangeNodeState={this.changeNodeState}
