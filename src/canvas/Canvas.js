@@ -15,7 +15,6 @@ export default class Canvas extends React.Component {
       edgeCounter: 0,
       mode: 'drag',
       edgeCompleting: false,
-      nodeCompleting: false,
       graph: {nodes: [], edges: []}
     };
   }
@@ -35,41 +34,75 @@ export default class Canvas extends React.Component {
    */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
-      const { nodes, edges } = this.state.graph;
       const { elem, type } = this.props.transferredSuggestion;
-
       this.props.acknowledgeTransferredSuggestion();
 
-      if (type === "edgeKnown") { //if type of transferred suggestion is a known Edge, the selected item is a Node
-        const selectedNode = nodes.find(node => node.id === this.props.selected.id);
-
-        if (selectedNode){
-          const prefixedEdgeLabel = (elem.prefix !== '' ? elem.prefix + ':' : '') + elem.label;
-          const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
-
-          this.createEdge(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
-          this.setState({mode: 'edge', edgeCompleting: true});
-        } else console.warn("No selected element for Edge to anchor");
+      if (type === "edgeKnown") { // if type of transferred suggestion is a known Edge, the selected item is a Node
+        this.realiseSuggestedEdge(elem);
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
-        const prefixedNodeLabel = (elem.prefix !== '' ? elem.prefix + ":" : '') + elem.name;
-        const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
-        const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
-
-        this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
-        this.updateEdge(selectedEdge, currentUnfNode);
-        this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
+        this.realiseSuggestedUri(elem, type);
       } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
-        const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
-        const currentUnfNode = nodes.find(node => node.id === selectedElement.object.id);
-        let content = '';
-
-        if (elem.name === 'string') content = '""';
-        else if (elem.name === 'int' || elem.name === 'integer') content = '0';
-
-        this.changeNodeState(currentUnfNode.id, {content: content, type: type});
-        this.props.onSelectedItemChange({id: currentUnfNode.id, content: content, type: type});
+        this.realiseSuggestedLiteral(elem, type);
       } else console.warn('unknown type when adding suggestion to canvas');
     }
+  }
+
+  /**
+   * Gather the necessary information to create the suggestion on canvas with reference to the currently selected Node.
+   * @param {Object} suggestion - the suggestion that will be realised.
+   */
+  realiseSuggestedEdge = (suggestion) => {
+    const { nodes } = this.state.graph;
+    const selectedNode = nodes.find(node => node.id === this.props.selected.id);
+
+    if (selectedNode){
+      const prefixedEdgeLabel = (suggestion.prefix !== '' ? suggestion.prefix + ':' : '') + suggestion.label;
+      const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
+
+      this.createEdge(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
+      this.setState({mode: 'edge', edgeCompleting: true});
+    } else console.warn("No selected element for Edge to anchor");
+  }
+
+  /**
+   * Gather the necessary information to create the suggestion on canvas with reference to the currently selected Edge.
+   * @param {Object} suggestion - the suggestion that will be realised.
+   * @param {string} type - the type of the suggestion.
+   */
+  realiseSuggestedUri = (suggestion, type) => {
+    const { edges, nodes } = this.state.graph;
+
+    const prefixedNodeLabel = (suggestion.prefix !== '' ? suggestion.prefix + ":" : '') + suggestion.name;
+    const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
+
+    if (selectedEdge) { // aka, if there is an edge selected by the user
+      const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
+
+      this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
+      this.updateEdge(selectedEdge, currentUnfNode);
+      this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
+    } else { // it must be a base class and we would need to create a new one!
+      const newNodeId = this.createNode(50, 50, type, suggestion.label);
+      this.props.onSelectedItemChange({id: newNodeId, content: suggestion.label, type: type});
+    }
+  }
+
+  /**
+   * Gather the necessary information to create the suggestion on canvas with reference to the currently selected Edge.
+   * @param {Object} suggestion - the suggestion that will be realised.
+   * @param {string} type - the type of the suggestion.
+   */
+  realiseSuggestedLiteral = (suggestion, type) => {
+    const { edges, nodes } = this.state.graph;
+    const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
+    const currentUnfNode = nodes.find(node => node.id === selectedElement.object.id);
+    let content = '';
+
+    if (suggestion.name === 'string') content = '""';
+    else if (suggestion.name === 'int' || suggestion.name === 'integer') content = '0';
+
+    this.changeNodeState(currentUnfNode.id, {content: content, type: type});
+    this.props.onSelectedItemChange({id: currentUnfNode.id, content: content, type: type});
   }
 
   /**
@@ -121,8 +154,8 @@ export default class Canvas extends React.Component {
 
   /**
    * Creates the underlying representation of a node to be kept in this.state until it can be rendered by the Node class
-   * @param {number} x - the x-value that the position of the node will be based on
-   * @param {number} y - the y-value that the position of the node will be based on
+   * @param {number} x - the top-left x-value that the position of the node will be based on
+   * @param {number} y - the top-left y-value that the position of the node will be based on
    * @param {string} type - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
    *   fully formed node ('nodeUnknown'/'nodeKnown')
    * @param {string} content - content that the node starts with
