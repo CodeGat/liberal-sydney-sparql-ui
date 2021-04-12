@@ -15,7 +15,6 @@ export default class Canvas extends React.Component {
       edgeCounter: 0,
       mode: 'drag',
       edgeCompleting: false,
-      nodeCompleting: false,
       graph: {nodes: [], edges: []}
     };
   }
