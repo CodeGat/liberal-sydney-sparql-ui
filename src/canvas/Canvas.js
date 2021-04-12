@@ -53,11 +53,17 @@ export default class Canvas extends React.Component {
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
         const prefixedNodeLabel = (elem.prefix !== '' ? elem.prefix + ":" : '') + elem.name;
         const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
-        const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
 
-        this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
-        this.updateEdge(selectedEdge, currentUnfNode);
-        this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
+        if (selectedEdge) { // aka, if there is an edge selected by the user
+          const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
+
+          this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
+          this.updateEdge(selectedEdge, currentUnfNode);
+          this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
+        } else { // it must be a base class and we would need to create a new one!
+          const newNodeId = this.createNode(50, 50, type, elem.label);
+          this.props.onSelectedItemChange({id: newNodeId, content: elem.label, type: type});
+        }
       } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
         const selectedElement = edges.find(edge => edge.id === this.props.selected.id);
         const currentUnfNode = nodes.find(node => node.id === selectedElement.object.id);
@@ -121,8 +127,8 @@ export default class Canvas extends React.Component {
 
   /**
    * Creates the underlying representation of a node to be kept in this.state until it can be rendered by the Node class
-   * @param {number} x - the x-value that the position of the node will be based on
-   * @param {number} y - the y-value that the position of the node will be based on
+   * @param {number} x - the top-left x-value that the position of the node will be based on
+   * @param {number} y - the top-left y-value that the position of the node will be based on
    * @param {string} type - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
    *   fully formed node ('nodeUnknown'/'nodeKnown')
    * @param {string} content - content that the node starts with

@@ -13,14 +13,13 @@ export default class SuggestiveSearch extends React.Component {
       elementDefs: [],
       baseClasses: [],
       defsLoaded: false,
-      baseClassUsed: false,
       suggestionNo: 0
     };
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { id, type, content, basePrefixLoaded } = this.props;
-    // const { defsLoaded } = this.state;
+    const { defsLoaded } = this.state;
 
     if (content !== prevProps.content || id !== prevProps.id || type !== prevProps.type){
       // generate new suggestions based on the current content
@@ -36,12 +35,12 @@ export default class SuggestiveSearch extends React.Component {
     if (!prevProps.basePrefixLoaded && basePrefixLoaded){
       this.updateStateWithOntologyData();
     }
-    // if (defsLoaded){
-    //   const { baseClasses } = this.state;
-    //   const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
-    //
-    //   this.setState({suggestions: baseClassSuggestions});
-    // }
+    if (!prevState.defsLoaded && defsLoaded){
+      const { baseClasses } = this.state;
+      const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
+
+      this.setState({suggestions: baseClassSuggestions});
+    }
   }
 
   /**
@@ -120,23 +119,25 @@ export default class SuggestiveSearch extends React.Component {
     return suggestions;
   }
 
+  /**
+   * Converts all base classes of the base ontology into suggestions.
+   * @param {Array<Object>} baseClasses - classes of the base ontology.
+   * @returns {Array<Object>} - suggestions based on Base Classes of the Ontology.
+   */
+  generateSuggestionsOfBaseClasses = (baseClasses) => {
+    const suggestions = [];
+    const { suggestionNo } = this.state;
+    let ix = suggestionNo;
 
-  // generateSuggestionsOfBaseClasses = (baseClasses) => {
-  //   const suggestions = [];
-  //   const { suggestionNo } = this.state;
-  //   let ix = suggestionNo;
-  //
-  //   for (const baseClass of baseClasses) {
-  //     suggestions.push({
-  //       type: 'nodeUri',
-  //       elem: baseClass.range,
-  //       ix: ix
-  //     });
-  //     ix++;
-  //   }
-  //
-  //   return suggestions;
-  // }
+    for (const baseClass of baseClasses) {
+      suggestions.push({type: 'nodeUri', elem: baseClass, ix: ix});
+      ix++;
+    }
+
+    this.setState({suggestionNo: ix});
+
+    return suggestions;
+  }
 
   /**
    * Deletes a suggestion located at ix from the state array of suggestions.
