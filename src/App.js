@@ -9,7 +9,8 @@ class App extends React.Component {
     super(props);
     this.state = {
       selected: {type: '', id: '', content: ''},
-      transferredSuggestion: {exists: false}
+      transferredSuggestion: {exists: false},
+      canvasStateSnapshot: {required: false}
     };
   }
 
@@ -40,18 +41,30 @@ class App extends React.Component {
     this.setState({transferredSuggestion: {exists: false}});
   }
 
+  handleRequestCanvasState = () => {
+    this.setState({canvasStateSnapshot: {required: true}});
+  }
+
+  handleAcknowledgedCanvasStateSnapshot = (graph) => {
+    this.setState({canvasStateSnapshot: {graph: graph, required: false}});
+  }
+
+
   render(){
-    const { selected, transferredSuggestion } = this.state;
+    const { selected, transferredSuggestion, canvasStateSnapshot } = this.state;
 
     return (
       <AnimateSharedLayout>
         <div className="App">
           <Canvas selected={selected} transferredSuggestion={transferredSuggestion}
+                  canvasStateSnapshot={canvasStateSnapshot}
                   onSelectedItemChange={this.handleSelectedItemChange}
-                  acknowledgeTransferredSuggestion={this.handleAknowledgedSuggestion}/>
-          <SideBar selected={selected}
+                  acknowledgeTransferredSuggestion={this.handleAknowledgedSuggestion}
+                  acknowledgeCanvasStateSnapshot={this.handleAcknowledgedCanvasStateSnapshot} />
+          <SideBar selected={selected} canvasStateSnapshot={canvasStateSnapshot}
                    onSelectedItemChange={this.handleSelectedItemChange}
-                   onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}/>
+                   onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
+                   onRequestCanvasState={this.handleRequestCanvasState}/>
         </div>
       </AnimateSharedLayout>
     );

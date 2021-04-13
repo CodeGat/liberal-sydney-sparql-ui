@@ -1,9 +1,9 @@
-import nodeImg from "./node_icon_known.png";
-import arrowKnownImg from "./arrow_icon_known_black.png";
-import arrowUnknownImg from "./arrow_icon_unknown_black.png";
-import litImg from "./literal_icon_known.png";
-import unkImg from "./node_icon_unknown.png";
-import noneImg from "./none_icon.png";
+import nodeImg from "./img/node_icon_known.png";
+import arrowKnownImg from "./img/arrow_icon_known_black.png";
+import arrowUnknownImg from "./img/arrow_icon_unknown_black.png";
+import litImg from "./img/literal_icon_known.png";
+import unkImg from "./img/node_icon_unknown.png";
+import noneImg from "./img/none_icon.png";
 import React from "react";
 import {motion} from "framer-motion";
 

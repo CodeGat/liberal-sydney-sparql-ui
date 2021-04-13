@@ -13,6 +13,7 @@ export default class Canvas extends React.Component {
     this.state = {
       nodeCounter: 0,
       edgeCounter: 0,
+      graphSnapshotCounter: 0,
       mode: 'drag',
       edgeCompleting: false,
       graph: {nodes: [], edges: []}
@@ -44,6 +45,13 @@ export default class Canvas extends React.Component {
       } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
         this.realiseSuggestedLiteral(elem, type);
       } else console.warn('unknown type when adding suggestion to canvas');
+    }
+    if (!prevProps.canvasStateSnapshot.required && this.props.canvasStateSnapshot.required) {
+      const { graph, graphSnapshotCounter } = this.state;
+      graph.id = graphSnapshotCounter;
+
+      this.props.acknowledgeCanvasStateSnapshot(graph);
+      this.setState({graphSnapshotCounter: graphSnapshotCounter + 1});
     }
   }
 
