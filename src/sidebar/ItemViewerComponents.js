@@ -64,7 +64,6 @@ export function ItemDesc(props) {
 
 //todo: infer properties based on connections to a ? node
 export function ItemInferredProps(props) {
-  console.log(props);
   return null;
 }
 
