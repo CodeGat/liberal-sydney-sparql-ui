@@ -22,7 +22,7 @@ export default class Edge extends React.Component {
   handleEntryExit = (e) => {
     const { id, type } = this.props;
 
-    this.props.onSelectedItemChange({type: type, id: id, content: e.target.value});
+    this.props.onSelectedItemChange(type, id, e.target.value, null);
   }
 
   /**

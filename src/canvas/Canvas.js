@@ -80,10 +80,10 @@ export default class Canvas extends React.Component {
 
       this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
       this.updateEdge(selectedEdge, currentUnfNode);
-      this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
+      this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, null);
     } else { // it must be a base class and we would need to create a new one!
       const newNodeId = this.createNode(50, 50, type, suggestion.label);
-      this.props.onSelectedItemChange({id: newNodeId, content: suggestion.label, type: type});
+      this.props.onSelectedItemChange(type, newNodeId, suggestion.label, null);
     }
   }
 
@@ -102,18 +102,18 @@ export default class Canvas extends React.Component {
     else if (suggestion.name === 'int' || suggestion.name === 'integer') content = '0';
 
     this.changeNodeState(currentUnfNode.id, {content: content, type: type});
-    this.props.onSelectedItemChange({id: currentUnfNode.id, content: content, type: type});
+    this.props.onSelectedItemChange(type, currentUnfNode.id, content, null);
   }
 
   /**
    * Propagates a change on canvas to the root - eventually the sidebar
-   * @param {Object} change
-   * @param {string} change.type - the type of the object modified: either a node, edge or datatype
-   * @param {number} change.id - the canvas id of the modified object
-   * @param {string} change.content - the content that was changed
+   * @param {string} type - the type of the object modified: either a node, edge or datatype
+   * @param {number} id - the canvas id of the modified object
+   * @param {string} content - the content that was changed
+   * @param {Object} meta - metadata about the given change
    */
-  handleElementChange = (change) => {
-    this.props.onSelectedItemChange(change);
+  handleElementChange = (type, id, content, meta) => {
+    this.props.onSelectedItemChange(type, id, content, meta);
   }
 
   /**
@@ -179,7 +179,7 @@ export default class Canvas extends React.Component {
     }));
 
     if (type !== 'nodeUnf') {
-      this.props.onSelectedItemChange({id: nodeCounter + 1, content: content, type: type});
+      this.props.onSelectedItemChange(type, nodeCounter + 1, content,  null);
     }
 
     return nodeCounter + 1;
@@ -212,9 +212,7 @@ export default class Canvas extends React.Component {
       edgeCompleting: true
     }));
 
-    this.props.onSelectedItemChange(
-      {id: edgeCounter + 1, content: content, type: content === '?' ? 'edgeUnknown' : 'edgeKnown'}
-    );
+    this.props.onSelectedItemChange(content === '?' ? 'edgeUnknown' : 'edgeKnown', edgeCounter + 1, content, null);
   }
 
   /**

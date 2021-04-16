@@ -89,7 +89,7 @@ export default class Node extends React.Component {
         this.props.onEdgeCreation('?', id, subjectNodePos);
       }
     } else {
-      this.props.onSelectedItemChange({type: type, id: id, content: content});
+      this.props.onSelectedItemChange(type, id, content, null);
     }
   }
 

@@ -8,7 +8,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: {type: '', id: '', content: ''},
+      selected: {type: '', id: '', content: '', meta: ''},
       transferredSuggestion: {exists: false}
     };
   }
@@ -16,14 +16,14 @@ class App extends React.Component {
 
   /**
    *
-   * @param {Object} selected - the currently selected object on the canvas with it's associated changes and data.
-   * @param {string} selected.type - whether the object changed was a
+   * @param {string} type - whether the object changed was a
    *          node (specified by it's variant), edge or datatype.
-   * @param {number} selected.id - id of the given changed object.
-   * @param {string} selected.content - the changed input of the object.
+   * @param {number} id - id of the given changed object.
+   * @param {string} content - the changed input of the object.
+   * @param {Object} meta - metadata of the selected item.
    */
-  handleSelectedItemChange = (selected) => {
-    this.setState({selected: selected});
+  handleSelectedItemChange = (type, id, content, meta) => {
+    this.setState({selected: {type: type, id: id, content: content, meta: meta}});
   }
 
   /**
