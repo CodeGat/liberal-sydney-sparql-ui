@@ -41,6 +41,8 @@ export default class Canvas extends React.Component {
         this.realiseSuggestedEdge(elem);
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
         this.realiseSuggestedUri(elem, type);
+      } else if (type === "nodeUnknown") {
+        this.realiseSuggestedUnknown(elem);
       } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
         this.realiseSuggestedLiteral(elem, type);
       } else console.warn('unknown type when adding suggestion to canvas');
@@ -79,11 +81,32 @@ export default class Canvas extends React.Component {
       const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
 
       this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
-      this.updateEdge(selectedEdge, currentUnfNode);
+      this.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange({id: currentUnfNode.id, content: prefixedNodeLabel, type: type});
     } else { // it must be a base class and we would need to create a new one!
       const newNodeId = this.createNode(50, 50, type, suggestion.label);
       this.props.onSelectedItemChange({id: newNodeId, content: suggestion.label, type: type});
+    }
+  }
+
+  /**
+   *
+   * @param {Object} suggestion -
+   */
+  realiseSuggestedUnknown = (suggestion) => {
+    const { nodes, edges } = this.state.graph;
+
+    const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
+
+    if (selectedEdge){
+      const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
+
+      this.changeNodeState(currentUnfNode.id, {content: suggestion.label, type: 'nodeUnknown'});
+      this.updateEdgeIntersections(selectedEdge, currentUnfNode);
+      this.props.onSelectedItemChange({id: currentUnfNode.id, content: suggestion.label, type: 'nodeUnknown'});
+    } else {
+      const newNodeId = this.createNode(50, 50, 'nodeUnknown', suggestion.label);
+      this.props.onSelectedItemChange({id: newNodeId, content: suggestion.label, type: 'nodeUnknown'})
     }
   }
 
@@ -270,7 +293,7 @@ export default class Canvas extends React.Component {
    * @param {Object} edgeToUpdate - the Edge whose intersection points need to be updated
    * @param {Object} objectNode - the Object Node whose boundary has changed
    */
-  updateEdge = (edgeToUpdate, objectNode) => {
+  updateEdgeIntersections = (edgeToUpdate, objectNode) => {
     const subX = edgeToUpdate.subject.intersectX;
     const subY = edgeToUpdate.subject.intersectY;
     const nodeVariant = Node.variants['nodeUri'](false);
