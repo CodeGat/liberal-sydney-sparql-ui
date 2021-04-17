@@ -34,10 +34,14 @@ export default class Canvas extends React.Component {
    */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
-      const { elem, type } = this.props.transferredSuggestion;
+      const {elem, type, amalgamInfo} = this.props.transferredSuggestion;
       this.props.acknowledgeTransferredSuggestion();
 
-      if (type === "edgeKnown") { // if type of transferred suggestion is a known Edge, the selected item is a Node
+      if (amalgamInfo) {
+        if (amalgamInfo.amalgamType === 'UnknownClassAmalgam') {
+          this.realiseSuggestedUnknownClassAmalgam(elem, amalgamInfo);
+        }
+      } else if (type === "edgeKnown") { // if type of transferred suggestion is a known Edge, the selected item is a Node
         this.realiseSuggestedEdge(elem);
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
         this.realiseSuggestedUri(elem, type);
@@ -47,6 +51,13 @@ export default class Canvas extends React.Component {
         this.realiseSuggestedLiteral(elem, type);
       } else console.warn('unknown type when adding suggestion to canvas');
     }
+  }
+
+  realiseSuggestedUnknownClassAmalgam = (elem, amalgamInfo) => {
+    const { nodes } = this.state.graph;
+
+    this.changeNodeState(amalgamInfo.id, {amalgam: {type: 'UnknownClassAmalgam', inferredClass: elem}});
+    // this.deleteEdge(); //give some exit animation
   }
 
   /**
@@ -190,7 +201,7 @@ export default class Canvas extends React.Component {
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
-      id: nodeCounter + 1, type: type, content: content, isOptional: false
+      id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null
     };
 
     this.setState(old => ({
@@ -368,7 +379,7 @@ export default class Canvas extends React.Component {
           <g id="nodes">
             {nodes.map(node =>
               <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
-                    content={node.content} isOptional={node.isOptional}
+                    content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
                     mode={mode} edgeCompleting={edgeCompleting}
                     onChangeNodeState={this.changeNodeState}
                     onSelectedItemChange={this.handleElementChange}

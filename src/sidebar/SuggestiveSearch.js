@@ -56,11 +56,9 @@ export default class SuggestiveSearch extends React.Component {
     const { elementDefs, suggestionNo } = this.state;
     let ix = suggestionNo;
 
-    if (content.match(/(rdf:)?type|^a/)){
+    if (content.match(/(rdf:)?type|^a$/)){
       const { baseClasses } = this.state;
       const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
-
-      console.log(baseClassSuggestions);
 
       suggestions.push(...baseClassSuggestions);
     } else {
