@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import "./Node.css";
 import "./Canvas.css";
 
-//todo: could remove mode in canvas in favour of drag=move, click=edge
 export default class Node extends React.Component {
   static variants = {
     nodeUnknown: isOpt => ({
@@ -77,20 +76,10 @@ export default class Node extends React.Component {
    * @param e - event that triggered the function
    */
   handleEntryExit = (e) => {
-    const { mode, edgeCompleting, id, type, content, amalgam, x, y, midX, midY } = this.props;
+    const { id, type, content, amalgam } = this.props;
     e.preventDefault();
+    this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
 
-    if (mode === "edge") {
-      if (edgeCompleting){ // we finish the Edge at this Node
-        const objectNodePos = {x: x, y: y, midX: midX, midY: midY};
-        this.props.onEdgeCompletion(id, type, objectNodePos);
-      } else { // we are starting a new Edge from this Node
-        const subjectNodePos = {midX: midX, midY: midY};
-        this.props.onEdgeCreation('?', id, subjectNodePos);
-      }
-    } else {
-      this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
-    }
   }
 
   /**
@@ -114,7 +103,7 @@ export default class Node extends React.Component {
   }
 
   render(){
-    const { mode, type, isOptional, content, x, y, amalgam } = this.props;
+    const { type, isOptional, content, x, y, amalgam } = this.props;
 
     const variant = Node.variants[type](isOptional);
     const currentNodeWidth = variant.width;
@@ -130,8 +119,8 @@ export default class Node extends React.Component {
                          y={y - (Node.labelHeight - currentNodeHeight) / 2}
                          width={Node.labelWidth} height={Node.labelHeight}
                          onClickCapture={this.handleEntryExit}
-                         pointerEvents={mode === "edge" ? "none" : "auto"} >
-            <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
+                         pointerEvents={"auto"} >
+            <motion.input className={"nodeLabel"} value={content}
                           onChange={this.handleChangedText} onBlur={this.handleEntryExit}
                           onClick={(e) => e.preventDefault()}/>
             {amalgam && amalgam.type === 'UnknownClassAmalgam' &&
