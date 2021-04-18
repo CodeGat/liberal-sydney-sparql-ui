@@ -8,8 +8,10 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: {type: '', id: '', content: ''},
+      selected: {type: '', id: '', content: '', meta: ''},
       transferredSuggestion: {exists: false},
+      lastReferencedUnknown: -1,
+      lastReferencedUknownAwaitingClass: false,
       canvasStateSnapshot: {required: false}
     };
   }
@@ -17,14 +19,14 @@ class App extends React.Component {
 
   /**
    *
-   * @param {Object} selected - the currently selected object on the canvas with it's associated changes and data.
-   * @param {string} selected.type - whether the object changed was a
+   * @param {string} type - whether the object changed was a
    *          node (specified by it's variant), edge or datatype.
-   * @param {number} selected.id - id of the given changed object.
-   * @param {string} selected.content - the changed input of the object.
+   * @param {number} id - id of the given changed object.
+   * @param {string} content - the changed input of the object.
+   * @param {Object} meta - metadata of the selected item.
    */
-  handleSelectedItemChange = (selected) => {
-    this.setState({selected: selected});
+  handleSelectedItemChange = (type, id, content, meta) => {
+    this.setState({selected: {type: type, id: id, content: content, meta: meta}});
   }
 
   /**
@@ -34,11 +36,25 @@ class App extends React.Component {
    * @param point
    */
   handleTransferSuggestionToCanvas = (type, elem, point) => {
-    this.setState({transferredSuggestion: {exists: true, type: type, elem: elem, point: point}});
+    const { lastReferencedUnknownAwaitingClass, lastReferencedUnknown } = this.state;
+    const suggestionToTransfer = {
+      exists: true,
+      type: type,
+      elem: elem,
+      point: point
+    };
+    if (lastReferencedUnknownAwaitingClass){
+      suggestionToTransfer.amalgamInfo = {id: lastReferencedUnknown, amalgamType: 'UnknownClassAmalgam'};
+    }
+
+    this.setState({transferredSuggestion: suggestionToTransfer});
+    if (type === 'edgeKnown' && elem.label === 'type') {
+      this.setState(old => ({lastReferencedUnknown: old.selected.id, lastReferencedUnknownAwaitingClass: true}));
+    }
   }
 
-  handleAknowledgedSuggestion = () => {
-    this.setState({transferredSuggestion: {exists: false}});
+  handleAcknowledgedSuggestion = () => {
+    this.setState({transferredSuggestion: {exists: false}, lastReferencedUnknownAwaitingClass: false});
   }
 
   handleRequestCanvasState = () => {
@@ -59,7 +75,7 @@ class App extends React.Component {
           <Canvas selected={selected} transferredSuggestion={transferredSuggestion}
                   canvasStateSnapshot={canvasStateSnapshot}
                   onSelectedItemChange={this.handleSelectedItemChange}
-                  acknowledgeTransferredSuggestion={this.handleAknowledgedSuggestion}
+                  acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}
                   acknowledgeCanvasStateSnapshot={this.handleAcknowledgedCanvasStateSnapshot} />
           <SideBar selected={selected} canvasStateSnapshot={canvasStateSnapshot}
                    onSelectedItemChange={this.handleSelectedItemChange}

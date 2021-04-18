@@ -50,7 +50,7 @@ function SuggestionForSelectedEdge(props) {
     return (<SuggestionAsLiteral node={node} isOpen={isOpen} isDragged={isDragged} />);
   } else {
     const { info } = props;
-    return (<SuggestionAsNode node={node} info={info} isOpen={isOpen} isDragged={isDragged} />);
+    return (<SuggestionAsNode node={node} type={type} info={info} isOpen={isOpen} isDragged={isDragged} />);
   }
 }
 
@@ -70,12 +70,12 @@ const variants = {
 };
 
 function SuggestionAsNode(props) {
-  const { info, node, isOpen, isDragged } = props;
+  const { info, node, type, isOpen, isDragged } = props;
   const { expansion, label } = node;
 
   return (
     <>
-      <ItemImageHeader type={'nodeUri'} name={label} isDragged={isDragged} />
+      <ItemImageHeader type={type} name={label} isDragged={isDragged} />
       <AnimatePresence>
         {isOpen &&
         <motion.div className={"suggestion-extra extra"}

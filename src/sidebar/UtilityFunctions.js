@@ -9,8 +9,9 @@ export async function submitQuery(url, query) {
     method: "POST",
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: 'blaze_lmb:yu%9R92Dps6GWPC+',
       Accept: 'application/sparql-results+json',
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': 'https://lmb.cdhr.anu.edu.au'
     },
     body: new URLSearchParams({'query': query})
   });
