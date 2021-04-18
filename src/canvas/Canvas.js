@@ -4,6 +4,7 @@ import "./Canvas.css"
 import Node from "./Node"
 import Edge from "./Edge"
 import arrow from './arrow_icon.png';
+import {AnimatePresence} from "framer-motion";
 
 //todo: where to store the underlying SPARQL representation?
 // this.state.modes: drag, edge, node
@@ -54,10 +55,14 @@ export default class Canvas extends React.Component {
   }
 
   realiseSuggestedUnknownClassAmalgam = (elem, amalgamInfo) => {
-    const { nodes } = this.state.graph;
+    const {edges} = this.state.graph;
+
+    const edgeToDelete = edges.find(edge => edge.subject.id === amalgamInfo.id);
 
     this.changeNodeState(amalgamInfo.id, {amalgam: {type: 'UnknownClassAmalgam', inferredClass: elem}});
-    // this.deleteEdge(); //give some exit animation
+    this.deleteNode(edgeToDelete.object.id);
+    this.deleteEdge(edgeToDelete.id);
+    //todo: call onSelectedItemChange
   }
 
   /**
@@ -354,6 +359,32 @@ export default class Canvas extends React.Component {
     }));
   }
 
+  /**
+   *
+   * @param edgeId
+   */
+  deleteEdge = (edgeId) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        edges: old.graph.edges.filter(edge => edge.id !== edgeId)
+      }
+    }));
+  }
+
+  /**
+   *
+   * @param nodeId
+   */
+  deleteNode = (nodeId) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        nodes: old.graph.nodes.filter(node => node.id !== nodeId)
+      }
+    }));
+  }
+
   render() {
     const { nodes, edges } = this.state.graph;
     const { mode, edgeCompleting } = this.state;
@@ -370,21 +401,25 @@ export default class Canvas extends React.Component {
             </marker>
           </defs>
           <g id="edges">
-            {edges.map(edge =>
-              <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
-                    subject={edge.subject} object={edge.object}
-                    onChangeEdgeState={this.changeEdgeState}
-                    onSelectedItemChange={this.handleElementChange}/>)}
+            <AnimatePresence>
+              {edges.map(edge =>
+                <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
+                      subject={edge.subject} object={edge.object}
+                      onChangeEdgeState={this.changeEdgeState}
+                      onSelectedItemChange={this.handleElementChange}/>)}
+            </AnimatePresence>
           </g>
           <g id="nodes">
-            {nodes.map(node =>
-              <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
-                    content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
-                    mode={mode} edgeCompleting={edgeCompleting}
-                    onChangeNodeState={this.changeNodeState}
-                    onSelectedItemChange={this.handleElementChange}
-                    onEdgeCreation={this.createEdge}
-                    onEdgeCompletion={this.completeEdge} />)}
+            <AnimatePresence>
+              {nodes.map(node =>
+                <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
+                      content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
+                      mode={mode} edgeCompleting={edgeCompleting}
+                      onChangeNodeState={this.changeNodeState}
+                      onSelectedItemChange={this.handleElementChange}
+                      onEdgeCreation={this.createEdge}
+                      onEdgeCompletion={this.completeEdge} />)}
+            </AnimatePresence>
           </g>
         </svg>
       </div>
