@@ -6,7 +6,6 @@ import Edge from "./Edge"
 import arrow from './arrow_icon.png';
 import {AnimatePresence} from "framer-motion";
 
-//todo: where to store the underlying SPARQL representation?
 // this.state.modes: drag, edge, node
 export default class Canvas extends React.Component {
   constructor(props) {
@@ -40,7 +39,7 @@ export default class Canvas extends React.Component {
 
       if (amalgamInfo) {
         if (amalgamInfo.amalgamType === 'UnknownClassAmalgam') {
-          this.realiseSuggestedUnknownClassAmalgam(elem, amalgamInfo);
+          this.realiseSuggestedUnknownClassAmalgam(elem, amalgamInfo.id);
         }
       } else if (type === "edgeKnown") { // if type of transferred suggestion is a known Edge, the selected item is a Node
         this.realiseSuggestedEdge(elem);
@@ -54,14 +53,19 @@ export default class Canvas extends React.Component {
     }
   }
 
-  realiseSuggestedUnknownClassAmalgam = (elem, amalgamInfo) => {
+  /**
+   * Create the representation of a '?' node that has an inferred class
+   * @param {Object} inferredClass - the Node that is being inferred as the class for the amalgamated '?' Node
+   * @param {number} amalgamId - id of the previously-selected Node that the inferredClass will be amalgamated into
+   */
+  realiseSuggestedUnknownClassAmalgam = (inferredClass, amalgamId) => {
     const {nodes, edges} = this.state.graph;
 
-    const nodeAmalgam = nodes.find(node => node.id === amalgamInfo.id);
+    const nodeAmalgam = nodes.find(node => node.id === amalgamId);
     const edgeToDelete = edges.find(edge => edge.subject.id === nodeAmalgam.id);
-    const amalgamChange = {amalgam: {type: 'UnknownClassAmalgam', inferredClass: elem}};
+    const amalgamChange = {amalgam: {type: 'UnknownClassAmalgam', inferredClass: inferredClass}};
 
-    this.changeNodeState(amalgamInfo.id, amalgamChange);
+    this.changeNodeState(amalgamId, amalgamChange);
     this.deleteNode(edgeToDelete.object.id);
     this.deleteEdge(edgeToDelete.id);
     this.props.onSelectedItemChange(nodeAmalgam.type, nodeAmalgam.id, nodeAmalgam.content, amalgamChange);
@@ -108,8 +112,9 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   *
-   * @param {Object} suggestion -
+   * Gather the necessary information to create the suggestion on canvas (with reference to the currently selected
+   *   Edge). The suggestion will be a '?' Node, known as an Unknown.
+   * @param {Object} suggestion - teh suggestion that will be realised on the Canvas.
    */
   realiseSuggestedUnknown = (suggestion) => {
     const { nodes, edges } = this.state.graph;
@@ -360,8 +365,8 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   *
-   * @param edgeId
+   * Removes the edge with the given edgeId from the internal state.graph
+   * @param {number} edgeId - the id associated with the to-be-deleted edge.
    */
   deleteEdge = (edgeId) => {
     this.setState(old => ({
@@ -373,8 +378,8 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   *
-   * @param nodeId
+   * Removes the node with the given nodeId from the internal state.graph
+   * @param {number} nodeId - the id associated with the to-be-deleted node.
    */
   deleteNode = (nodeId) => {
     this.setState(old => ({
