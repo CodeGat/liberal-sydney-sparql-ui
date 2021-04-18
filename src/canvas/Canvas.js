@@ -55,14 +55,16 @@ export default class Canvas extends React.Component {
   }
 
   realiseSuggestedUnknownClassAmalgam = (elem, amalgamInfo) => {
-    const {edges} = this.state.graph;
+    const {nodes, edges} = this.state.graph;
 
-    const edgeToDelete = edges.find(edge => edge.subject.id === amalgamInfo.id);
+    const nodeAmalgam = nodes.find(node => node.id === amalgamInfo.id);
+    const edgeToDelete = edges.find(edge => edge.subject.id === nodeAmalgam.id);
+    const amalgamChange = {amalgam: {type: 'UnknownClassAmalgam', inferredClass: elem}};
 
-    this.changeNodeState(amalgamInfo.id, {amalgam: {type: 'UnknownClassAmalgam', inferredClass: elem}});
+    this.changeNodeState(amalgamInfo.id, amalgamChange);
     this.deleteNode(edgeToDelete.object.id);
     this.deleteEdge(edgeToDelete.id);
-    //todo: call onSelectedItemChange
+    this.props.onSelectedItemChange(nodeAmalgam.type, nodeAmalgam.id, nodeAmalgam.content, amalgamChange);
   }
 
   /**
@@ -119,10 +121,10 @@ export default class Canvas extends React.Component {
 
       this.changeNodeState(currentUnfNode.id, {content: suggestion.label, type: 'nodeUnknown'});
       this.updateEdgeIntersections(selectedEdge, currentUnfNode);
-      this.props.onSelectedItemChange({id: currentUnfNode.id, content: suggestion.label, type: 'nodeUnknown'});
+      this.props.onSelectedItemChange('nodeUnknown', currentUnfNode.id, suggestion.label, null);
     } else {
       const newNodeId = this.createNode(50, 50, 'nodeUnknown', suggestion.label);
-      this.props.onSelectedItemChange({id: newNodeId, content: suggestion.label, type: 'nodeUnknown'})
+      this.props.onSelectedItemChange('nodeUnknown', newNodeId, suggestion.label);
     }
   }
 

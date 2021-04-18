@@ -62,9 +62,17 @@ export function ItemDesc(props) {
   );
 }
 
-//todo: infer properties based on connections to a ? node
 export function ItemInferredProps(props) {
-  return null;
+  const { meta } = props;
+
+  if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam'){
+    return (
+      <>
+        <p>Type</p>
+        <p className={'light small'}>{meta.amalgam.inferredClass.label}</p>
+      </>
+    );
+  } else return null;
 }
 
 export function ItemLiteralType(props) {

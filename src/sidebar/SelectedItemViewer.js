@@ -17,7 +17,7 @@ export default class SelectedItemViewer extends React.Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { type, content } = this.props;
 
-    if (prevProps.content !== content && type === 'nodeUri') {
+    if (prevProps.content !== content && type !== 'nodeLiteral') {
       const contentSegments = content.split(':');
 
       if (contentSegments.length > 1 && contentSegments[0] !== '') {
@@ -35,11 +35,10 @@ export default class SelectedItemViewer extends React.Component {
   }
 
   render() {
-    const { type, content, basePrefix, info, infoLoaded } = this.props;
+    const { type, content, basePrefix, info, infoLoaded, meta } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
     if (type === "nodeUri" || type === "edgeKnown") {
-      // const [prefix, name] = content.split(/[.#/](?=[^.#/]*$)/); //used for full uris!
       const contentSegments = content.split(':');
       let prefix = 'Unknown';
       let name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
@@ -53,7 +52,7 @@ export default class SelectedItemViewer extends React.Component {
         return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
       }
     } else if (type === "nodeUnknown") {
-      return (<SelectedUnknownNodeViewer type={type} content={content} />);
+      return (<SelectedUnknownNodeViewer type={type} content={content} meta={meta} />);
     } else if (type === "nodeLiteral") {
       return (<SelectedLiteralNodeViewer type={type} content={content} />);
     } else if (type === "edgeUnknown") {
@@ -81,11 +80,14 @@ function SelectedUriNodeViewer(props) {
 }
 
 function SelectedUnknownNodeViewer(props) {
-  const { type, content } = props;
+  const { type, content, meta } = props;
+
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={content} />
-      <ItemInferredProps />
+      {meta &&
+        <ItemInferredProps meta={meta} />
+      }
     </div>
   );
 }

@@ -18,12 +18,20 @@ export default class SuggestiveSearch extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const { id, type, content, basePrefixLoaded } = this.props;
+    const { id, basePrefixLoaded, meta } = this.props;
+    let { type, content } = this.props;
     const { defsLoaded, baseClasses } = this.state;
 
     if (content !== prevProps.content || id !== prevProps.id || type !== prevProps.type){
       // generate new suggestions based on the current content
       let newSuggestions;
+
+      // check if the there are any amalgamations that would affect what suggestions are offered - in this case,
+      //   if we have an unknown node, but we can infer it is part of a class
+      if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam'){
+        type = 'nodeUri'
+        content = meta.amalgam.inferredClass.name;
+      }
 
       if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content);
       else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
@@ -117,7 +125,7 @@ export default class SuggestiveSearch extends React.Component {
 
     if (type === 'nodeLiteral') {
       return [];
-    } else if (type === 'nodeUnknown') { //todo: make this have suggestions of base class referred to in rdf:type
+    } else if (type === 'nodeUnknown') {
       suggestions.push({
         type: 'edgeKnown',
         elem: {
@@ -241,7 +249,6 @@ export default class SuggestiveSearch extends React.Component {
     if (expansion === basePrefix) {
       prefix = '';
     } else if (cachedPrefixes[expansion]) {
-      console.log(expansion + ' was cached prefix');
       prefix = cachedPrefixes[expansion];
     } else if (basePrefixLoaded) {
       fetchPrefixOfExpansion(expansion)

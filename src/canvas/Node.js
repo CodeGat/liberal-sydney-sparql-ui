@@ -77,7 +77,7 @@ export default class Node extends React.Component {
    * @param e - event that triggered the function
    */
   handleEntryExit = (e) => {
-    const { mode, edgeCompleting, id, type, content, x, y, midX, midY } = this.props;
+    const { mode, edgeCompleting, id, type, content, amalgam, x, y, midX, midY } = this.props;
     e.preventDefault();
 
     if (mode === "edge") {
@@ -89,7 +89,7 @@ export default class Node extends React.Component {
         this.props.onEdgeCreation('?', id, subjectNodePos);
       }
     } else {
-      this.props.onSelectedItemChange(type, id, content, null);
+      this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
     }
   }
 
@@ -122,12 +122,14 @@ export default class Node extends React.Component {
 
     return (
       <motion.g whileHover={{scale: 1.2}} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
-        <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit} onMouseUpCapture={() => console.log("mouseup")}
+        <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit}
                      variants={Node.variants} initial={false} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
-          <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2} y={y - (Node.labelHeight - currentNodeHeight) / 2}
+          <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2}
+                         y={y - (Node.labelHeight - currentNodeHeight) / 2}
                          width={Node.labelWidth} height={Node.labelHeight}
+                         onClickCapture={this.handleEntryExit}
                          pointerEvents={mode === "edge" ? "none" : "auto"} >
             <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
                           onChange={this.handleChangedText} onBlur={this.handleEntryExit}

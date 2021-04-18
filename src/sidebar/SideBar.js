@@ -55,16 +55,17 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const { content, type, id } = this.props.selected;
+    const { content, type, id, meta } = this.props.selected;
     const { info, infoLoaded, basePrefix, basePrefixLoaded, error } = this.state;
 
     return (
       <div className="sidebar">
         {error && <p className={'error'}>{error.toString()}</p>}
-        <SelectedItemViewer type={type} content={content} basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
+        <SelectedItemViewer type={type} content={content} meta={meta}
+                            basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded} />
         <hr />
-        <SuggestiveSearch id={id} type={type} content={content}
+        <SuggestiveSearch id={id} type={type} content={content} meta={meta}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
