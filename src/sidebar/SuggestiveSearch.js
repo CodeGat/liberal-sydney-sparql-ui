@@ -18,12 +18,20 @@ export default class SuggestiveSearch extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const { id, type, content, basePrefixLoaded } = this.props;
-    const { defsLoaded } = this.state;
+    const { id, basePrefixLoaded, meta } = this.props;
+    let { type, content } = this.props;
+    const { defsLoaded, baseClasses } = this.state;
 
     if (content !== prevProps.content || id !== prevProps.id || type !== prevProps.type){
       // generate new suggestions based on the current content
       let newSuggestions;
+
+      // check if the there are any amalgamations that would affect what suggestions are offered - in this case,
+      //   if we have an unknown node, but we can infer it is part of a class
+      if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam'){
+        type = 'nodeUri'
+        content = meta.amalgam.inferredClass.name;
+      }
 
       if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content);
       else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
@@ -36,7 +44,6 @@ export default class SuggestiveSearch extends React.Component {
       this.updateStateWithOntologyData();
     }
     if (!prevState.defsLoaded && defsLoaded){
-      const { baseClasses } = this.state;
       const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
 
       this.setState({suggestions: baseClassSuggestions});
@@ -55,22 +62,35 @@ export default class SuggestiveSearch extends React.Component {
   generateSuggestionsForSelectedEdge(content) {
     const suggestions = [];
     const { elementDefs, suggestionNo } = this.state;
-    const contentSegments = content.split(':');
-    const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
     let ix = suggestionNo;
 
-    for (let def of elementDefs) {
-      if (def.elem.label === name) {
-        suggestions.push({
-          type: def.range.expansion === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
-          elem: def.range,
-          ix: ix
-        });
-        ix++;
-      }
-    }
+    if (content.match(/(rdf:)?type|^a$/)){
+      const { baseClasses } = this.state;
+      const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
 
-    this.setState({suggestionNo: ix});
+      suggestions.push(...baseClassSuggestions);
+    } else {
+      const contentSegments = content.split(':');
+      const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
+
+      suggestions.push({
+        type: 'nodeUnknown',
+        elem: {label: '?'},
+        ix: ix++
+      });
+
+      for (let def of elementDefs) {
+        if (def.elem.label === name) {
+          suggestions.push({
+            type: def.range.expansion === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
+            elem: def.range,
+            ix: ix++
+          });
+        }
+      }
+
+      this.setState({suggestionNo: ix});
+    }
 
     return suggestions;
   }
@@ -99,18 +119,33 @@ export default class SuggestiveSearch extends React.Component {
    * @returns {NodeSuggestion[]}
    */
   generateSuggestionsForSelectedNode(type, content) {
-    if (type === 'nodeLiteral') return [];
-
     const suggestions = [];
     const { elementDefs, suggestionNo } = this.state;
-    const contentSegments = content.split(':');
-    const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
     let ix = suggestionNo;
 
-    for (let def of elementDefs) {
-      if (def.domain && def.domain.label === name) {
-        suggestions.push({type: 'edgeKnown', elem: def.elem, ix: ix});
-        ix++;
+    if (type === 'nodeLiteral') {
+      return [];
+    } else if (type === 'nodeUnknown') {
+      suggestions.push({
+        type: 'edgeKnown',
+        elem: {
+          iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+          prefix: 'rdf',
+          label: 'type'
+        },
+        ix: ix++
+      });
+
+      return suggestions;
+    } else {
+      const contentSegments = content.split(':');
+      const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
+
+      for (let def of elementDefs) {
+        if (def.domain && def.domain.label === name) {
+          suggestions.push({type: 'edgeKnown', elem: def.elem, ix: ix});
+          ix++;
+        }
       }
     }
 
@@ -129,9 +164,20 @@ export default class SuggestiveSearch extends React.Component {
     const { suggestionNo } = this.state;
     let ix = suggestionNo;
 
+    suggestions.push({
+      type: 'nodeUnknown',
+      elem: {
+        label: '?'
+      },
+      ix: ix++
+    });
+
     for (const baseClass of baseClasses) {
-      suggestions.push({type: 'nodeUri', elem: baseClass, ix: ix});
-      ix++;
+      suggestions.push({
+        type: 'nodeUri',
+        elem: baseClass,
+        ix: ix++
+      });
     }
 
     this.setState({suggestionNo: ix});
@@ -203,7 +249,6 @@ export default class SuggestiveSearch extends React.Component {
     if (expansion === basePrefix) {
       prefix = '';
     } else if (cachedPrefixes[expansion]) {
-      console.log(expansion + ' was cached prefix');
       prefix = cachedPrefixes[expansion];
     } else if (basePrefixLoaded) {
       fetchPrefixOfExpansion(expansion)
@@ -232,11 +277,11 @@ export default class SuggestiveSearch extends React.Component {
         <AnimateSharedLayout>
           <motion.ul layout>
             {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>
-              <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={info[s.elem.iri]}
+              <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
                                  onDeleteSuggestionFromSidebar={this.deleteSuggestion}
                                  onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
             {(!defsLoaded || !infoLoaded) &&
-            <p>Loading...</p>}
+              <p>Loading...</p>}
           </motion.ul>
         </AnimateSharedLayout>
       </div>

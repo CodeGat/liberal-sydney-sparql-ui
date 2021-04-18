@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import {motion} from 'framer-motion';
 import "./Canvas.css";
 import "./Edge.css";
 
@@ -8,13 +8,15 @@ export default class Edge extends React.Component {
     edgeUnknown: isOpt => ({
       stroke: '#8e9094',
       strokeWidth: 3,
-      strokeDasharray: isOpt ? 5 : 0
+      strokeDasharray: isOpt ? 5 : 0,
+      opacity: 1
     }),
     edgeKnown: isOpt => ({
       stroke: '#656669',
       strokeWidth: 3,
-      strokeDasharray: isOpt ? 5 : 0
-    }),
+      strokeDasharray: isOpt ? 5 : 0,
+      opacity: 1
+    })
   };
   static labelHeight = 30;
   static labelWidth = 175;
@@ -58,9 +60,12 @@ export default class Edge extends React.Component {
     return (
       <g>
         <motion.path d={pathDef} markerEnd={"url(#arrow)"}
-                     variants={Edge.variants} initial='edgeUnknown' animate={type} custom={isOptional} />
+                     variants={Edge.variants}
+                     initial={'edgeUnknown'}
+                     animate={type} custom={isOptional}
+                     exit={{opacity: 0}} />
         <foreignObject x={labelX} y={labelY} width={Edge.labelWidth} height={Edge.labelHeight}>
-          <motion.input className={"edgeLabel"} value={content}
+          <input className={"edgeLabel"} value={content}
                         onChange={this.handleChangedText}
                         onBlur={this.handleEntryExit}
                         onClick={(e) => {

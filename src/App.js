@@ -9,7 +9,9 @@ class App extends React.Component {
     super(props);
     this.state = {
       selected: {type: '', id: '', content: '', meta: ''},
-      transferredSuggestion: {exists: false}
+      transferredSuggestion: {exists: false},
+      lastReferencedUnknown: -1,
+      lastReferencedUknownAwaitingClass: false
     };
   }
 
@@ -33,11 +35,25 @@ class App extends React.Component {
    * @param point
    */
   handleTransferSuggestionToCanvas = (type, elem, point) => {
-    this.setState({transferredSuggestion: {exists: true, type: type, elem: elem, point: point}});
+    const { lastReferencedUnknownAwaitingClass, lastReferencedUnknown } = this.state;
+    const suggestionToTransfer = {
+      exists: true,
+      type: type,
+      elem: elem,
+      point: point
+    };
+    if (lastReferencedUnknownAwaitingClass){
+      suggestionToTransfer.amalgamInfo = {id: lastReferencedUnknown, amalgamType: 'UnknownClassAmalgam'};
+    }
+
+    this.setState({transferredSuggestion: suggestionToTransfer});
+    if (type === 'edgeKnown' && elem.label === 'type') {
+      this.setState(old => ({lastReferencedUnknown: old.selected.id, lastReferencedUnknownAwaitingClass: true}));
+    }
   }
 
-  handleAknowledgedSuggestion = () => {
-    this.setState({transferredSuggestion: {exists: false}});
+  handleAcknowledgedSuggestion = () => {
+    this.setState({transferredSuggestion: {exists: false}, lastReferencedUnknownAwaitingClass: false});
   }
 
   render(){
@@ -48,7 +64,7 @@ class App extends React.Component {
         <div className="App">
           <Canvas selected={selected} transferredSuggestion={transferredSuggestion}
                   onSelectedItemChange={this.handleSelectedItemChange}
-                  acknowledgeTransferredSuggestion={this.handleAknowledgedSuggestion}/>
+                  acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
           <SideBar selected={selected}
                    onSelectedItemChange={this.handleSelectedItemChange}
                    onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}/>

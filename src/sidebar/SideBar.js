@@ -11,13 +11,14 @@ export default class SideBar extends React.Component {
       info: {},
       infoLoaded: false,
       basePrefix: '',
-      basePrefixLoaded: false
+      basePrefixLoaded: false,
+      error: ''
     };
   }
 
   componentDidMount() {
-    const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local url
-
+    const base_url = "http://localhost:9999/blazegraph/sparql";
+    // const base_url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
     submitQuery(base_url, "SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1"
     ).then(
       response => {
@@ -29,7 +30,10 @@ export default class SideBar extends React.Component {
           this.setState({basePrefix: 'Unknown', basePrefixLoaded: true});
         }
       },
-      error => console.warn("Something else went wrong while finding the base prefix: " + error)
+      error => {
+        console.warn(error);
+        this.setState({error: error});
+      }
     );
 
     submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
@@ -51,15 +55,17 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const { content, type, id } = this.props.selected;
-    const { info, infoLoaded, basePrefix, basePrefixLoaded } = this.state;
+    const { content, type, id, meta } = this.props.selected;
+    const { info, infoLoaded, basePrefix, basePrefixLoaded, error } = this.state;
 
     return (
       <div className="sidebar">
-        <SelectedItemViewer type={type} content={content} basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
+        {error && <p className={'error'}>{error.toString()}</p>}
+        <SelectedItemViewer type={type} content={content} meta={meta}
+                            basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded} />
         <hr />
-        <SuggestiveSearch id={id} type={type} content={content}
+        <SuggestiveSearch id={id} type={type} content={content} meta={meta}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />

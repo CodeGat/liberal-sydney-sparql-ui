@@ -69,7 +69,7 @@ export default class Node extends React.Component {
   static unfWidth = 40;
   static unfHeight = 40;
   static literalWidth = 200;
-  static labelHeight = 30;
+  static labelHeight = 55;
   static labelWidth = 150;
 
   /**
@@ -77,7 +77,7 @@ export default class Node extends React.Component {
    * @param e - event that triggered the function
    */
   handleEntryExit = (e) => {
-    const { mode, edgeCompleting, id, type, content, x, y, midX, midY } = this.props;
+    const { mode, edgeCompleting, id, type, content, amalgam, x, y, midX, midY } = this.props;
     e.preventDefault();
 
     if (mode === "edge") {
@@ -89,7 +89,7 @@ export default class Node extends React.Component {
         this.props.onEdgeCreation('?', id, subjectNodePos);
       }
     } else {
-      this.props.onSelectedItemChange(type, id, content, null);
+      this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
     }
   }
 
@@ -114,23 +114,29 @@ export default class Node extends React.Component {
   }
 
   render(){
-    const { mode, type, isOptional, content, x, y } = this.props;
+    const { mode, type, isOptional, content, x, y, amalgam } = this.props;
 
     const variant = Node.variants[type](isOptional);
     const currentNodeWidth = variant.width;
+    const currentNodeHeight = variant.height;
 
     return (
-      <motion.g whileHover={{scale: 1.2}}>
-        <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit} onMouseUpCapture={() => console.log("mouseup")}
+      <motion.g whileHover={{scale: 1.2}} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
+        <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit}
                      variants={Node.variants} initial={false} animate={type} custom={isOptional}
                      transition={{duration: 0.5}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
-          <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2} y={y + Node.labelHeight}
+          <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2}
+                         y={y - (Node.labelHeight - currentNodeHeight) / 2}
                          width={Node.labelWidth} height={Node.labelHeight}
+                         onClickCapture={this.handleEntryExit}
                          pointerEvents={mode === "edge" ? "none" : "auto"} >
             <motion.input className={"nodeLabel"} value={content} disabled={mode === "edge"}
                           onChange={this.handleChangedText} onBlur={this.handleEntryExit}
                           onClick={(e) => e.preventDefault()}/>
+            {amalgam && amalgam.type === 'UnknownClassAmalgam' &&
+              <p className={'class-amalgam centered'}>{amalgam.inferredClass.label}</p>
+            }
           </foreignObject>
         }
       </motion.g>

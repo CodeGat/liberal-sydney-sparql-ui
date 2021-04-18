@@ -4,8 +4,8 @@ import "./Canvas.css"
 import Node from "./Node"
 import Edge from "./Edge"
 import arrow from './arrow_icon.png';
+import {AnimatePresence} from "framer-motion";
 
-//todo: where to store the underlying SPARQL representation?
 // this.state.modes: drag, edge, node
 export default class Canvas extends React.Component {
   constructor(props) {
@@ -34,17 +34,41 @@ export default class Canvas extends React.Component {
    */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
-      const { elem, type } = this.props.transferredSuggestion;
+      const {elem, type, amalgamInfo} = this.props.transferredSuggestion;
       this.props.acknowledgeTransferredSuggestion();
 
-      if (type === "edgeKnown") { // if type of transferred suggestion is a known Edge, the selected item is a Node
+      if (amalgamInfo) {
+        if (amalgamInfo.amalgamType === 'UnknownClassAmalgam') {
+          this.realiseSuggestedUnknownClassAmalgam(elem, amalgamInfo.id);
+        }
+      } else if (type === "edgeKnown") { // if type of transferred suggestion is a known Edge, the selected item is a Node
         this.realiseSuggestedEdge(elem);
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
         this.realiseSuggestedUri(elem, type);
+      } else if (type === "nodeUnknown") {
+        this.realiseSuggestedUnknown(elem);
       } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
         this.realiseSuggestedLiteral(elem, type);
       } else console.warn('unknown type when adding suggestion to canvas');
     }
+  }
+
+  /**
+   * Create the representation of a '?' node that has an inferred class
+   * @param {Object} inferredClass - the Node that is being inferred as the class for the amalgamated '?' Node
+   * @param {number} amalgamId - id of the previously-selected Node that the inferredClass will be amalgamated into
+   */
+  realiseSuggestedUnknownClassAmalgam = (inferredClass, amalgamId) => {
+    const {nodes, edges} = this.state.graph;
+
+    const nodeAmalgam = nodes.find(node => node.id === amalgamId);
+    const edgeToDelete = edges.find(edge => edge.subject.id === nodeAmalgam.id);
+    const amalgamChange = {amalgam: {type: 'UnknownClassAmalgam', inferredClass: inferredClass}};
+
+    this.changeNodeState(amalgamId, amalgamChange);
+    this.deleteNode(edgeToDelete.object.id);
+    this.deleteEdge(edgeToDelete.id);
+    this.props.onSelectedItemChange(nodeAmalgam.type, nodeAmalgam.id, nodeAmalgam.content, amalgamChange);
   }
 
   /**
@@ -79,11 +103,33 @@ export default class Canvas extends React.Component {
       const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
 
       this.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
-      this.updateEdge(selectedEdge, currentUnfNode);
+      this.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, null);
     } else { // it must be a base class and we would need to create a new one!
       const newNodeId = this.createNode(50, 50, type, suggestion.label);
       this.props.onSelectedItemChange(type, newNodeId, suggestion.label, null);
+    }
+  }
+
+  /**
+   * Gather the necessary information to create the suggestion on canvas (with reference to the currently selected
+   *   Edge). The suggestion will be a '?' Node, known as an Unknown.
+   * @param {Object} suggestion - teh suggestion that will be realised on the Canvas.
+   */
+  realiseSuggestedUnknown = (suggestion) => {
+    const { nodes, edges } = this.state.graph;
+
+    const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
+
+    if (selectedEdge){
+      const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
+
+      this.changeNodeState(currentUnfNode.id, {content: suggestion.label, type: 'nodeUnknown'});
+      this.updateEdgeIntersections(selectedEdge, currentUnfNode);
+      this.props.onSelectedItemChange('nodeUnknown', currentUnfNode.id, suggestion.label, null);
+    } else {
+      const newNodeId = this.createNode(50, 50, 'nodeUnknown', suggestion.label);
+      this.props.onSelectedItemChange('nodeUnknown', newNodeId, suggestion.label);
     }
   }
 
@@ -167,7 +213,7 @@ export default class Canvas extends React.Component {
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
-      id: nodeCounter + 1, type: type, content: content, isOptional: false
+      id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null
     };
 
     this.setState(old => ({
@@ -268,7 +314,7 @@ export default class Canvas extends React.Component {
    * @param {Object} edgeToUpdate - the Edge whose intersection points need to be updated
    * @param {Object} objectNode - the Object Node whose boundary has changed
    */
-  updateEdge = (edgeToUpdate, objectNode) => {
+  updateEdgeIntersections = (edgeToUpdate, objectNode) => {
     const subX = edgeToUpdate.subject.intersectX;
     const subY = edgeToUpdate.subject.intersectY;
     const nodeVariant = Node.variants['nodeUri'](false);
@@ -318,6 +364,32 @@ export default class Canvas extends React.Component {
     }));
   }
 
+  /**
+   * Removes the edge with the given edgeId from the internal state.graph
+   * @param {number} edgeId - the id associated with the to-be-deleted edge.
+   */
+  deleteEdge = (edgeId) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        edges: old.graph.edges.filter(edge => edge.id !== edgeId)
+      }
+    }));
+  }
+
+  /**
+   * Removes the node with the given nodeId from the internal state.graph
+   * @param {number} nodeId - the id associated with the to-be-deleted node.
+   */
+  deleteNode = (nodeId) => {
+    this.setState(old => ({
+      graph: {
+        ...old.graph,
+        nodes: old.graph.nodes.filter(node => node.id !== nodeId)
+      }
+    }));
+  }
+
   render() {
     const { nodes, edges } = this.state.graph;
     const { mode, edgeCompleting } = this.state;
@@ -334,21 +406,25 @@ export default class Canvas extends React.Component {
             </marker>
           </defs>
           <g id="edges">
-            {edges.map(edge =>
-              <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
-                    subject={edge.subject} object={edge.object}
-                    onChangeEdgeState={this.changeEdgeState}
-                    onSelectedItemChange={this.handleElementChange}/>)}
+            <AnimatePresence>
+              {edges.map(edge =>
+                <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
+                      subject={edge.subject} object={edge.object}
+                      onChangeEdgeState={this.changeEdgeState}
+                      onSelectedItemChange={this.handleElementChange}/>)}
+            </AnimatePresence>
           </g>
           <g id="nodes">
-            {nodes.map(node =>
-              <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
-                    content={node.content} isOptional={node.isOptional}
-                    mode={mode} edgeCompleting={edgeCompleting}
-                    onChangeNodeState={this.changeNodeState}
-                    onSelectedItemChange={this.handleElementChange}
-                    onEdgeCreation={this.createEdge}
-                    onEdgeCompletion={this.completeEdge} />)}
+            <AnimatePresence>
+              {nodes.map(node =>
+                <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
+                      content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
+                      mode={mode} edgeCompleting={edgeCompleting}
+                      onChangeNodeState={this.changeNodeState}
+                      onSelectedItemChange={this.handleElementChange}
+                      onEdgeCreation={this.createEdge}
+                      onEdgeCompletion={this.completeEdge} />)}
+            </AnimatePresence>
           </g>
         </svg>
       </div>
