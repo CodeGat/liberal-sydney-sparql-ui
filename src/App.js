@@ -12,7 +12,7 @@ class App extends React.Component {
       transferredSuggestion: {exists: false},
       lastReferencedUnknown: -1,
       lastReferencedUknownAwaitingClass: false,
-      canvasStateSnapshot: {required: false}
+      canvasStateSnapshot: {required: false, graph: {id: 0}}
     };
   }
 

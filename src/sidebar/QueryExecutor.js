@@ -6,6 +6,7 @@ export default class ExecuteQueryButton extends React.Component {
     this.state = {
       query: '',
       gettingCanvasState: false,
+      convertingGraphToSparql: false,
       errorsExist: false,
       errors: []
     };
@@ -13,14 +14,12 @@ export default class ExecuteQueryButton extends React.Component {
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { canvasState } = this.props;
-    console.log(`looking for canvasState: ${prevProps.canvasState} ${canvasState}`)
 
-    if (prevProps.canvasState && prevProps.canvasState.id !== canvasState.id){
-      console.log(canvasState);
-      this.setState({gettingCanvasState: false});
+    if (prevProps.canvasState.required && canvasState.graph){
+      this.setState({gettingCanvasState: false, convertingGraphToSparql: true});
       const errorList = this.findErrorsInCanvasState();
 
-      if (errorList.length !== 0) {
+      if (errorList.length === 0) {
         const sparqlQueryString = this.generateSparqlQueryString();
 
         this.setState({query: sparqlQueryString, errorsExist: false});
@@ -30,8 +29,15 @@ export default class ExecuteQueryButton extends React.Component {
     }
   }
 
+  /**
+   * Looks through the graph for any glaring errors.
+   * @returns {String[]} - errors encountered in the graph patterns
+   */
   findErrorsInCanvasState = () => {
+    const errors = [];
 
+
+    return errors;
   }
 
   generateSparqlQueryString = () => {
@@ -42,16 +48,30 @@ export default class ExecuteQueryButton extends React.Component {
     const { canvasState } = this.props;
     let selectClauseString = 'SELECT ';
 
-    const selectUnknownNodes = canvasState.nodes.filter(node => node.content.startsWith('?'));
+    const selectUnknownNodes = canvasState.graph.nodes.filter(node => node.content.startsWith('?'));
+    const selectUnknownEdges = canvasState.graph.edges.filter(edge => edge.content.startsWith('?'));
     for (const unknownNode of selectUnknownNodes){
-      selectClauseString += `${unknownNode.iri} `;
+      console.log(unknownNode);
+      selectClauseString += `${unknownNode.content} `;
     }
+    for (const unknownEdge of selectUnknownEdges) {
+      selectClauseString += `${unknownEdge.content} `;
+    }
+
+    console.log(selectClauseString);
 
     return selectClauseString;
   }
 
   whereClause = () => {
+    const { canvasState } = this.props;
+    let whereClauseString = 'WHERE {\n';
 
+    const edges = canvasState.graph.edges;
+
+    for (const edge of edges) {
+      console.log(edge);
+    }
   }
 
   orderingClause = () => {
