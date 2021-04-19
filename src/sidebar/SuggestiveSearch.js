@@ -28,8 +28,8 @@ export default class SuggestiveSearch extends React.Component {
 
       // check if the there are any amalgamations that would affect what suggestions are offered - in this case,
       //   if we have an unknown node, but we can infer it is part of a class
-      if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam'){
-        type = 'nodeUri'
+      if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam') {
+        type = 'nodeUri';
         content = meta.amalgam.inferredClass.name;
       }
 
@@ -125,14 +125,11 @@ export default class SuggestiveSearch extends React.Component {
 
     if (type === 'nodeLiteral') {
       return [];
-    } else if (type === 'nodeUnknown') {
+    } else if (type === 'nodeUnknown' /*&& incoming !edges.range*/) {
+      //todo: don't reach here if incoming edge has a defined range
       suggestions.push({
         type: 'edgeKnown',
-        elem: {
-          iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
-          prefix: 'rdf',
-          label: 'type'
-        },
+        elem: { iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', prefix: 'rdf', label: 'type' },
         ix: ix++
       });
 
