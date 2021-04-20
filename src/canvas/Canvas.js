@@ -2,23 +2,9 @@ import React from "react";
 import "./Canvas.css"
 import Node from "./Node"
 import Edge from "./Edge"
-import arrow from './arrow_icon.png';
 import {AnimatePresence} from "framer-motion";
 
-// this.state.modes: drag, edge, node
 export default class Canvas extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      mode: 'drag'
-    };
-  }
-
-  /**
-   * this.state.graph:
-   * NEW: {nodes: [{id, type, isOptional, content, midX, midY, x, y}...]
-   *       edges: [{id, type, isOptional, content, subject: {id, intersectX, intersectY}, object: {id, intersectX, intersectY}, done}]}
-   */
 
   /**
    * If a transferred suggestion exists, find out it's type (Node or Edge) and how it will connect to the element it
@@ -79,7 +65,6 @@ export default class Canvas extends React.Component {
       const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
 
       this.props.createEdge(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
-      this.setState({mode: 'edge'});
     } else console.warn("No selected element for Edge to anchor");
   }
 
@@ -158,53 +143,35 @@ export default class Canvas extends React.Component {
   }
 
   /**
-   * the mode of the canvas
-   * @param {string} newMode
-   */
-  handleModeSelectChange = (newMode) => {
-    this.setState({mode: newMode});
-  }
-
-  /**
    * Method that handles a click to the svg canvas, unless it has been handled by one of the Canvas' children, such as
    *   a node or edge.
    * @param event - the click event
    */
   handleCanvasClick = (event) => {
-    const { mode } = this.state;
     const { edgeCompleting } = this.props;
 
     if (event.defaultPrevented) return;
-
-    if (mode === "node") {
-      this.props.createNode(event.clientX, event.clientY, 'nodeUnknown', "?");
-    } else if (mode === "edge") {
-      const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "");
+    if (edgeCompleting){ // we'll complete the edge with a new, unfinished Node as object
+      const newNodeId = this.createNode(event.clientX, event.clientY, 'nodeUnf', "");
       const variant = Node.variants['nodeUnf'](false);
       const newNodePos = {
         x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
         midX: event.clientX, midY: event.clientY
       };
 
-      if (edgeCompleting){ // we'll complete the edge with a new, unfinished Node as object
-        this.props.completeEdge(newNodeId, 'nodeUnf', newNodePos);
-      } else { // we'll create a new edge with a new, unfinished Node as subject
-        this.props.createEdge('?', newNodeId, newNodePos)
-      }
+      this.completeEdge(newNodeId, 'nodeUnf', newNodePos);
     }
   }
 
   render() {
     const { nodes, edges } = this.props.graph;
     const { edgeCompleting } = this.props;
-    const { mode } = this.state;
 
     return (
       <div className="canvas">
-        <ModeSelector onModeSelectorChangeTo={this.handleModeSelectChange}/>
         <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
              width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
-             onMouseMove={edgeCompleting ? this.props.moveEdgePlacement : null} onClick={this.handleCanvasClick}>
+             onMouseMove={edgeCompleting ? this.moveEdgePlacement : null} onClick={this.handleCanvasClick}>
           <defs>
             <marker id="arrow" markerWidth={5} markerHeight="7" refX={3.8} refY={3.5} orient="auto">
               <polygon points="0 0, 5 3.5, 0 7" fill={"#8e9094"}/>
@@ -222,9 +189,9 @@ export default class Canvas extends React.Component {
           <g id="nodes">
             <AnimatePresence>
               {nodes.map(node =>
-                <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY} type={node.type}
-                      content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
-                      mode={mode} edgeCompleting={edgeCompleting}
+                <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY}
+                      type={node.type} content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
+                      edgeCompleting={edgeCompleting}
                       onChangeNodeState={this.props.changeNodeState}
                       onSelectedItemChange={this.handleElementChange}
                       onEdgeCreation={this.props.createEdge}
@@ -235,18 +202,4 @@ export default class Canvas extends React.Component {
       </div>
     );
   }
-}
-
-function ModeSelector(props){
-  return (
-    <div className='modeselector-container'>
-      <div id="node-select" onClick={e => {e.stopPropagation(); props.onModeSelectorChangeTo("node")}}/>
-      <div id="edge-select" onClick={e => {e.stopPropagation(); props.onModeSelectorChangeTo("edge")}}>
-        <img src={arrow} alt="Arrow selector"/>
-      </div>
-      <div id="drag-select" onClick={e => {e.stopPropagation(); props.onModeSelectorChangeTo("drag")}}>
-        <p>Drag</p>
-      </div>
-    </div>
-  );
 }
