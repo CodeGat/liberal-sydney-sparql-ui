@@ -55,6 +55,7 @@ export default class SideBar extends React.Component {
   }
 
   render(){
+    const { graph } = this.props;
     const { content, type, id, meta } = this.props.selected;
     const { info, infoLoaded, basePrefix, basePrefixLoaded, error } = this.state;
 
@@ -65,7 +66,7 @@ export default class SideBar extends React.Component {
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded} />
         <hr />
-        <SuggestiveSearch id={id} type={type} content={content} meta={meta}
+        <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />

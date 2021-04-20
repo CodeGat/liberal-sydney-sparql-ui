@@ -4,17 +4,20 @@ import {ItemDesc, ItemImageHeader, ItemPrefix} from "./ItemViewerComponents";
 
 export default function SuggestionWrapper(props) {
   const { type, elem } = props.suggestion;
-  const { info, ix } = props;
+  const { info } = props;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
+  const [isOusideSideBar, setIsOutsideSidebar] = useState(false);
 
   const toggleIsOpen = () => setIsOpen(!isOpen);
   const toggleIsDragged = () => setIsDragged(!isDragged);
-  const checkSuggestionIsOutsideSidebar = (type, elem, point, offset, ix) => {
+  const checkSuggestionIsOutsideSidebar = (type, elem, point, offset) => {
     if (offset.x < -300) {
+      props.refreshSuggestions();
+      setIsOutsideSidebar(true);
       props.onTransferSuggestionToCanvas(type, elem, point);
-      props.onDeleteSuggestionFromSidebar(ix);
+
     }
   };
 
@@ -36,7 +39,7 @@ export default function SuggestionWrapper(props) {
                   drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
                   onDragStart={toggleIsDragged} onDragTransitionEnd={toggleIsDragged}
                   onDrag={(e, i) =>
-                    checkSuggestionIsOutsideSidebar(type, elem, i.point, i.offset, ix) } >
+                    !isOusideSideBar ? checkSuggestionIsOutsideSidebar(type, elem, i.point, i.offset) : null } >
         {Suggestion}
       </motion.div>
     </motion.li>
