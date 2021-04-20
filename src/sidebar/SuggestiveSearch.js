@@ -71,11 +71,7 @@ export default class SuggestiveSearch extends React.Component {
       const contentSegments = content.split(':');
       const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
 
-      suggestions.push({
-        type: 'nodeUnknown',
-        elem: {label: '?'},
-        ix: ix++
-      });
+      suggestions.push({type: 'nodeUnknown', elem: {label: '?'}, ix: ix++});
 
       for (let def of elementDefs) {
         if (def.elem.label === name) {
@@ -189,22 +185,10 @@ export default class SuggestiveSearch extends React.Component {
     const { suggestionNo } = this.state;
     let ix = suggestionNo;
 
-    suggestions.push({
-      type: 'nodeUnknown',
-      elem: {
-        label: '?'
-      },
-      ix: ix++
-    });
-
+    suggestions.push({type: 'nodeUnknown', elem: {label: '?'}, ix: ix++});
     for (const baseClass of baseClasses) {
-      suggestions.push({
-        type: 'nodeUri',
-        elem: baseClass,
-        ix: ix++
-      });
+      suggestions.push({type: 'nodeUri', elem: baseClass, ix: ix++});
     }
-
     this.setState({suggestionNo: ix});
 
     return suggestions;
@@ -227,16 +211,6 @@ export default class SuggestiveSearch extends React.Component {
     this.setState({suggestionNo: ix});
 
     return suggestions;
-  }
-
-  /**
-   * Deletes a suggestion located at ix from the state array of suggestions.
-   * @param {number} ix - the index of the suggestion about to be deleted
-   */
-  deleteSuggestion = (ix) => {
-    this.setState(old => ({
-      suggestions: old.suggestions.filter(s => s.ix !== ix)
-    }));
   }
 
   updateStateWithOntologyData = () => {
@@ -312,6 +286,9 @@ export default class SuggestiveSearch extends React.Component {
     return prefix;
   }
 
+  /**
+   * Reset suggestions to the empty list.
+   */
   refreshSuggestions = () => {
     this.setState({suggestions: []});
   }
