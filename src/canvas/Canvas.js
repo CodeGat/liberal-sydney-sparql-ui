@@ -152,14 +152,14 @@ export default class Canvas extends React.Component {
 
     if (event.defaultPrevented) return;
     if (edgeCompleting){ // we'll complete the edge with a new, unfinished Node as object
-      const newNodeId = this.createNode(event.clientX, event.clientY, 'nodeUnf', "");
+      const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "");
       const variant = Node.variants['nodeUnf'](false);
       const newNodePos = {
         x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
         midX: event.clientX, midY: event.clientY
       };
 
-      this.completeEdge(newNodeId, 'nodeUnf', newNodePos);
+      this.props.completeEdge(newNodeId, 'nodeUnf', newNodePos);
     }
   }
 
@@ -171,7 +171,7 @@ export default class Canvas extends React.Component {
       <div className="canvas">
         <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
              width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
-             onMouseMove={edgeCompleting ? this.moveEdgePlacement : null} onClick={this.handleCanvasClick}>
+             onMouseMove={edgeCompleting ? this.props.moveEdgePlacement : null} onClick={this.handleCanvasClick}>
           <defs>
             <marker id="arrow" markerWidth={5} markerHeight="7" refX={3.8} refY={3.5} orient="auto">
               <polygon points="0 0, 5 3.5, 0 7" fill={"#8e9094"}/>
@@ -194,8 +194,7 @@ export default class Canvas extends React.Component {
                       edgeCompleting={edgeCompleting}
                       onChangeNodeState={this.props.changeNodeState}
                       onSelectedItemChange={this.handleElementChange}
-                      onEdgeCreation={this.props.createEdge}
-                      onEdgeCompletion={this.props.completeEdge} />)}
+                      onEdgeCreation={this.props.createEdge} onEdgeCompletion={this.props.completeEdge} />)}
             </AnimatePresence>
           </g>
         </svg>
