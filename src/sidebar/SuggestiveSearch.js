@@ -33,7 +33,7 @@ export default class SuggestiveSearch extends React.Component {
         content = meta.amalgam.inferredClass.name;
       }
 
-      if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content);
+      if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content, id);
       else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
       else if (type.indexOf('datatype') !== -1) newSuggestions = this.generateSuggestionsForSelectedDatatype(content);
       else console.warn("Couldn't find suggestions for the selected item as it's type is not known");
@@ -52,23 +52,21 @@ export default class SuggestiveSearch extends React.Component {
 
   /**
    * Generates suggestions for the currently selected Edge
+   * @param {string} content - the content of the selected Edge
+   * @param {number} id - id of the selected Edge
    * @typedef {Object} EdgeSuggestion
    * @property {string} type - type of the suggestion (either a literal or a known iri)
    * @property {Object} elem - range of the suggested Node
    * @property {number} ix - suggestion index
-   * @param {string} content - the content of the selected Edge
    * @returns {EdgeSuggestion[]}
    */
-  generateSuggestionsForSelectedEdge(content) {
-    const suggestions = [];
+  generateSuggestionsForSelectedEdge(content, id) {
+    let suggestions = [];
     const { elementDefs, suggestionNo } = this.state;
     let ix = suggestionNo;
 
     if (content.match(/(rdf:)?type|^a$/)){
-      const { baseClasses } = this.state;
-      const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
-
-      suggestions.push(...baseClassSuggestions);
+      suggestions = this.generateSuggestionsForSelectedRdfTypeEdge(id);
     } else {
       const contentSegments = content.split(':');
       const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
@@ -93,6 +91,28 @@ export default class SuggestiveSearch extends React.Component {
     }
 
     return suggestions;
+  }
+
+  generateSuggestionsForSelectedRdfTypeEdge = (typeEdgeId) => {
+    const { baseClasses, elementDefs } = this.state;
+    const { edges } = this.props.graph;
+    let baseClassSuggestions;
+
+    // get the '?' nodes id that has the outgoing 'rdf:type' edge
+    const classlessUnknownId = (edges.find(edge => edge.id === typeEdgeId)).subject.id;
+    // get the edge that is incoming to the '?' node - this edge will know the domain and range of the relationship
+    const incomingEdgeToClasslessUnknown = edges.find(edge => edge.object.id === classlessUnknownId);
+    if (incomingEdgeToClasslessUnknown) {
+      // get the definition of the edge (has it's domain and range)
+      const incomingEdgeDef = elementDefs.find(def => def.elem.label === incomingEdgeToClasslessUnknown.content);
+      // get the range of the edge
+      const inferredBaseClass = incomingEdgeDef.range.label;
+      baseClassSuggestions = this.generateSuggestionOfBaseClass(baseClasses, inferredBaseClass);
+    } else {
+      baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
+    }
+
+    return baseClassSuggestions;
   }
 
   /**
@@ -120,13 +140,21 @@ export default class SuggestiveSearch extends React.Component {
    */
   generateSuggestionsForSelectedNode(type, content) {
     const suggestions = [];
+    const { edges } = this.props.graph;
     const { elementDefs, suggestionNo } = this.state;
     let ix = suggestionNo;
 
     if (type === 'nodeLiteral') {
       return [];
-    } else if (type === 'nodeUnknown' /*&& incoming !edges.range*/) {
-      //todo: don't reach here if incoming edge has a defined range
+    } else if (type === 'nodeUnknown') {
+      const { id } = this.props;
+      // check for any incoming edges for the given Node that have a defined range
+      for (const edge of edges) {
+        if (edge.object.id === id){
+          const incomingEdgeDef = elementDefs.find(def => def.elem.label === edge.content);
+          if (incomingEdgeDef.range.expansion === "http://www.w3.org/2001/XMLSchema") return [];
+        }
+      }
       suggestions.push({
         type: 'edgeKnown',
         elem: { iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', prefix: 'rdf', label: 'type' },
@@ -183,8 +211,27 @@ export default class SuggestiveSearch extends React.Component {
   }
 
   /**
+   * Generate the suggestion of a BaseClass given a label of the class
+   * @param {Object[]} baseClasses -
+   * @param {string} classLabel -
+   * @returns {Object[]} -
+   */
+  generateSuggestionOfBaseClass = (baseClasses, classLabel) => {
+    const suggestions = [];
+    const { suggestionNo } = this.state;
+    let ix = suggestionNo;
+    const inferredClass = baseClasses.find(baseClass => baseClass.label === classLabel);
+
+    suggestions.push({type: 'nodeUri', elem: inferredClass, ix: ix++});
+
+    this.setState({suggestionNo: ix});
+
+    return suggestions;
+  }
+
+  /**
    * Deletes a suggestion located at ix from the state array of suggestions.
-   * @param ix - the index of the suggestion about to be deleted
+   * @param {number} ix - the index of the suggestion about to be deleted
    */
   deleteSuggestion = (ix) => {
     this.setState(old => ({
@@ -265,6 +312,10 @@ export default class SuggestiveSearch extends React.Component {
     return prefix;
   }
 
+  refreshSuggestions = () => {
+    this.setState({suggestions: []});
+  }
+
   render(){
     const { suggestions, defsLoaded } = this.state;
     const { info, infoLoaded } = this.props;
@@ -275,7 +326,7 @@ export default class SuggestiveSearch extends React.Component {
           <motion.ul layout>
             {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>
               <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
-                                 onDeleteSuggestionFromSidebar={this.deleteSuggestion}
+                                 refreshSuggestions={this.refreshSuggestions}
                                  onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
             {(!defsLoaded || !infoLoaded) &&
               <p>Loading...</p>}

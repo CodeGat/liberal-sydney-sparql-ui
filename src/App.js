@@ -13,7 +13,7 @@ class App extends React.Component {
       selected: {type: '', id: '', content: '', meta: ''},
       transferredSuggestion: {exists: false},
       lastReferencedUnknown: -1,
-      lastReferencedUknownAwaitingClass: false,
+      lastReferencedUnknownAwaitingClass: false,
       nodeCounter: 0,
       edgeCounter: 0,
       edgeCompleting: false,
