@@ -302,7 +302,7 @@ export default class SuggestiveSearch extends React.Component {
         <AnimateSharedLayout>
           <motion.ul layout>
             {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>
-              <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
+              <SuggestionWrapper key={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
                                  refreshSuggestions={this.refreshSuggestions}
                                  onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
             {(!defsLoaded || !infoLoaded) &&
