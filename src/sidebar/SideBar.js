@@ -17,8 +17,7 @@ export default class SideBar extends React.Component {
   }
 
   componentDidMount() {
-    const base_url = "http://localhost:9999/blazegraph/sparql";
-    // const base_url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
+    const base_url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
     submitQuery(base_url, "SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1"
     ).then(
       response => {
