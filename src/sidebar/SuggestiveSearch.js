@@ -34,7 +34,7 @@ export default class SuggestiveSearch extends React.Component {
       }
 
       if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content, id);
-      else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
+      else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content, id);
       else if (type.indexOf('datatype') !== -1) newSuggestions = this.generateSuggestionsForSelectedDatatype(content);
       else console.warn("Couldn't find suggestions for the selected item as it's type is not known");
 
@@ -130,11 +130,12 @@ export default class SuggestiveSearch extends React.Component {
    * @property {string} type - type of suggestion for a Node (namely, a known edge)
    * @property {Object} elem - the Node suggestion
    * @property {number} ix - suggestion index
-   * @param type - type of the node: is it a literal, iri, unknown?
-   * @param content - content of the selected node
+   * @param {string} type - type of the node: is it a literal, iri, unknown?
+   * @param {string} content - content of the selected node
+   * @param {number} id - id of the selected node
    * @returns {NodeSuggestion[]}
    */
-  generateSuggestionsForSelectedNode(type, content) {
+  generateSuggestionsForSelectedNode(type, content, id) {
     const suggestions = [];
     const { edges } = this.props.graph;
     const { elementDefs, suggestionNo } = this.state;
@@ -159,7 +160,8 @@ export default class SuggestiveSearch extends React.Component {
 
       return suggestions;
     } else {
-      const contentSegments = content.split(':');
+      const retrivedContent = content ? content : (this.props.graph.nodes.find(node => node.id === id)).content;
+      const contentSegments = retrivedContent.split(':');
       const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
 
       for (let def of elementDefs) {
@@ -286,11 +288,9 @@ export default class SuggestiveSearch extends React.Component {
     return prefix;
   }
 
-  /**
-   * Reset suggestions to the empty list.
-   */
-  refreshSuggestions = () => {
+  transferSuggestionToCanvas = (type, elem, point) => {
     this.setState({suggestions: []});
+    this.props.onTransferSuggestionToCanvas(type, elem, point);
   }
 
   render(){
@@ -304,7 +304,7 @@ export default class SuggestiveSearch extends React.Component {
             {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>
               <SuggestionWrapper key={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
                                  refreshSuggestions={this.refreshSuggestions}
-                                 onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
+                                 onTransferSuggestionToCanvas={this.transferSuggestionToCanvas} />)}
             {(!defsLoaded || !infoLoaded) &&
               <p>Loading...</p>}
           </motion.ul>

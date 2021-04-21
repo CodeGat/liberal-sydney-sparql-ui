@@ -148,10 +148,10 @@ export default class Canvas extends React.Component {
    * @param event - the click event
    */
   handleCanvasClick = (event) => {
-    const { edgeCompleting } = this.props;
+    const { tempEdge } = this.props;
 
     if (event.defaultPrevented) return;
-    if (edgeCompleting){ // we'll complete the edge with a new, unfinished Node as object
+    if (tempEdge.completing){ // we'll complete the edge with a new, unfinished Node as object
       const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "");
       const variant = Node.variants['nodeUnf'](false);
       const newNodePos = {
@@ -165,13 +165,13 @@ export default class Canvas extends React.Component {
 
   render() {
     const { nodes, edges } = this.props.graph;
-    const { edgeCompleting } = this.props;
+    const { tempEdge } = this.props;
 
     return (
       <div className="canvas">
         <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
              width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
-             onMouseMove={edgeCompleting ? this.props.moveEdgePlacement : null} onClick={this.handleCanvasClick}>
+             onMouseMove={tempEdge.completing ? this.props.moveEdgePlacement : null} onClick={this.handleCanvasClick}>
           <defs>
             <marker id="arrow" markerWidth={5} markerHeight="7" refX={3.8} refY={3.5} orient="auto">
               <polygon points="0 0, 5 3.5, 0 7" fill={"#8e9094"}/>
@@ -181,7 +181,7 @@ export default class Canvas extends React.Component {
             <AnimatePresence>
               {edges.map(edge =>
                 <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
-                      subject={edge.subject} object={edge.object}
+                      subject={edge.subject} object={edge.object} tempEdge={tempEdge} complete={edge.complete}
                       onChangeEdgeState={this.props.changeEdgeState}
                       onSelectedItemChange={this.handleElementChange}/>)}
             </AnimatePresence>
@@ -191,7 +191,6 @@ export default class Canvas extends React.Component {
               {nodes.map(node =>
                 <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY}
                       type={node.type} content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
-                      edgeCompleting={edgeCompleting}
                       onChangeNodeState={this.props.changeNodeState}
                       onSelectedItemChange={this.handleElementChange}
                       onEdgeCreation={this.props.createEdge} onEdgeCompletion={this.props.completeEdge} />)}

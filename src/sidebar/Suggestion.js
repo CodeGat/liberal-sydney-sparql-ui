@@ -8,20 +8,15 @@ export default function SuggestionWrapper(props) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
-  const [isOusideSideBar, setIsOutsideSidebar] = useState(false);
 
   const toggleIsOpen = () => setIsOpen(!isOpen);
   const toggleIsDragged = () => setIsDragged(!isDragged);
   const checkSuggestionIsOutsideSidebar = (type, elem, point, offset) => {
     if (offset.x < -300) {
-      props.refreshSuggestions();
-      setIsOutsideSidebar(true);
       props.onTransferSuggestionToCanvas(type, elem, point);
-
     }
   };
 
-  //todo: investigate whether we can support suggestions of unknown things?
   let Suggestion = null;
   if (type.indexOf('edge') !== -1) {
     Suggestion = <SuggestionForSelectedNode type={type} property={elem} info={info}
@@ -39,7 +34,7 @@ export default function SuggestionWrapper(props) {
                   drag dragPropagation dragConstraints={{top: 0, left: 0, right: 0, bottom: 0}} dragElastic={1}
                   onDragStart={toggleIsDragged} onDragTransitionEnd={toggleIsDragged}
                   onDrag={(e, i) =>
-                    !isOusideSideBar ? checkSuggestionIsOutsideSidebar(type, elem, i.point, i.offset) : null } >
+                    checkSuggestionIsOutsideSidebar(type, elem, i.point, i.offset) } >
         {Suggestion}
       </motion.div>
     </motion.li>
@@ -126,7 +121,6 @@ function SuggestionForSelectedNode(props) {
   return (
     <>
       <ItemImageHeader type={type} name={label} isDragged={isDragged} />
-      <AnimatePresence>
         {isOpen &&
         <motion.div className={'suggestion-extra extra'}
                     variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
@@ -134,7 +128,6 @@ function SuggestionForSelectedNode(props) {
           {info && <ItemDesc desc={info.comment} />}
         </motion.div>
         }
-      </AnimatePresence>
     </>
   );
 }

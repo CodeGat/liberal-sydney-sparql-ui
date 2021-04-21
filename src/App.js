@@ -16,7 +16,7 @@ class App extends React.Component {
       lastReferencedUnknownAwaitingClass: false,
       nodeCounter: 0,
       edgeCounter: 0,
-      edgeCompleting: false,
+      tempEdge: {completing: false, x: 0, y: 0},
       graph: {nodes: [], edges: []}
     };
   }
@@ -109,7 +109,7 @@ class App extends React.Component {
       content: content,
       type: content === '?' ? 'edgeUnknown' : 'edgeKnown', isOptional: false,
       subject: {id: subjectId, intersectX: subjectPos.midX, intersectY: subjectPos.midY},
-      object: {x: subjectPos.midX + 1, y: subjectPos.midY + 1},
+      object: {},
       complete: false
     }
 
@@ -119,7 +119,7 @@ class App extends React.Component {
         ...old.graph,
         edges: [...old.graph.edges, newEdge]
       },
-      edgeCompleting: true
+      tempEdge: {completing: true, x: subjectPos.midX + 1, y: subjectPos.midY + 1}
     }));
 
     this.handleSelectedItemChange(content === '?' ? 'edgeUnknown' : 'edgeKnown', edgeCounter + 1, content, null);
@@ -152,7 +152,7 @@ class App extends React.Component {
         ...old.graph,
         edges: old.graph.edges.map(edge => !edge.complete ? {...edge, object: object, complete: true} : edge)
       },
-      edgeCompleting: false
+      tempEdge: {completing: false}
     }));
   }
 
@@ -163,14 +163,7 @@ class App extends React.Component {
   moveEdgePlacement = (e) => {
     if (e.defaultPrevented) return;
 
-    this.setState(old => ({
-      graph: {
-        ...old.graph,
-        edges: old.graph.edges.map(edge =>
-          !edge.complete ? {...edge, object: {intersectX: e.clientX, intersectY: e.clientY}} : edge
-        )
-      }
-    }));
+    this.setState({tempEdge: {completing: true, x: e.clientX, y: e.clientY}});
   }
 
   /**
@@ -255,12 +248,12 @@ class App extends React.Component {
   }
 
   render(){
-    const { selected, transferredSuggestion, graph, edgeCompleting } = this.state;
+    const { selected, transferredSuggestion, graph, tempEdge } = this.state;
 
     return (
       <AnimateSharedLayout>
         <div className="App">
-          <Canvas selected={selected} graph={graph} edgeCompleting={edgeCompleting}
+          <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
                   transferredSuggestion={transferredSuggestion}
                   createNode={this.createNode} createEdge={this.createEdge}
                   deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
