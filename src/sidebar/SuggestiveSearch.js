@@ -217,11 +217,15 @@ export default class SuggestiveSearch extends React.Component {
 
   updateStateWithOntologyData = () => {
     // when component mounts, fetch ontology and the associated data, caching it
-    submitQuery("SELECT DISTINCT ?s ?klass ?domain ?range WHERE {" +
+    submitQuery("SELECT DISTINCT ?s ?klass ?domain ?range WHERE { " +
       "OPTIONAL {?s rdf:type ?klass . FILTER (?klass = owl:ObjectProperty || ?klass = owl:Class) }" +
-      "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] . FILTER (?s != owl:topObjectProperty) } " +
-      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
-      .then(
+      "OPTIONAL {?s rdfs:domain [owl:onClass ?quald] . FILTER (?s != owl:topObjectProperty) }" +
+      "OPTIONAL {?s rdfs:domain ?d . FILTER (?s != owl:topObjectProperty) }" +
+      "BIND (COALESCE (?quald, ?d) AS ?domain)" +
+      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?qualr ] }" +
+      "OPTIONAL {?s rdfs:range ?r }" +
+      "BIND (COALESCE (?qualr, ?r) AS ?range) }"
+    ).then(
         response => {
           const results = response.results.bindings;
           const defs = [];
@@ -231,29 +235,31 @@ export default class SuggestiveSearch extends React.Component {
           for (const { s, klass, domain, range } of results) {
             const def = {};
 
-            const [ sExpansion, sName ] = s.value.split("#");
+            const [ , sExpansion, sName ] = s.value.split(/(.*)[#/]/g);
             const sLabel = sName.replace(/_/g, ' ');
             const sPrefix = this.findPrefixOfExpansion(sExpansion, myPrefixes);
             def.elem = {iri: s.value, expansion: sExpansion, prefix: sPrefix, name: sName, label: sLabel};
 
             if (domain) {
-              const [ dExpansion, dName ] = domain.value.split("#");
+              const [ , dExpansion, dName ] = domain.value.split(/(.*)[#/]/);
               const dLabel = dName.replace(/_/g, ' ');
               const dPrefix = this.findPrefixOfExpansion(dExpansion, myPrefixes);
               def.domain = {iri: domain.value, expansion: dExpansion, prefix: dPrefix, name: dName, label: dLabel};
             }
             if (range) {
-              const [ rExpansion, rName ] = range ? range.value.split("#") : [null, null];
+              const [ , rExpansion, rName ] = range ? range.value.split(/(.*)[#/]/) : [null, null];
               const rLabel = rName.replace(/_/g, ' ');
               const rPrefix = this.findPrefixOfExpansion(rExpansion, myPrefixes);
               def.range = {iri: range.value, expansion: rExpansion, prefix: rPrefix, name: rName, label: rLabel};
             }
-            if (klass && klass.value.split('#')[1] === 'Class') {
+            if (klass && klass.value.split(/(.*)[#/]/)[2] === 'Class') {
               baseClasses.push({...def.elem});
             }
 
             defs.push(def);
           }
+          console.log(defs);
+          console.log(baseClasses);
           this.setState({defsLoaded: true, elementDefs: defs, baseClasses: baseClasses});
         },
         error => this.setState({defsLoaded: true, error})
