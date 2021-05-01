@@ -17,25 +17,24 @@ export default class SideBar extends React.Component {
   }
 
   componentDidMount() {
-    const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
-    submitQuery(base_url, "SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1"
-    ).then(
-      response => {
-        const results = response.results.bindings;
+    submitQuery("SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1")
+      .then(
+        response => {
+          const results = response.results.bindings;
 
-        if (results.length > 0) {
-          this.setState({basePrefix: results[0].s.value, basePrefixLoaded: true});
-        } else {
-          this.setState({basePrefix: 'Unknown', basePrefixLoaded: true});
+          if (results.length > 0) {
+            this.setState({basePrefix: results[0].s.value, basePrefixLoaded: true});
+          } else {
+            this.setState({basePrefix: 'Unknown', basePrefixLoaded: true});
+          }
+        },
+        error => {
+          console.warn(error);
+          this.setState({error: error});
         }
-      },
-      error => {
-        console.warn(error);
-        this.setState({error: error});
-      }
-    );
+      );
 
-    submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
+    submitQuery("SELECT DISTINCT ?s ?label ?comment WHERE { " +
       "  OPTIONAL { ?s rdfs:label ?label }" +
       "  OPTIONAL { ?s rdfs:comment ?comment } }"
     ).then(

@@ -1,10 +1,10 @@
 /**
  * submits a query to the given blazegraph instance rooted at a given url
- * @param url {string} - blazegraph triplestore endpoint is located here
  * @param query {string} - string-based query
  * @returns {Promise<Object>}
  */
-export async function submitQuery(url, query) {
+export async function submitQuery(query) {
+  const url = "http://localhost:9999/blazegraph/sparql"; //todo: "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
   const response = await fetch(url, {
     method: "POST",
     headers: {
