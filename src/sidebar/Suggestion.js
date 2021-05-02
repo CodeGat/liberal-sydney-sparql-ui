@@ -41,13 +41,10 @@ export default function SuggestionWrapper(props) {
   );
 }
 
-function SuggestionForSelectedEdge(props) {
-  const { type, node, isOpen, isDragged } = props;
-
+function SuggestionForSelectedEdge({type, node, info, isOpen, isDragged}) {
   if (type === 'nodeLiteral') {
     return (<SuggestionAsLiteral node={node} isOpen={isOpen} isDragged={isDragged} />);
   } else {
-    const { info } = props;
     return (<SuggestionAsNode node={node} type={type} info={info} isOpen={isOpen} isDragged={isDragged} />);
   }
 }
@@ -67,8 +64,7 @@ const variants = {
   }
 };
 
-function SuggestionAsNode(props) {
-  const { info, node, type, isOpen, isDragged } = props;
+function SuggestionAsNode({ info, node, type, isOpen, isDragged }) {
   const { expansion, label } = node;
 
   return (
@@ -79,7 +75,8 @@ function SuggestionAsNode(props) {
         <motion.div className={"suggestion-extra extra"}
                     variants={variants} initial={'invis'} animate={'vis'} exit={'invis'}>
           <ItemPrefix prefix={expansion}/>
-          {info && <ItemDesc desc={info.comment} />}
+          {info && info.comment &&
+            <ItemDesc desc={info.comment} />}
         </motion.div>
         }
       </AnimatePresence>
@@ -87,9 +84,8 @@ function SuggestionAsNode(props) {
   );
 }
 
-function SuggestionAsLiteral(props) {
-  const { expansion, label } = props.node;
-  const { isOpen, isDragged } = props;
+function SuggestionAsLiteral({isOpen, isDragged, node}) {
+  const { expansion, label } = node;
 
   return (
     <>
@@ -114,18 +110,18 @@ function SuggestionForSelectedDatatype(props) {
   );
 }
 
-function SuggestionForSelectedNode(props) {
-  const { type, info, isOpen, isDragged } = props;
-  const { expansion, label } = props.property;
+function SuggestionForSelectedNode({ type, info, property, isOpen, isDragged }) {
+  const { expansion, label } = property;
 
   return (
     <>
       <ItemImageHeader type={type} name={label} isDragged={isDragged} />
         {isOpen &&
-        <motion.div className={'suggestion-extra extra'}
-                    variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
-          <ItemPrefix prefix={expansion} />
-          {info && <ItemDesc desc={info.comment} />}
+          <motion.div className={'suggestion-extra extra'}
+                      variants={variants} initial={'invis'} animate={'vis'} exit={'invis'} >
+            <ItemPrefix prefix={expansion} />
+            {info && info.comment &&
+              <ItemDesc desc={info.comment} />}
         </motion.div>
         }
     </>
