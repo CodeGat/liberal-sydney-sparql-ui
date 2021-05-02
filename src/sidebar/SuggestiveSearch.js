@@ -147,6 +147,7 @@ export default class SuggestiveSearch extends React.Component {
     const { edges } = this.props.graph;
     const { elementDefs, suggestionNo } = this.state;
     let ix = suggestionNo;
+    let unknownRangeFlag = false;
 
     if (type === 'nodeLiteral') {
       return [];
@@ -156,14 +157,22 @@ export default class SuggestiveSearch extends React.Component {
       for (const edge of edges) {
         if (edge.object.id === id){
           const incomingEdgeDef = elementDefs.find(def => def.elem.label === edge.content);
-          if (incomingEdgeDef.range.expansion === "http://www.w3.org/2001/XMLSchema") return [];
+
+          if (!incomingEdgeDef.range) {
+            unknownRangeFlag = true;
+          } else if (incomingEdgeDef.range.expansion === "http://www.w3.org/2001/XMLSchema") {
+            return [];
+          }
         }
       }
-      suggestions.push({
-        type: 'edgeKnown',
-        elem: { iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', prefix: 'rdf', label: 'type' },
-        ix: ix++
-      });
+
+      if (!unknownRangeFlag) { // if we don't know the range, don't specify a type suggestion
+        suggestions.push({
+          type: 'edgeKnown',
+          elem: {iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', prefix: 'rdf', label: 'type'},
+          ix: ix++
+        });
+      }
 
       return suggestions;
     } else {
