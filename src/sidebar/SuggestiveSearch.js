@@ -228,6 +228,11 @@ export default class SuggestiveSearch extends React.Component {
           const baseClasses = [];
           const myPrefixes = {};
 
+          if (Object.keys(results[0]).length === 0){ // trivial solution of no bindings - must be no data in database!
+            this.setState({infoLoaded: true, error: "Database is empty or has no classes/properties."});
+            return;
+          }
+
           for (const { s, klass, domain, range } of results) {
             const def = {};
 
