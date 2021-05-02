@@ -48,7 +48,11 @@ export default class SideBar extends React.Component {
         }
 
         for (const { s, label, comment } of results) {
-          info[s.value] = {label: label.value, comment: comment.value};
+          const tripleInfo = {};
+          if (label) tripleInfo.label = label.value;
+          if (comment) tripleInfo.comment = comment.value;
+
+          info[s.value] = tripleInfo;
         }
 
         this.setState({infoLoaded: true, info: info});

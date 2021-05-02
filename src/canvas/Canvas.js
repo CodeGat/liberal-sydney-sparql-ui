@@ -61,7 +61,8 @@ export default class Canvas extends React.Component {
     const selectedNode = nodes.find(node => node.id === this.props.selected.id);
 
     if (selectedNode){
-      const prefixedEdgeLabel = (suggestion.prefix !== '' ? suggestion.prefix + ':' : '') + suggestion.label;
+      const prefixedEdgeLabel =
+        (suggestion.prefix && suggestion.prefix !== '' ? suggestion.prefix + ':' : '') + suggestion.label;
       const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
 
       this.props.createEdge(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
@@ -76,7 +77,8 @@ export default class Canvas extends React.Component {
   realiseSuggestedUri = (suggestion, type) => {
     const { edges, nodes } = this.props.graph;
 
-    const prefixedNodeLabel = (suggestion.prefix !== '' ? suggestion.prefix + ":" : '') + suggestion.name;
+    const prefixedNodeLabel =
+      (suggestion.prefix && suggestion.prefix !== '' ? suggestion.prefix + ":" : '') + suggestion.name;
     const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
 
     if (selectedEdge) { // aka, if there is an edge selected by the user
@@ -124,7 +126,7 @@ export default class Canvas extends React.Component {
     const currentUnfNode = nodes.find(node => node.id === selectedElement.object.id);
     let content = '';
 
-    if (suggestion.name === 'string') content = '""';
+    if (suggestion.name === 'string' || suggestion.name === 'literal') content = '""';
     else if (suggestion.name === 'int' || suggestion.name === 'integer') content = '0';
 
     this.props.changeNodeState(currentUnfNode.id, {content: content, type: type});
