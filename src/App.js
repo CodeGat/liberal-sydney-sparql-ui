@@ -267,7 +267,7 @@ class App extends React.Component {
                   moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
                   onSelectedItemChange={this.handleSelectedItemChange}
                   acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
-          <SideBar selected={selected} graph={graph} canvasStateSnapShot={canvasStateSnapshot}
+          <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
                    onSelectedItemChange={this.handleSelectedItemChange}
                    onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
                    onRequestCanvasState={this.handleRequestCanvasState}/>
