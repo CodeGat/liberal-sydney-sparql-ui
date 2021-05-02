@@ -28,15 +28,17 @@ export default class SuggestiveSearch extends React.Component {
 
       // check if the there are any amalgamations that would affect what suggestions are offered - in this case,
       //   if we have an unknown node, but we can infer it is part of a class
-      if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam'){
-        type = 'nodeUri'
+      if (meta && meta.amalgam && meta.amalgam.type === 'UnknownClassAmalgam') {
+        type = 'nodeUri';
         content = meta.amalgam.inferredClass.name;
       }
 
-      if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content);
-      else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content);
+      if (type.indexOf('edge') !== -1) newSuggestions = this.generateSuggestionsForSelectedEdge(content, id);
+      else if (type.indexOf('node') !== -1) newSuggestions = this.generateSuggestionsForSelectedNode(type, content, id);
       else if (type.indexOf('datatype') !== -1) newSuggestions = this.generateSuggestionsForSelectedDatatype(content);
       else console.warn("Couldn't find suggestions for the selected item as it's type is not known");
+
+      console.log(newSuggestions);
 
       this.setState({suggestions: newSuggestions});
     }
@@ -52,47 +54,68 @@ export default class SuggestiveSearch extends React.Component {
 
   /**
    * Generates suggestions for the currently selected Edge
+   * @param {string} content - the content of the selected Edge
+   * @param {number} id - id of the selected Edge
    * @typedef {Object} EdgeSuggestion
    * @property {string} type - type of the suggestion (either a literal or a known iri)
    * @property {Object} elem - range of the suggested Node
    * @property {number} ix - suggestion index
-   * @param {string} content - the content of the selected Edge
    * @returns {EdgeSuggestion[]}
    */
-  generateSuggestionsForSelectedEdge(content) {
-    const suggestions = [];
+  generateSuggestionsForSelectedEdge(content, id) {
+    let suggestions = [];
     const { elementDefs, suggestionNo } = this.state;
     let ix = suggestionNo;
 
     if (content.match(/(rdf:)?type|^a$/)){
-      const { baseClasses } = this.state;
-      const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
-
-      suggestions.push(...baseClassSuggestions);
+      suggestions = this.generateSuggestionsForSelectedRdfTypeEdge(id);
     } else {
       const contentSegments = content.split(':');
       const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
+      let unknownRangeFlag = false; // if no defined range assume it can be anything!
 
-      suggestions.push({
-        type: 'nodeUnknown',
-        elem: {label: '?'},
-        ix: ix++
-      });
+      suggestions.push({type: 'nodeUnknown', elem: {label: '?'}, ix: ix++});
 
       for (let def of elementDefs) {
-        if (def.elem.label === name) {
+        if (def.elem.label === name && def.range) {
           suggestions.push({
             type: def.range.expansion === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
             elem: def.range,
             ix: ix++
           });
-        }
+        } else if (def.elem.label === name) unknownRangeFlag = true;
+      }
+
+      if (unknownRangeFlag) {
+        suggestions.push({type: 'nodeLiteral', elem: {name: 'literal', label: 'Literal'}, ix: ix++});
       }
 
       this.setState({suggestionNo: ix});
     }
 
     return suggestions;
+  }
+
+  generateSuggestionsForSelectedRdfTypeEdge = (typeEdgeId) => {
+    const { baseClasses, elementDefs } = this.state;
+    const { edges } = this.props.graph;
+    let baseClassSuggestions;
+
+    // get the '?' nodes id that has the outgoing 'rdf:type' edge
+    const classlessUnknownId = (edges.find(edge => edge.id === typeEdgeId)).subject.id;
+    // get the edge that is incoming to the '?' node - this edge will know the domain and range of the relationship
+    const incomingEdgeToClasslessUnknown = edges.find(edge => edge.object.id === classlessUnknownId);
+    if (incomingEdgeToClasslessUnknown) {
+      // get the definition of the edge (has it's domain and range)
+      const incomingEdgeDef = elementDefs.find(def => def.elem.label === incomingEdgeToClasslessUnknown.content);
+      // get the range of the edge
+      const inferredBaseClass = incomingEdgeDef.range.label;
+      baseClassSuggestions = this.generateSuggestionOfBaseClass(baseClasses, inferredBaseClass);
+    } else {
+      baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
+    }
+
+    return baseClassSuggestions;
   }
 
   /**
@@ -114,31 +137,38 @@ export default class SuggestiveSearch extends React.Component {
    * @property {string} type - type of suggestion for a Node (namely, a known edge)
    * @property {Object} elem - the Node suggestion
    * @property {number} ix - suggestion index
-   * @param type - type of the node: is it a literal, iri, unknown?
-   * @param content - content of the selected node
+   * @param {string} type - type of the node: is it a literal, iri, unknown?
+   * @param {string} content - content of the selected node
+   * @param {number} id - id of the selected node
    * @returns {NodeSuggestion[]}
    */
-  generateSuggestionsForSelectedNode(type, content) {
+  generateSuggestionsForSelectedNode(type, content, id) {
     const suggestions = [];
+    const { edges } = this.props.graph;
     const { elementDefs, suggestionNo } = this.state;
     let ix = suggestionNo;
 
     if (type === 'nodeLiteral') {
       return [];
     } else if (type === 'nodeUnknown') {
+      const { id } = this.props;
+      // check for any incoming edges for the given Node that have a defined range
+      for (const edge of edges) {
+        if (edge.object.id === id){
+          const incomingEdgeDef = elementDefs.find(def => def.elem.label === edge.content);
+          if (incomingEdgeDef.range.expansion === "http://www.w3.org/2001/XMLSchema") return [];
+        }
+      }
       suggestions.push({
         type: 'edgeKnown',
-        elem: {
-          iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
-          prefix: 'rdf',
-          label: 'type'
-        },
+        elem: { iri: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', prefix: 'rdf', label: 'type' },
         ix: ix++
       });
 
       return suggestions;
     } else {
-      const contentSegments = content.split(':');
+      const retrivedContent = content ? content : (this.props.graph.nodes.find(node => node.id === id)).content;
+      const contentSegments = retrivedContent.split(':');
       const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
 
       for (let def of elementDefs) {
@@ -164,72 +194,77 @@ export default class SuggestiveSearch extends React.Component {
     const { suggestionNo } = this.state;
     let ix = suggestionNo;
 
-    suggestions.push({
-      type: 'nodeUnknown',
-      elem: {
-        label: '?'
-      },
-      ix: ix++
-    });
-
+    suggestions.push({type: 'nodeUnknown', elem: {label: '?'}, ix: ix++});
     for (const baseClass of baseClasses) {
-      suggestions.push({
-        type: 'nodeUri',
-        elem: baseClass,
-        ix: ix++
-      });
+      suggestions.push({type: 'nodeUri', elem: baseClass, ix: ix++});
     }
-
     this.setState({suggestionNo: ix});
 
     return suggestions;
   }
 
   /**
-   * Deletes a suggestion located at ix from the state array of suggestions.
-   * @param ix - the index of the suggestion about to be deleted
+   * Generate the suggestion of a BaseClass given a label of the class
+   * @param {Object[]} baseClasses -
+   * @param {string} classLabel -
+   * @returns {Object[]} -
    */
-  deleteSuggestion = (ix) => {
-    this.setState(old => ({
-      suggestions: old.suggestions.filter(s => s.ix !== ix)
-    }));
+  generateSuggestionOfBaseClass = (baseClasses, classLabel) => {
+    const suggestions = [];
+    const { suggestionNo } = this.state;
+    let ix = suggestionNo;
+    const inferredClass = baseClasses.find(baseClass => baseClass.label === classLabel);
+
+    suggestions.push({type: 'nodeUri', elem: inferredClass, ix: ix++});
+
+    this.setState({suggestionNo: ix});
+
+    return suggestions;
   }
 
   updateStateWithOntologyData = () => {
     // when component mounts, fetch ontology and the associated data, caching it
-    const base_url = "http://localhost:9999/blazegraph/sparql"; //todo: remove local uri
-    submitQuery(base_url, "SELECT DISTINCT ?s ?klass ?domain ?range WHERE {" +
+    submitQuery("SELECT DISTINCT ?s ?klass ?domain ?range WHERE { " +
       "OPTIONAL {?s rdf:type ?klass . FILTER (?klass = owl:ObjectProperty || ?klass = owl:Class) }" +
-      "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] . FILTER (?s != owl:topObjectProperty) } " +
-      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
-      .then(
+      "OPTIONAL {?s rdfs:domain [owl:onClass ?quald] . FILTER (?s != owl:topObjectProperty) }" +
+      "OPTIONAL {?s rdfs:domain ?d . FILTER (?s != owl:topObjectProperty) }" +
+      "BIND (COALESCE (?quald, ?d) AS ?domain)" +
+      "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?qualr ] }" +
+      "OPTIONAL {?s rdfs:range ?r }" +
+      "BIND (COALESCE (?qualr, ?r) AS ?range) }"
+    ).then(
         response => {
           const results = response.results.bindings;
           const defs = [];
           const baseClasses = [];
           const myPrefixes = {};
 
+          if (Object.keys(results[0]).length === 0){ // trivial solution of no bindings - must be no data in database!
+            this.setState({infoLoaded: true, error: "Database is empty or has no classes/properties."});
+            return;
+          }
+
           for (const { s, klass, domain, range } of results) {
             const def = {};
 
-            const [ sExpansion, sName ] = s.value.split("#");
+            const [ , sExpansion, sName ] = s.value.split(/(.*)[#/]/g);
             const sLabel = sName.replace(/_/g, ' ');
             const sPrefix = this.findPrefixOfExpansion(sExpansion, myPrefixes);
             def.elem = {iri: s.value, expansion: sExpansion, prefix: sPrefix, name: sName, label: sLabel};
 
             if (domain) {
-              const [ dExpansion, dName ] = domain.value.split("#");
+              const [ , dExpansion, dName ] = domain.value.split(/(.*)[#/]/);
               const dLabel = dName.replace(/_/g, ' ');
               const dPrefix = this.findPrefixOfExpansion(dExpansion, myPrefixes);
               def.domain = {iri: domain.value, expansion: dExpansion, prefix: dPrefix, name: dName, label: dLabel};
             }
             if (range) {
-              const [ rExpansion, rName ] = range ? range.value.split("#") : [null, null];
+              const [ , rExpansion, rName ] = range ? range.value.split(/(.*)[#/]/) : [null, null];
               const rLabel = rName.replace(/_/g, ' ');
               const rPrefix = this.findPrefixOfExpansion(rExpansion, myPrefixes);
               def.range = {iri: range.value, expansion: rExpansion, prefix: rPrefix, name: rName, label: rLabel};
             }
-            if (klass && klass.value.split('#')[1] === 'Class') {
+            if (klass && klass.value.split(/(.*)[#/]/)[2] === 'Class') {
               baseClasses.push({...def.elem});
             }
 
@@ -268,6 +303,11 @@ export default class SuggestiveSearch extends React.Component {
     return prefix;
   }
 
+  transferSuggestionToCanvas = (type, elem, point) => {
+    this.setState({suggestions: []});
+    this.props.onTransferSuggestionToCanvas(type, elem, point);
+  }
+
   render(){
     const { suggestions, defsLoaded } = this.state;
     const { info, infoLoaded } = this.props;
@@ -277,9 +317,9 @@ export default class SuggestiveSearch extends React.Component {
         <AnimateSharedLayout>
           <motion.ul layout>
             {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>
-              <SuggestionWrapper key={s.ix} ix={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
-                                 onDeleteSuggestionFromSidebar={this.deleteSuggestion}
-                                 onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />)}
+              <SuggestionWrapper key={s.ix} suggestion={s} info={s.elem ? info[s.elem.iri] : undefined}
+                                 refreshSuggestions={this.refreshSuggestions}
+                                 onTransferSuggestionToCanvas={this.transferSuggestionToCanvas} />)}
             {(!defsLoaded || !infoLoaded) &&
               <p>Loading...</p>}
           </motion.ul>

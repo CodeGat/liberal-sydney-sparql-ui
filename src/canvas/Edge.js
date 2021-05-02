@@ -46,13 +46,16 @@ export default class Edge extends React.Component {
   }
 
   render() {
-    const { subject, object, type, isOptional, content } = this.props;
-    const pathDef = `M${subject.intersectX} ${subject.intersectY} L${object.intersectX} ${object.intersectY}`;
+    const { subject, object, type, isOptional, content, tempEdge, complete } = this.props;
+    const objectIntersectX = complete ? object.intersectX : tempEdge.x; 
+    const objectIntersectY = complete ? object.intersectY : tempEdge.y;
+    
+    const pathDef = `M${subject.intersectX} ${subject.intersectY} L${objectIntersectX} ${objectIntersectY}`;
 
-    const smallX = subject.intersectX <= object.intersectX ? subject.intersectX : object.intersectX;
-    const largeX = subject.intersectX >  object.intersectX ? subject.intersectX : object.intersectX;
-    const smallY = subject.intersectY <= object.intersectY ? subject.intersectY : object.intersectY;
-    const largeY = subject.intersectY >  object.intersectY ? subject.intersectY : object.intersectY;
+    const smallX = subject.intersectX <= objectIntersectX ? subject.intersectX : objectIntersectX;
+    const largeX = subject.intersectX >  objectIntersectX ? subject.intersectX : objectIntersectX;
+    const smallY = subject.intersectY <= objectIntersectY ? subject.intersectY : objectIntersectY;
+    const largeY = subject.intersectY >  objectIntersectY ? subject.intersectY : objectIntersectY;
 
     const labelX = (smallX + (largeX - smallX) / 2) - Edge.labelWidth / 2;
     const labelY = (smallY + (largeY - smallY) / 2) - Edge.labelHeight / 2;

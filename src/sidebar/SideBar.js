@@ -18,26 +18,24 @@ export default class SideBar extends React.Component {
   }
 
   componentDidMount() {
-    const base_url = "http://localhost:9999/blazegraph/sparql";
-    // const base_url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
-    submitQuery(base_url, "SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1"
-    ).then(
-      response => {
-        const results = response.results.bindings;
+    submitQuery("SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1")
+      .then(
+        response => {
+          const results = response.results.bindings;
 
-        if (results.length > 0) {
-          this.setState({basePrefix: results[0].s.value, basePrefixLoaded: true});
-        } else {
-          this.setState({basePrefix: 'Unknown', basePrefixLoaded: true});
+          if (results.length > 0) {
+            this.setState({basePrefix: results[0].s.value, basePrefixLoaded: true});
+          } else {
+            this.setState({basePrefix: 'Unknown', basePrefixLoaded: true});
+          }
+        },
+        error => {
+          console.warn(error);
+          this.setState({error: error});
         }
-      },
-      error => {
-        console.warn(error);
-        this.setState({error: error});
-      }
-    );
+      );
 
-    submitQuery(base_url, "SELECT DISTINCT ?s ?label ?comment WHERE { " +
+    submitQuery("SELECT DISTINCT ?s ?label ?comment WHERE { " +
       "  OPTIONAL { ?s rdfs:label ?label }" +
       "  OPTIONAL { ?s rdfs:comment ?comment } }"
     ).then(
@@ -45,8 +43,17 @@ export default class SideBar extends React.Component {
         const results = response.results.bindings;
         let info = {};
 
+        if (Object.keys(results[0]).length === 0){ // trivial solution of no bindings - must be no data in database!
+          this.setState({infoLoaded: true, error: "Database is empty or has no classes/properties."});
+          return;
+        }
+
         for (const { s, label, comment } of results) {
-          info[s.value] = {label: label.value, comment: comment.value};
+          const tripleInfo = {};
+          if (label) tripleInfo.label = label.value;
+          if (comment) tripleInfo.comment = comment.value;
+
+          info[s.value] = tripleInfo;
         }
 
         this.setState({infoLoaded: true, info: info});
@@ -56,7 +63,7 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const { canvasStateSnapshot } = this.props;
+    const { graph, canvasStateSnapshot } = this.props;
     const { content, type, id, meta } = this.props.selected;
     const { info, infoLoaded, basePrefix, basePrefixLoaded, error } = this.state;
 
@@ -67,7 +74,7 @@ export default class SideBar extends React.Component {
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded} />
         <hr />
-        <SuggestiveSearch id={id} type={type} content={content} meta={meta}
+        <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
