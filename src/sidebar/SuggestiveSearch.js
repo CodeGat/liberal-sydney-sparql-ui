@@ -217,8 +217,7 @@ export default class SuggestiveSearch extends React.Component {
 
   updateStateWithOntologyData = () => {
     // when component mounts, fetch ontology and the associated data, caching it
-    const base_url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
-    submitQuery(base_url, "SELECT DISTINCT ?s ?klass ?domain ?range WHERE {" +
+    submitQuery("SELECT DISTINCT ?s ?klass ?domain ?range WHERE {" +
       "OPTIONAL {?s rdf:type ?klass . FILTER (?klass = owl:ObjectProperty || ?klass = owl:Class) }" +
       "OPTIONAL {?s rdfs:domain [ owl:onClass ?domain ] . FILTER (?s != owl:topObjectProperty) } " +
       "OPTIONAL {?s rdfs:range  [ owl:onClass|owl:onDataRange|owl:someValuesFrom ?range ] } }")
@@ -228,6 +227,11 @@ export default class SuggestiveSearch extends React.Component {
           const defs = [];
           const baseClasses = [];
           const myPrefixes = {};
+
+          if (Object.keys(results[0]).length === 0){ // trivial solution of no bindings - must be no data in database!
+            this.setState({infoLoaded: true, error: "Database is empty or has no classes/properties."});
+            return;
+          }
 
           for (const { s, klass, domain, range } of results) {
             const def = {};
