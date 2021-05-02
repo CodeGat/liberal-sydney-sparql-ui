@@ -72,17 +72,22 @@ export default class SuggestiveSearch extends React.Component {
     } else {
       const contentSegments = content.split(':');
       const name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
+      let unknownRangeFlag = false; // if no defined range assume it can be anything!
 
       suggestions.push({type: 'nodeUnknown', elem: {label: '?'}, ix: ix++});
 
       for (let def of elementDefs) {
-        if (def.elem.label === name) {
+        if (def.elem.label === name && def.range) {
           suggestions.push({
             type: def.range.expansion === 'http://www.w3.org/2001/XMLSchema' ? 'nodeLiteral' : 'nodeUri',
             elem: def.range,
             ix: ix++
           });
-        }
+        } else if (def.elem.label === name) unknownRangeFlag = true;
+      }
+
+      if (unknownRangeFlag) {
+        suggestions.push({type: 'nodeLiteral', elem: {name: 'literal', label: 'Literal'}, ix: ix++});
       }
 
       this.setState({suggestionNo: ix});

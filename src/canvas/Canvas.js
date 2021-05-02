@@ -126,7 +126,7 @@ export default class Canvas extends React.Component {
     const currentUnfNode = nodes.find(node => node.id === selectedElement.object.id);
     let content = '';
 
-    if (suggestion.name === 'string') content = '""';
+    if (suggestion.name === 'string' || suggestion.name === 'literal') content = '""';
     else if (suggestion.name === 'int' || suggestion.name === 'integer') content = '0';
 
     this.props.changeNodeState(currentUnfNode.id, {content: content, type: type});
