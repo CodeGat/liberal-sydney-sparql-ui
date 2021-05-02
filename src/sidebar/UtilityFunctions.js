@@ -4,7 +4,7 @@
  * @returns {Promise<Object>}
  */
 export async function submitQuery(query) {
-  const url = "http://localhost:9999/blazegraph/sparql"; //todo: "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
+  const url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
   const response = await fetch(url, {
     method: "POST",
     headers: {
