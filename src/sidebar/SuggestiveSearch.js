@@ -151,7 +151,7 @@ export default class SuggestiveSearch extends React.Component {
 
     if (type === 'nodeLiteral') {
       return [];
-    } else if (type === 'nodeUnknown') {
+    } else if (type === 'nodeUnknown' || type === 'nodeSelectedUnknown') {
       const { id } = this.props;
       // check for any incoming edges for the given Node that have a defined range
       for (const edge of edges) {

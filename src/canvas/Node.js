@@ -79,8 +79,6 @@ export default class Node extends React.Component {
     const { id, type, content, amalgam } = this.props;
     e.preventDefault();
 
-    console.log(type, id, content);
-
     this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
 
   }

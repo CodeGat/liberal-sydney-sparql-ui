@@ -101,13 +101,19 @@ export function ItemLiteralType(props) {
 export function BoundUnknownCheckbox(props) {
   const { type } = props;
   const toggleBound = () => props.onBoundChange(type === 'nodeUnknown' ? 'nodeSelectedUnknown' : 'nodeUnknown');
+  const variants = {
+    yes: {backgroundColor: '#b3b3b3'},
+    no: {backgroundColor: '#9c9c9c'}
+  };
+  const animation = type === 'nodeSelectedUnknown' ? 'yes' : 'no';
 
   return (
     <>
       <p>Show in results?</p>
-      <div className={'button'} onClick={() => toggleBound()}>
+      <motion.div className={'button'} variants={variants} initial={false} animate={animation}
+                  onClick={() => toggleBound()}>
         <p>{type === 'nodeSelectedUnknown' ? 'Yes' : 'No'}</p>
-      </div>
+      </motion.div>
     </>
   );
 }

@@ -76,7 +76,7 @@ export default class SelectedItemViewer extends React.Component {
     } else if (type === "nodeLiteral") {
       return (<SelectedLiteralNodeViewer type={type} content={content} />);
     } else if (type === "edgeUnknown") {
-      return(<SelectedUnknownEdgeViewer type={type} content={content} changeEdgeState={this.changeEdge} />);//todo: fix
+      return(<SelectedUnknownEdgeViewer type={type} content={content} />);
     } else {
       return (<SelectedNullViewer type={type} content={content} />);
     }

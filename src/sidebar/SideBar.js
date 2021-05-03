@@ -73,7 +73,7 @@ export default class SideBar extends React.Component {
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded}
                             onSelectedItemChange={this.props.onSelectedItemChange}
-                            changeNodeState={this.props.changeNodeState} changeEdgeState={this.props.changeEdgeState}/>
+                            changeNodeState={this.props.changeNodeState} />
         <hr />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
