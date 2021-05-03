@@ -41,7 +41,13 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   generateSparqlQueryString = () => {
-    return `${this.selectClause()}\n${this.whereClause()}\n${this.orderingClause()}`;
+    const selectClause = this.selectClause();
+    const whereClause = this.whereClause();
+    const orderingClause = this.orderingClause();
+
+    console.log(whereClause);
+
+    return `${selectClause}\n${whereClause}\n${orderingClause}`;
   }
 
   selectClause = () => {
