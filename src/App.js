@@ -64,7 +64,9 @@ class App extends React.Component {
   }
 
   handleRequestCanvasState = () => {
-    this.setState({canvasStateSnapshot: {required: true}});
+    const { graph } = this.state;
+
+    this.setState({canvasStateSnapshot: {required: true, graph: graph}});
   }
 
   /**
@@ -74,9 +76,11 @@ class App extends React.Component {
    * @param {string} type - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
    *   fully formed node ('nodeUnknown'/'nodeKnown')
    * @param {string} content - content that the node starts with
+   * @param {string} [iri] - optional iri for nodes that have type 'nodeUri'
    * @returns {number} - id of node just created.
    */
-  createNode = (x, y, type, content) => {
+    //todo: add iri to created nodes so it's in the graph!! And edges too! so queryExecutor can do it's thing!
+  createNode = (x, y, type, content, iri) => {
     const { nodeCounter } = this.state;
     const variant = Node.variants[type](false);
     const newNode = {
@@ -84,6 +88,8 @@ class App extends React.Component {
       midX: x, midY: y,
       id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null
     };
+
+    if (iri) newNode.iri = iri;
 
     this.setState(old => ({
       nodeCounter: old.nodeCounter + 1,
@@ -103,11 +109,12 @@ class App extends React.Component {
   /**
    * Creates the representation of a new Edge that has an existing subject Node.
    * @param {string} content - content of the new Edge.
+   * @param {string} [iri] - iri of the content if the type of the edge is 'edgeUri'.
    * @param {number} subjectId - id of the existing Subject Node the Edge is connected to.
    * @param {Object} subjectPos - positional information of the existing Subject Node the Edge is connected to: it's
    *   intersecting x/y (which is just the midpoint of the Subject, for simplicity sake
    */
-  createEdge = (content, subjectId, subjectPos) => {
+  createEdge = (content, iri, subjectId, subjectPos) => {
     const { edgeCounter } = this.state;
     const newEdge = {
       id: edgeCounter + 1,
@@ -117,6 +124,8 @@ class App extends React.Component {
       object: {},
       complete: false
     }
+
+    if (iri) newEdge.iri = iri;
 
     this.setState(old => ({
       edgeCounter: old.edgeCounter + 1,
@@ -262,7 +271,7 @@ class App extends React.Component {
                   transferredSuggestion={transferredSuggestion}
                   createNode={this.createNode} createEdge={this.createEdge}
                   deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
-                  changeEdgeState={this.changeEdgeState} changeNodeState={this.changeNodeState}
+                  changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
                   updateEdgeIntersections={this.updateEdgeIntersections}
                   moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
                   onSelectedItemChange={this.handleSelectedItemChange}

@@ -15,7 +15,7 @@ export default class ExecuteQueryButton extends React.Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { canvasState } = this.props;
 
-    if (prevProps.canvasState.required && canvasState.graph){
+    if (prevProps.canvasState.graph !== canvasState.graph){
       this.setState({gettingCanvasState: false, convertingGraphToSparql: true});
       const errorList = this.findErrorsInCanvasState();
 
@@ -41,7 +41,7 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   generateSparqlQueryString = () => {
-    return `${this.selectClause()}\n${this.whereClause}\n${this.orderingClause}`;
+    return `${this.selectClause()}\n${this.whereClause()}\n${this.orderingClause()}`;
   }
 
   selectClause = () => {
@@ -51,14 +51,11 @@ export default class ExecuteQueryButton extends React.Component {
     const selectUnknownNodes = canvasState.graph.nodes.filter(node => node.content.startsWith('?'));
     const selectUnknownEdges = canvasState.graph.edges.filter(edge => edge.content.startsWith('?'));
     for (const unknownNode of selectUnknownNodes){
-      console.log(unknownNode);
       selectClauseString += `${unknownNode.content} `;
     }
     for (const unknownEdge of selectUnknownEdges) {
       selectClauseString += `${unknownEdge.content} `;
     }
-
-    console.log(selectClauseString);
 
     return selectClauseString;
   }
@@ -68,10 +65,19 @@ export default class ExecuteQueryButton extends React.Component {
     let whereClauseString = 'WHERE {\n';
 
     const edges = canvasState.graph.edges;
+    const nodes = canvasState.graph.nodes;
 
     for (const edge of edges) {
-      console.log(edge);
+      const subject = nodes.find(node => edge.subject.id === node.id);
+      const object = nodes.find(node => edge.object.id === node.id);
+
+      whereClauseString += `  ${subject.type === 'nodeUri' ? subject.iri : subject.content} `;
+      whereClauseString += `${edge.type === 'edgeKnown' ? edge.iri : edge.content} `;
+      whereClauseString += `${object.type === 'nodeUri' ? object.iri : object.content} .\n`;
     }
+    whereClauseString += '}\n';
+
+    return whereClauseString;
   }
 
   orderingClause = () => {

@@ -65,7 +65,7 @@ export default class Canvas extends React.Component {
         (suggestion.prefix && suggestion.prefix !== '' ? suggestion.prefix + ':' : '') + suggestion.label;
       const selectedNodePos = {midX: selectedNode.midX, midY: selectedNode.midY};
 
-      this.props.createEdge(prefixedEdgeLabel, selectedNode.id, selectedNodePos);
+      this.props.createEdge(prefixedEdgeLabel, suggestion.iri, selectedNode.id, selectedNodePos);
     } else console.warn("No selected element for Edge to anchor");
   }
 
@@ -88,7 +88,7 @@ export default class Canvas extends React.Component {
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, null);
     } else { // it must be a base class and we would need to create a new one!
-      const newNodeId = this.props.createNode(50, 50, type, suggestion.label);
+      const newNodeId = this.props.createNode(50, 50, type, suggestion.label, suggestion.iri);
       this.props.onSelectedItemChange(type, newNodeId, suggestion.label, null);
     }
   }
@@ -110,7 +110,7 @@ export default class Canvas extends React.Component {
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange('nodeUnknown', currentUnfNode.id, suggestion.label, null);
     } else {
-      const newNodeId = this.props.createNode(50, 50, 'nodeUnknown', suggestion.label);
+      const newNodeId = this.props.createNode(50, 50, 'nodeUnknown', suggestion.label, null);
       this.props.onSelectedItemChange('nodeUnknown', newNodeId, suggestion.label);
     }
   }
@@ -154,7 +154,7 @@ export default class Canvas extends React.Component {
 
     if (event.defaultPrevented) return;
     if (tempEdge.completing){ // we'll complete the edge with a new, unfinished Node as object
-      const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "");
+      const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "", null);
       const variant = Node.variants['nodeUnf'](false);
       const newNodePos = {
         x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
@@ -194,8 +194,7 @@ export default class Canvas extends React.Component {
                 <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY}
                       type={node.type} content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
                       onChangeNodeState={this.props.changeNodeState}
-                      onSelectedItemChange={this.handleElementChange}
-                      onEdgeCreation={this.props.createEdge} onEdgeCompletion={this.props.completeEdge} />)}
+                      onSelectedItemChange={this.handleElementChange} />)}
             </AnimatePresence>
           </g>
         </svg>
