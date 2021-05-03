@@ -71,7 +71,7 @@ export default class SideBar extends React.Component {
         {error && <p className={'error'}>{error.toString()}</p>}
         <SelectedItemViewer type={type} content={content} meta={meta}
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
-                            info={info} infoLoaded={infoLoaded} />
+                            info={info} infoLoaded={infoLoaded} onBoundChange={this.props.onBoundChange}/>
         <hr />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}

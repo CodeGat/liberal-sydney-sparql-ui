@@ -4,7 +4,7 @@ import arrowUnknownImg from "./arrow_icon_unknown_black.png";
 import litImg from "./literal_icon_known.png";
 import unkImg from "./node_icon_unknown.png";
 import noneImg from "./none_icon.png";
-import React from "react";
+import React, {useState} from "react";
 import {motion} from "framer-motion";
 
 export function ItemImageHeader(props) {
@@ -93,6 +93,21 @@ export function ItemLiteralType(props) {
     <>
       <p>Type</p>
       <p>{type}</p>
+    </>
+  );
+}
+
+export function BoundUnknownCheckbox(props) {
+  const [ isBound, setIsBound ] = useState(false);
+  const toggleIsBound = () => {
+    props.onBoundChange(!isBound);
+    setIsBound(!isBound);
+  }
+
+  return (
+    <>
+      <p>Show in results?</p>
+      <div onClick={toggleIsBound}>{isBound ? 'Yes' : 'No'}</div>
     </>
   );
 }

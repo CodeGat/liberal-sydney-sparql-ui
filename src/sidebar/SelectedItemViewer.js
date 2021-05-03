@@ -2,9 +2,15 @@ import React from "react";
 import './Sidebar.css';
 import './SelectedItemViewer.css';
 import { fetchExpansionOfPrefix } from "./UtilityFunctions";
-import { ItemImageHeader, ItemPrefix, ItemDesc, ItemInferredProps, ItemLiteralType } from "./ItemViewerComponents";
+import {
+  ItemImageHeader,
+  ItemPrefix,
+  ItemDesc,
+  ItemInferredProps,
+  ItemLiteralType,
+  BoundUnknownCheckbox
+} from "./ItemViewerComponents";
 
-//todo: domain, range, from (in case of ?)
 export default class SelectedItemViewer extends React.Component {
   constructor(props) {
     super(props);
@@ -52,7 +58,7 @@ export default class SelectedItemViewer extends React.Component {
         return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
       }
     } else if (type === "nodeUnknown") {
-      return (<SelectedUnknownNodeViewer type={type} content={content} meta={meta} />);
+      return (<SelectedUnknownNodeViewer type={type} content={content} meta={meta} onBoundChange={this.props.onBoundChange}/>);
     } else if (type === "nodeLiteral") {
       return (<SelectedLiteralNodeViewer type={type} content={content} />);
     } else if (type === "edgeUnknown") {
@@ -85,6 +91,7 @@ function SelectedUnknownNodeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={content} />
+      <BoundUnknownCheckbox onBoundChange={props.onBoundChange} />
       {meta &&
         <ItemInferredProps meta={meta} />
       }
