@@ -1,6 +1,6 @@
 .itemviewer {
     display: grid;
-    grid-template-columns: 30px auto;
+    grid-template-columns: 55px auto;
     grid-template-rows: minmax(30px, auto);
     grid-auto-flow: row;
     align-items: center;

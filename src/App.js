@@ -277,6 +277,7 @@ class App extends React.Component {
                   onSelectedItemChange={this.handleSelectedItemChange}
                   acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
           <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
+                   changeNodeState={this.changeNodeState}
                    onSelectedItemChange={this.handleSelectedItemChange}
                    onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
                    onRequestCanvasState={this.handleRequestCanvasState}/>
