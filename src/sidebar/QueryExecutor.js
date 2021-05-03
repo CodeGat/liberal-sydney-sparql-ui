@@ -1,6 +1,13 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import './ItemViewerComponents.css';
 
 export default class ExecuteQueryButton extends React.Component {
+  static variants = {
+    ready: {backgroundColor: '#b3b3b3'},
+    loading: {backgroundColor: '#9c9c9c'}
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -20,7 +27,10 @@ export default class ExecuteQueryButton extends React.Component {
       const errorList = this.findErrorsInCanvasState();
 
       if (errorList.length === 0) {
-        const sparqlQueryString = this.generateSparqlQueryString();
+        const preprocessedUnknownNodes = this.preprocessUnknownNodes();
+        const preprocessedUnknownEdges = this.preprocessUnknownEdges();
+
+        const sparqlQueryString = this.generateSparqlQueryString(preprocessedUnknownNodes, preprocessedUnknownEdges);
 
         this.setState({query: sparqlQueryString, errorsExist: false});
       } else {
@@ -40,33 +50,74 @@ export default class ExecuteQueryButton extends React.Component {
     return errors;
   }
 
-  generateSparqlQueryString = () => {
-    const selectClause = this.selectClause();
-    const whereClause = this.whereClause();
+  preprocessUnknownNodes = () => {
+    const { canvasState } = this.props;
+    const processedUnknownNodes = {};
+
+    const selectUnknownNodes = canvasState.graph.nodes.filter(node => node.type === 'nodeSelectedUnknown');
+    for (const unknownNode of selectUnknownNodes) {
+      if (unknownNode.content === '?'){
+        processedUnknownNodes[unknownNode.id] = '?node' + unknownNode.id;
+      } else {
+        processedUnknownNodes[unknownNode.id] = unknownNode.content;
+      }
+    }
+
+    return processedUnknownNodes;
+  }
+
+  preprocessUnknownEdges = () => {
+    const { canvasState } = this.props;
+    const processedUnknownEdges = {};
+
+    const selectUnknownEdges = canvasState.graph.edges.filter(edge => edge.type === 'edgeUnknown');
+    for (const unknownEdge of selectUnknownEdges) {
+      if (unknownEdge.content === '?'){
+        processedUnknownEdges[unknownEdge.id] = '?edge' + unknownEdge.id;
+      } else {
+        processedUnknownEdges[unknownEdge.id] = unknownEdge.content;
+      }
+    }
+
+    return processedUnknownEdges;
+  }
+
+  getNodeFrag = (subject, unknownNodes) => {
+    let frag;
+    if (subject.type === 'nodeUri') {
+      frag = subject.iri;
+    } else if (subject.type === 'nodeSelectedUnknown') {
+      frag = unknownNodes[subject.id];
+    } else {
+      frag = subject.content;
+    }
+    return frag;
+  }
+
+  generateSparqlQueryString = (unknownNodes, unknownEdges) => {
+    const selectClause = this.selectClause(unknownNodes, unknownEdges);
+    const whereClause = this.whereClause(unknownNodes, unknownEdges);
     const orderingClause = this.orderingClause();
 
-    console.log(whereClause);
+    console.log(selectClause + whereClause);
 
     return `${selectClause}\n${whereClause}\n${orderingClause}`;
   }
 
-  selectClause = () => {
-    const { canvasState } = this.props;
+  selectClause = (unknownNodes, unknownEdges) => {
     let selectClauseString = 'SELECT ';
 
-    const selectUnknownNodes = canvasState.graph.nodes.filter(node => node.content.startsWith('?'));
-    const selectUnknownEdges = canvasState.graph.edges.filter(edge => edge.content.startsWith('?'));
-    for (const unknownNode of selectUnknownNodes){
-      selectClauseString += `${unknownNode.content} `;
+    for (const unknownNode of Object.values(unknownNodes)) {
+      selectClauseString += `${unknownNode} `;
     }
-    for (const unknownEdge of selectUnknownEdges) {
-      selectClauseString += `${unknownEdge.content} `;
+    for (const unknownEdge of Object.values(unknownEdges)) {
+      selectClauseString += `${unknownEdge} `;
     }
 
     return selectClauseString;
   }
 
-  whereClause = () => {
+  whereClause = (unknownNodes, unknownEdges) => {
     const { canvasState } = this.props;
     let whereClauseString = 'WHERE {\n';
 
@@ -75,11 +126,14 @@ export default class ExecuteQueryButton extends React.Component {
 
     for (const edge of edges) {
       const subject = nodes.find(node => edge.subject.id === node.id);
-      const object = nodes.find(node => edge.object.id === node.id);
+      const subjectFrag = this.getNodeFrag(subject, unknownNodes);
 
-      whereClauseString += `  ${subject.type === 'nodeUri' ? subject.iri : subject.content} `;
-      whereClauseString += `${edge.type === 'edgeKnown' ? edge.iri : edge.content} `;
-      whereClauseString += `${object.type === 'nodeUri' ? object.iri : object.content} .\n`;
+      const edgeFrag = edge.type === 'edgeKnown' ? edge.iri : edge.content;
+
+      const object = nodes.find(node => edge.object.id === node.id);
+      const objectFrag = this.getNodeFrag(object, unknownNodes);
+
+      whereClauseString += `  ${subjectFrag} ${edgeFrag} ${objectFrag} .\n`;
     }
     whereClauseString += '}\n';
 
@@ -90,21 +144,30 @@ export default class ExecuteQueryButton extends React.Component {
 
   }
 
-  beginRequestCanvasState = () => {
-    this.setState({gettingCanvasState: true});
-    this.props.requestCanvasState();
+  checkRequestCanvasState = () => {
+    const { gettingCanvasState, convertingGraphToSparql } = this.state;
+
+    if (!gettingCanvasState && !convertingGraphToSparql) {
+      this.setState({gettingCanvasState: true});
+      this.props.requestCanvasState();
+    }
   }
 
   render() {
-    const { gettingCanvasState } = this.state;
+    const { gettingCanvasState, convertingGraphToSparql } = this.state;
+    const animation = gettingCanvasState || convertingGraphToSparql ? 'loading' : 'ready';
 
     return (
       <>
-        <button onClick={this.beginRequestCanvasState} type={'button'}>
-          Execute Query
-        </button>
+        <motion.div className={'button'} variants={ExecuteQueryButton.variants} inital={false} animate={animation}
+                    onClick={this.checkRequestCanvasState}>
+          <p>Execute Query</p>
+        </motion.div>
         {gettingCanvasState &&
-          <div>Loading...</div>
+          <div>Getting Canvas State...</div>
+        }
+        {convertingGraphToSparql &&
+          <div>Converting Graph to SPARQL...</div>
         }
       </>
     );
