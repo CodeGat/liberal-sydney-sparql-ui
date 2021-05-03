@@ -40,6 +40,17 @@ export default class SelectedItemViewer extends React.Component {
     }
   }
 
+  /**
+   * Changes the currently selected element to a new type and updates the currently selected item
+   * @param {string} newType - the updated type
+   */
+  notifySelectedStateChange = (newType) => {
+    const { id, content, meta } = this.props;
+
+    this.props.changeNodeState(id, {type: newType});
+    this.props.onSelectedItemChange(newType, id, content, meta);
+  }
+
   render() {
     const { type, content, basePrefix, info, infoLoaded, meta } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
@@ -57,12 +68,15 @@ export default class SelectedItemViewer extends React.Component {
       } else {
         return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
       }
-    } else if (type === "nodeUnknown") {
-      return (<SelectedUnknownNodeViewer type={type} content={content} meta={meta} onBoundChange={this.props.onBoundChange}/>);
+    } else if (type === "nodeUnknown" || type === "nodeSelectedUnknown") {
+      return (
+        <SelectedUnknownNodeViewer type={type} content={content} meta={meta}
+                                   onBoundChange={(newType) => this.notifySelectedStateChange(newType)} />
+      );
     } else if (type === "nodeLiteral") {
       return (<SelectedLiteralNodeViewer type={type} content={content} />);
     } else if (type === "edgeUnknown") {
-      return(<SelectedUnknownEdgeViewer type={type} content={content} />);
+      return(<SelectedUnknownEdgeViewer type={type} content={content} changeEdgeState={this.changeEdge} />);//todo: fix
     } else {
       return (<SelectedNullViewer type={type} content={content} />);
     }
@@ -91,7 +105,7 @@ function SelectedUnknownNodeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={content} />
-      <BoundUnknownCheckbox onBoundChange={props.onBoundChange} />
+      <BoundUnknownCheckbox type={type} onBoundChange={(type) => props.onBoundChange(type)} />
       {meta &&
         <ItemInferredProps meta={meta} />
       }

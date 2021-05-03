@@ -4,8 +4,9 @@ import arrowUnknownImg from "./arrow_icon_unknown_black.png";
 import litImg from "./literal_icon_known.png";
 import unkImg from "./node_icon_unknown.png";
 import noneImg from "./none_icon.png";
-import React, {useState} from "react";
+import React from "react";
 import {motion} from "framer-motion";
+import "./ItemViewerComponents.css";
 
 export function ItemImageHeader(props) {
   const { type, name, isDragged } = props;
@@ -23,7 +24,7 @@ export function ItemImageHeader(props) {
   } else if (type === 'nodeLiteral') {
     src = litImg;
     alt = 'selected known literal';
-  } else if (type === 'nodeUnknown') {
+  } else if (type === 'nodeUnknown' || type === 'nodeSelectedUnknown') {
     src = unkImg;
     alt = 'selected unknown node';
   } else if (type === 'edgeUnknown') {
@@ -98,16 +99,15 @@ export function ItemLiteralType(props) {
 }
 
 export function BoundUnknownCheckbox(props) {
-  const [ isBound, setIsBound ] = useState(false);
-  const toggleIsBound = () => {
-    props.onBoundChange(!isBound);
-    setIsBound(!isBound);
-  }
+  const { type } = props;
+  const toggleBound = () => props.onBoundChange(type === 'nodeUnknown' ? 'nodeSelectedUnknown' : 'nodeUnknown');
 
   return (
     <>
       <p>Show in results?</p>
-      <div onClick={toggleIsBound}>{isBound ? 'Yes' : 'No'}</div>
+      <div className={'button'} onClick={() => toggleBound()}>
+        <p>{type === 'nodeSelectedUnknown' ? 'Yes' : 'No'}</p>
+      </div>
     </>
   );
 }
