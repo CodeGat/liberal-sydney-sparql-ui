@@ -75,12 +75,10 @@ export default class SideBar extends React.Component {
                             info={info} infoLoaded={infoLoaded}
                             onSelectedItemChange={this.props.onSelectedItemChange}
                             changeNodeState={this.props.changeNodeState} />
-        <hr />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
-        <hr />
         <ExecuteQueryButton canvasState={canvasStateSnapshot}
                             requestCanvasState={this.props.onRequestCanvasState} />
       </div>

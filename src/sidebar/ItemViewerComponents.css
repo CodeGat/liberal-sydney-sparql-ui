@@ -1,6 +1,6 @@
 .button {
     background-color: #b3b3b3;
-    margin: 0.5em;
+    margin: 0.5em 0;
     padding: 0 8px 0 8px;
     border-radius: 10px;
 }

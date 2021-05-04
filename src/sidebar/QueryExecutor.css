@@ -1,0 +1,7 @@
+div.executequery-wrapper {
+    display: grid;
+    grid-template-rows: 50px min-content;
+    margin: 0.5em;
+    padding: 0 8px 0 8px;
+    border-top: 2px solid black;
+}

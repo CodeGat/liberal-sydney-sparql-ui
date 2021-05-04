@@ -323,7 +323,7 @@ export default class SuggestiveSearch extends React.Component {
     const { info, infoLoaded } = this.props;
 
     return (
-      <div>
+      <div className={'suggestion-pane'}>
         <AnimateSharedLayout>
           <motion.ul layout>
             {defsLoaded && infoLoaded && suggestions && suggestions.map(s =>

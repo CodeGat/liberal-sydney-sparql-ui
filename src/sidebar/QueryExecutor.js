@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import './ItemViewerComponents.css';
+import './QueryExecutor.css';
 
 export default class ExecuteQueryButton extends React.Component {
   static variants = {
@@ -159,15 +160,15 @@ export default class ExecuteQueryButton extends React.Component {
     const animation = gettingCanvasState || convertingGraphToSparql ? 'loading' : 'ready';
 
     return (
-      <>
+      <div className={'executequery-wrapper'}>
         <motion.div className={'button'} variants={ExecuteQueryButton.variants} inital={false} animate={animation}
                     onClick={this.checkRequestCanvasState}>
           <p>Execute Query</p>
         </motion.div>
-        {gettingCanvasState && <div>Getting Canvas State...</div>}
-        {convertingGraphToSparql && <div>Converting Graph to SPARQL...</div>}
+        {gettingCanvasState && <p>Getting Canvas State...</p>}
+        {convertingGraphToSparql && <p>Converting Graph to SPARQL...</p>}
         {query !== '' && <p>{query}</p>}
-      </>
+      </div>
     );
   }
 }
