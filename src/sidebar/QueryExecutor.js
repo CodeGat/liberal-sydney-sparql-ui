@@ -32,7 +32,7 @@ export default class ExecuteQueryButton extends React.Component {
 
         const sparqlQueryString = this.generateSparqlQueryString(preprocessedUnknownNodes, preprocessedUnknownEdges);
 
-        this.setState({query: sparqlQueryString, errorsExist: false});
+        this.setState({query: sparqlQueryString, errorsExist: false, convertingGraphToSparql: false});
       } else {
         this.setState({errorsExist: true, errors: errorList});
       }
@@ -141,7 +141,7 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   orderingClause = () => {
-
+    return '';
   }
 
   checkRequestCanvasState = () => {
@@ -154,7 +154,7 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   render() {
-    const { gettingCanvasState, convertingGraphToSparql } = this.state;
+    const { gettingCanvasState, convertingGraphToSparql, query } = this.state;
     const animation = gettingCanvasState || convertingGraphToSparql ? 'loading' : 'ready';
 
     return (
@@ -163,12 +163,9 @@ export default class ExecuteQueryButton extends React.Component {
                     onClick={this.checkRequestCanvasState}>
           <p>Execute Query</p>
         </motion.div>
-        {gettingCanvasState &&
-          <div>Getting Canvas State...</div>
-        }
-        {convertingGraphToSparql &&
-          <div>Converting Graph to SPARQL...</div>
-        }
+        {gettingCanvasState && <div>Getting Canvas State...</div>}
+        {convertingGraphToSparql && <div>Converting Graph to SPARQL...</div>}
+        {query !== '' && <p>{query}</p>}
       </>
     );
   }

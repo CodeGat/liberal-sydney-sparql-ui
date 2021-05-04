@@ -38,8 +38,6 @@ export default class SuggestiveSearch extends React.Component {
       else if (type.indexOf('datatype') !== -1) newSuggestions = this.generateSuggestionsForSelectedDatatype(content);
       else console.warn("Couldn't find suggestions for the selected item as it's type is not known");
 
-      console.log(newSuggestions);
-
       this.setState({suggestions: newSuggestions});
     }
     if (!prevProps.basePrefixLoaded && basePrefixLoaded){

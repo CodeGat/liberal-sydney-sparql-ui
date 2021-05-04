@@ -84,7 +84,7 @@ export default class Canvas extends React.Component {
     if (selectedEdge) { // aka, if there is an edge selected by the user
       const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
 
-      this.props.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, type: type});
+      this.props.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, iri: suggestion.iri, type: type});
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, null);
     } else { // it must be a base class and we would need to create a new one!
