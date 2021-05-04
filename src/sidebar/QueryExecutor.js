@@ -51,15 +51,16 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   preprocessUnknownNodes = () => {
-    const { canvasState } = this.props;
+    const { nodes } = this.props.canvasState.graph;
+
     const processedUnknownNodes = {};
 
-    const selectUnknownNodes = canvasState.graph.nodes.filter(node => node.type === 'nodeSelectedUnknown');
-    for (const unknownNode of selectUnknownNodes) {
-      if (unknownNode.content === '?'){
-        processedUnknownNodes[unknownNode.id] = '?node' + unknownNode.id;
+    const selectUnknownNodes = nodes.filter(node => node.type === 'nodeSelectedUnknown' || node.type === 'nodeUnknown');
+    for (const node of selectUnknownNodes) {
+      if (node.content === '?') {
+        processedUnknownNodes[node.id] = {frag: '?node' +node.id, selected: node.type === 'nodeSelectedUnknown'};
       } else {
-        processedUnknownNodes[unknownNode.id] = unknownNode.content;
+        processedUnknownNodes[node.id] = {frag: node.content, selected: node.type === 'nodeSelectedUnknown'};
       }
     }
 
@@ -71,11 +72,11 @@ export default class ExecuteQueryButton extends React.Component {
     const processedUnknownEdges = {};
 
     const selectUnknownEdges = canvasState.graph.edges.filter(edge => edge.type === 'edgeUnknown');
-    for (const unknownEdge of selectUnknownEdges) {
-      if (unknownEdge.content === '?'){
-        processedUnknownEdges[unknownEdge.id] = '?edge' + unknownEdge.id;
+    for (const edge of selectUnknownEdges) {
+      if (edge.content === '?'){
+        processedUnknownEdges[edge.id] = {frag: '?edge' +edge.id, selected: edge.type !== 'edgeUnknown'};
       } else {
-        processedUnknownEdges[unknownEdge.id] = unknownEdge.content;
+        processedUnknownEdges[edge.id] = {frag: edge.content, selected: edge.type !== 'edgeUnknown'};
       }
     }
 
@@ -86,8 +87,8 @@ export default class ExecuteQueryButton extends React.Component {
     let frag;
     if (subject.type === 'nodeUri') {
       frag = subject.iri;
-    } else if (subject.type === 'nodeSelectedUnknown') {
-      frag = unknownNodes[subject.id];
+    } else if (subject.type === 'nodeSelectedUnknown' || subject.type === 'nodeUnknown') {
+      frag = unknownNodes[subject.id].frag;
     } else {
       frag = subject.content;
     }
@@ -108,10 +109,10 @@ export default class ExecuteQueryButton extends React.Component {
     let selectClauseString = 'SELECT ';
 
     for (const unknownNode of Object.values(unknownNodes)) {
-      selectClauseString += `${unknownNode} `;
+      if (unknownNode.selected) selectClauseString += `${unknownNode.frag} `;
     }
     for (const unknownEdge of Object.values(unknownEdges)) {
-      selectClauseString += `${unknownEdge} `;
+      if (unknownEdge.selected) selectClauseString += `${unknownEdge.frag} `;
     }
 
     return selectClauseString;
