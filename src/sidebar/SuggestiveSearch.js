@@ -253,6 +253,7 @@ export default class SuggestiveSearch extends React.Component {
 
           for (const { s, klass, domain, range } of results) {
             const def = {};
+            if (!s.value.startsWith('http://')) continue; //todo: can't handle blank nodes
 
             const [ , sExpansion, sName ] = s.value.split(/(.*)[#/]/g);
             const sLabel = sName.replace(/_/g, ' ');
@@ -260,12 +261,14 @@ export default class SuggestiveSearch extends React.Component {
             def.elem = {iri: s.value, expansion: sExpansion, prefix: sPrefix, name: sName, label: sLabel};
 
             if (domain) {
+              if (!domain.value.startsWith('http://')) continue;
               const [ , dExpansion, dName ] = domain.value.split(/(.*)[#/]/);
               const dLabel = dName.replace(/_/g, ' ');
               const dPrefix = this.findPrefixOfExpansion(dExpansion, myPrefixes);
               def.domain = {iri: domain.value, expansion: dExpansion, prefix: dPrefix, name: dName, label: dLabel};
             }
             if (range) {
+              if (!range.value.startsWith('http://')) continue;
               const [ , rExpansion, rName ] = range ? range.value.split(/(.*)[#/]/) : [null, null];
               const rLabel = rName.replace(/_/g, ' ');
               const rPrefix = this.findPrefixOfExpansion(rExpansion, myPrefixes);
