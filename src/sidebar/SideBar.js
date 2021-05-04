@@ -3,6 +3,7 @@ import { submitQuery } from './UtilityFunctions'
 import "./Sidebar.css";
 import SelectedItemViewer from "./SelectedItemViewer";
 import SuggestiveSearch from "./SuggestiveSearch";
+import ExecuteQueryButton from "./QueryExecutor";
 
 export default class SideBar extends React.Component {
   constructor(props) {
@@ -62,7 +63,7 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const { graph } = this.props;
+    const { graph, canvasStateSnapshot } = this.props;
     const { content, type, id, meta } = this.props.selected;
     const { info, infoLoaded, basePrefix, basePrefixLoaded, error } = this.state;
 
@@ -74,11 +75,12 @@ export default class SideBar extends React.Component {
                             info={info} infoLoaded={infoLoaded}
                             onSelectedItemChange={this.props.onSelectedItemChange}
                             changeNodeState={this.props.changeNodeState} />
-        <hr />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
+        <ExecuteQueryButton canvasState={canvasStateSnapshot}
+                            requestCanvasState={this.props.onRequestCanvasState} />
       </div>
     );
   }
