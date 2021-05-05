@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './ItemViewerComponents.css';
 import './QueryExecutor.css';
+import {submitQuery} from "./UtilityFunctions";
 
 export default class ExecuteQueryButton extends React.Component {
   static variants = {
@@ -15,8 +16,7 @@ export default class ExecuteQueryButton extends React.Component {
       query: '',
       gettingCanvasState: false,
       convertingGraphToSparql: false,
-      errorsExist: false,
-      errors: []
+      error: null
     };
   }
 
@@ -25,30 +25,19 @@ export default class ExecuteQueryButton extends React.Component {
 
     if (prevProps.canvasState.graph !== canvasState.graph){
       this.setState({gettingCanvasState: false, convertingGraphToSparql: true});
-      const errorList = this.findErrorsInCanvasState();
 
-      if (errorList.length === 0) {
-        const preprocessedUnknownNodes = this.preprocessUnknownNodes();
-        const preprocessedUnknownEdges = this.preprocessUnknownEdges();
+      const unknownNodes = this.preprocessUnknownNodes();
+      const unknownEdges = this.preprocessUnknownEdges();
 
-        const sparqlQueryString = this.generateSparqlQueryString(preprocessedUnknownNodes, preprocessedUnknownEdges);
+      const sparqlQueryString = this.generateSparqlQueryString(unknownNodes, unknownEdges);
 
-        this.setState({query: sparqlQueryString, errorsExist: false, convertingGraphToSparql: false});
-      } else {
-        this.setState({errorsExist: true, errors: errorList});
-      }
+      submitQuery(sparqlQueryString).then(
+        response => console.log(response.results.bindings),
+        error => console.warn(error)
+      )
+
+      this.setState({query: sparqlQueryString, error: null, convertingGraphToSparql: false});
     }
-  }
-
-  /**
-   * Looks through the graph for any glaring errors.
-   * @returns {String[]} - errors encountered in the graph patterns
-   */
-  findErrorsInCanvasState = () => {
-    const errors = [];
-
-
-    return errors;
   }
 
   preprocessUnknownNodes = () => {
@@ -84,14 +73,24 @@ export default class ExecuteQueryButton extends React.Component {
     return processedUnknownEdges;
   }
 
-  getNodeFrag = (subject, unknownNodes) => {
+  getNodeFrag = (node, unknownNodes) => {
     let frag;
-    if (subject.type === 'nodeUri') {
-      frag = subject.iri;
-    } else if (subject.type === 'nodeSelectedUnknown' || subject.type === 'nodeUnknown') {
-      frag = unknownNodes[subject.id].frag;
+    if (node.type === 'nodeUri') {
+      frag = "<" + node.iri + ">";
+    } else if (node.type === 'nodeSelectedUnknown' || node.type === 'nodeUnknown') {
+      frag = unknownNodes[node.id].frag;
     } else {
-      frag = subject.content;
+      frag = node.content;
+    }
+    return frag;
+  }
+
+  getEdgeFrag = (edge, unknownEdges) => {
+    let frag;
+    if (edge.type === 'edgeUnknown') {
+      frag = unknownEdges[edge.id].frag;
+    } else {
+      frag = `<${edge.iri}>`;
     }
     return frag;
   }
@@ -107,7 +106,9 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   selectClause = (unknownNodes, unknownEdges) => {
-    let selectClauseString = 'SELECT ';
+    const selectKeyword = 'SELECT ';
+    let selectClauseString = '';
+
 
     for (const unknownNode of Object.values(unknownNodes)) {
       if (unknownNode.selected) selectClauseString += `${unknownNode.frag} `;
@@ -116,7 +117,12 @@ export default class ExecuteQueryButton extends React.Component {
       if (unknownEdge.selected) selectClauseString += `${unknownEdge.frag} `;
     }
 
-    return selectClauseString;
+    if (selectClauseString !== '') {
+      return selectKeyword + selectClauseString;
+    } else {
+      this.setState({error: ErrorMessages.noSelectedUnknowns});
+      return;
+    }
   }
 
   whereClause = (unknownNodes, unknownEdges) => {
@@ -130,7 +136,7 @@ export default class ExecuteQueryButton extends React.Component {
       const subject = nodes.find(node => edge.subject.id === node.id);
       const subjectFrag = this.getNodeFrag(subject, unknownNodes);
 
-      const edgeFrag = edge.type === 'edgeKnown' ? edge.iri : edge.content;
+      const edgeFrag = this.getEdgeFrag(edge, unknownEdges);
 
       const object = nodes.find(node => edge.object.id === node.id);
       const objectFrag = this.getNodeFrag(object, unknownNodes);
@@ -156,7 +162,7 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   render() {
-    const { gettingCanvasState, convertingGraphToSparql, query } = this.state;
+    const { gettingCanvasState, convertingGraphToSparql, error } = this.state;
     const animation = gettingCanvasState || convertingGraphToSparql ? 'loading' : 'ready';
 
     return (
@@ -167,8 +173,12 @@ export default class ExecuteQueryButton extends React.Component {
         </motion.div>
         {gettingCanvasState && <p>Getting Canvas State...</p>}
         {convertingGraphToSparql && <p>Converting Graph to SPARQL...</p>}
-        {query !== '' && <p>{query}</p>}
+        {error && <p className={'small error'}>{error}</p>}
       </div>
     );
   }
+}
+
+class ErrorMessages {
+  static noSelectedUnknowns = ""
 }
