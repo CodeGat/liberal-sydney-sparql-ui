@@ -29,7 +29,13 @@ export default class ExecuteQueryButton extends React.Component {
       const unknownNodes = this.preprocessUnknownNodes();
       const unknownEdges = this.preprocessUnknownEdges();
 
-      const sparqlQueryString = this.generateSparqlQueryString(unknownNodes, unknownEdges);
+      let sparqlQueryString;
+      try {
+        sparqlQueryString = this.generateSparqlQueryString(unknownNodes, unknownEdges);
+      } catch (e) {
+        this.setState({error: e.message, convertingGraphToSparql: false});
+        return;
+      }
 
       submitQuery(sparqlQueryString).then(
         response => console.log(response.results.bindings),
@@ -117,13 +123,10 @@ export default class ExecuteQueryButton extends React.Component {
       if (unknownEdge.selected) selectClauseString += `${unknownEdge.frag} `;
     }
 
-    if (selectClauseString !== '') {
-      return selectKeyword + selectClauseString;
-    } else {
-      this.setState({error: ErrorMessages.noSelectedUnknowns});
-      return;
-    }
+    if (selectClauseString !== '') return selectKeyword + selectClauseString;
+    else throw new Error(ErrorMessages.noSelectedUnknowns);
   }
+
 
   whereClause = (unknownNodes, unknownEdges) => {
     const { canvasState } = this.props;
@@ -180,5 +183,6 @@ export default class ExecuteQueryButton extends React.Component {
 }
 
 class ErrorMessages {
-  static noSelectedUnknowns = ""
+  static noSelectedUnknowns = "Query failed: There are no nodes selected to display as results. Click on a " +
+    "node and then click the 'Show in results' button to have it come up in the query, then try again.";
 }
