@@ -22,7 +22,6 @@ class App extends React.Component {
     };
   }
 
-
   /**
    *
    * @param {string} type - whether the object changed was a
@@ -32,6 +31,20 @@ class App extends React.Component {
    * @param {Object} meta - metadata of the selected item.
    */
   handleSelectedItemChange = (type, id, content, meta) => {
+    const { selected } = this.state;
+
+    // set our old selected item to unselected
+    if (selected.type.startsWith('node')) {
+      this.changeNodeState(selected.id, {isSelected: false});
+    } else {
+      this.changeEdgeState(selected.id, {isSelected: false});
+    }
+    // and set our new one to selected!
+    if (type.startsWith('node')) {
+      this.changeNodeState(id, {isSelected: true});
+    } else {
+      this.changeEdgeState(id, {isSelected: true});
+    }
     this.setState({selected: {type: type, id: id, content: content, meta: meta}});
   }
 
@@ -79,14 +92,14 @@ class App extends React.Component {
    * @param {string} [iri] - optional iri for nodes that have type 'nodeUri'
    * @returns {number} - id of node just created.
    */
-    //todo: add iri to created nodes so it's in the graph!! And edges too! so queryExecutor can do it's thing!
   createNode = (x, y, type, content, iri) => {
     const { nodeCounter } = this.state;
     const variant = Node.variants[type](false);
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
-      id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null
+      id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null,
+      isSelected: false
     };
 
     if (iri) newNode.iri = iri;
@@ -122,7 +135,8 @@ class App extends React.Component {
       type: content === '?' ? 'edgeUnknown' : 'edgeKnown', isOptional: false,
       subject: {id: subjectId, intersectX: subjectPos.midX, intersectY: subjectPos.midY},
       object: {},
-      complete: false
+      complete: false,
+      isSelected: false
     }
 
     if (iri) newEdge.iri = iri;
