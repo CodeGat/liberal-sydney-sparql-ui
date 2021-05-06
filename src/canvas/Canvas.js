@@ -184,6 +184,7 @@ export default class Canvas extends React.Component {
               {edges.map(edge =>
                 <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
                       subject={edge.subject} object={edge.object} tempEdge={tempEdge} complete={edge.complete}
+                      isSelected={edge.isSelected}
                       onChangeEdgeState={this.props.changeEdgeState}
                       onSelectedItemChange={this.handleElementChange}/>)}
             </AnimatePresence>
@@ -193,6 +194,7 @@ export default class Canvas extends React.Component {
               {nodes.map(node =>
                 <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY}
                       type={node.type} content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
+                      isSelected={node.isSelected}
                       onChangeNodeState={this.props.changeNodeState}
                       onSelectedItemChange={this.handleElementChange} />)}
             </AnimatePresence>

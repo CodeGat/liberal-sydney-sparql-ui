@@ -105,9 +105,8 @@ export default class Node extends React.Component {
     this.props.onChangeNodeState(id, {content: changedText, type: changedType});
   }
 
-  //todo: selectedItemViewer checkbox for selected?
   render(){
-    const { type, isOptional, content, x, y, amalgam } = this.props;
+    const { type, isOptional, content, x, y, amalgam, isSelected } = this.props;
 
     const variant = Node.variants[type](isOptional);
     const currentNodeWidth = variant.width;
