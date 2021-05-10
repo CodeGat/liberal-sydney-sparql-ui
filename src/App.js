@@ -262,47 +262,58 @@ class App extends React.Component {
   }
 
   /**
-   *
-   * @param id
-   * @param type
+   * Recursively deletes an item and all it's outgoing connections
+   * @param {number} id - id of the item to delete
+   * @param {string} type - type of the item to delete, allows calling of correct graph modification methods
+   * @param {boolean} isFirst - if it's the most shallow iteration, change the node to an 'unf' node if theres no
+   *   further connections
    */
-  deleteItemCascade = (id, type) => {
+  deleteItemCascade = (id, type, isFirst) => {
     const { graph } = this.state;
 
-    if (type.startsWith('node')) {
+    if (type.startsWith('node')) { // find all the outgoing edges and recursively delete
       const deletedNodeOutgoingEdges = graph.edges.filter(edge => edge.subject.id === id);
       for (const outgoingEdge of deletedNodeOutgoingEdges) {
-        this.deleteItemRecursively(outgoingEdge.id, outgoingEdge.type);
+        this.deleteItemCascade(outgoingEdge.id, outgoingEdge.type, false);
       }
-      if (deletedNodeOutgoingEdges.length === 0) {
+      if (isFirst && deletedNodeOutgoingEdges.length === 0) {
         this.changeNodeState(id, {type: 'nodeUnf', content: '', amalgam: null});
       } else {
         this.deleteNode(id);
       }
-    } else {
-      const deletedEdgeNode = graph.nodes.find(node => node.id === id);
+    } else { // it is an edge and we find the connected node and recursively delete
+      const deletedEdge = graph.edges.find(edge => edge.id === id);
+      const deletedEdgeNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
       if (deletedEdgeNode) {
-        this.deleteItemRecursively(deletedEdgeNode.id, deletedEdgeNode.type);
+        this.deleteItemCascade(deletedEdgeNode.id, deletedEdgeNode.type, false);
       }
       this.deleteEdge(id);
     }
+
+    if (isFirst) { // on most shallow recursion, set selected item to incoming item or empty.
+      this.findSuitableSelectedItemChange(id, type, graph);
+    }
   }
 
-  deleteItemRecursively = (id, type) => {
-    const { graph } = this.state;
-
+  /**
+   * Finds the incoming node or edge off the deleted on, setting it as the selected item
+   * @param id - id of the deleted item
+   * @param type - type of the deleted item
+   * @param graph - graph snapshot at lowest level of recursion (no items deleted yet, so we can access
+   *   deleted item data)
+   */
+  findSuitableSelectedItemChange = (id, type, graph) => {
     if (type.startsWith('node')) {
-      const deletedNodeOutgoingEdges = graph.edges.filter(edge => edge.subject.id === id);
-      for (const outgoingEdge of deletedNodeOutgoingEdges) {
-        this.deleteItemRecursively(outgoingEdge.id, outgoingEdge.type);
+      const selectedEdge = graph.edges.find(edge => edge.object.id === id);
+      if (selectedEdge) {
+        this.handleSelectedItemChange(selectedEdge.type, selectedEdge.id, selectedEdge.content, null);
+      } else {
+        this.handleSelectedItemChange('', -1, '', '');
       }
-      this.deleteNode(id);
     } else {
-      const deletedEdgeNode = graph.nodes.find(node => node.id === id);
-      if (deletedEdgeNode) {
-        this.deleteItemRecursively(deletedEdgeNode.id, deletedEdgeNode.type);
-      }
-      this.deleteEdge(id);
+      const deletedEdge = graph.edges.find(edge => edge.id === id);
+      const selectedNode = graph.nodes.find(node => node.id === deletedEdge.subject.id);
+      this.handleSelectedItemChange(selectedNode.type, selectedNode.id, selectedNode.content, selectedNode.meta)
     }
   }
 
@@ -339,7 +350,7 @@ class App extends React.Component {
                     acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
             <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
                      changeNodeState={this.changeNodeState}
-                     deleteItemCascade={this.deleteItemCascade}
+                     deleteItemCascade={(id, type) => this.deleteItemCascade(id, type, true)}
                      onSelectedItemChange={this.handleSelectedItemChange}
                      onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
                      onRequestCanvasState={this.handleRequestCanvasState}/>
