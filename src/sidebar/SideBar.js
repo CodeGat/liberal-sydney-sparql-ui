@@ -3,6 +3,7 @@ import { submitQuery } from './UtilityFunctions'
 import "./Sidebar.css";
 import SelectedItemViewer from "./SelectedItemViewer";
 import SuggestiveSearch from "./SuggestiveSearch";
+import ExecuteQueryButton from "./QueryExecutor";
 
 export default class SideBar extends React.Component {
   constructor(props) {
@@ -48,7 +49,11 @@ export default class SideBar extends React.Component {
         }
 
         for (const { s, label, comment } of results) {
-          info[s.value] = {label: label.value, comment: comment.value};
+          const tripleInfo = {};
+          if (label) tripleInfo.label = label.value;
+          if (comment) tripleInfo.comment = comment.value;
+
+          info[s.value] = tripleInfo;
         }
 
         this.setState({infoLoaded: true, info: info});
@@ -58,21 +63,24 @@ export default class SideBar extends React.Component {
   }
 
   render(){
-    const { graph } = this.props;
+    const { graph, canvasStateSnapshot } = this.props;
     const { content, type, id, meta } = this.props.selected;
     const { info, infoLoaded, basePrefix, basePrefixLoaded, error } = this.state;
 
     return (
       <div className="sidebar">
         {error && <p className={'error'}>{error.toString()}</p>}
-        <SelectedItemViewer type={type} content={content} meta={meta}
+        <SelectedItemViewer id={id} type={type} content={content} meta={meta}
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
-                            info={info} infoLoaded={infoLoaded} />
-        <hr />
+                            info={info} infoLoaded={infoLoaded}
+                            onSelectedItemChange={this.props.onSelectedItemChange}
+                            changeNodeState={this.props.changeNodeState} />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
                           basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                           info={info} infoLoaded={infoLoaded}
                           onTransferSuggestionToCanvas={this.props.onTransferSuggestionToCanvas} />
+        <ExecuteQueryButton canvasState={canvasStateSnapshot}
+                            requestCanvasState={this.props.onRequestCanvasState} />
       </div>
     );
   }
