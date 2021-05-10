@@ -63,7 +63,7 @@
           "amalgam": null
         }
       ],
-      "nodeCounter": 6,
+      "nodeCounter": 7,
       "edges": [
         {
           "id": 2,
@@ -120,7 +120,214 @@
           "iri": "http://lmb.cdhr.anu.edu.au/has_surname"
         }
       ],
+      "edgeCounter": 6
+    },
+    {
+      "nodes": [
+        {
+          "x": 0,
+          "y": 50,
+          "midX": 50,
+          "midY": 100,
+          "id": 1,
+          "type": "nodeUnknown",
+          "content": "?",
+          "isOptional": false,
+          "amalgam": {
+            "type": "UnknownClassAmalgam",
+            "inferredClass": {
+              "iri": "http://lmb.cdhr.anu.edu.au/Person",
+              "expansion": "http://lmb.cdhr.anu.edu.au",
+              "name": "Person",
+              "label": "Person"
+            }
+          }
+        },
+        {
+          "x": 352,
+          "y": 129,
+          "midX": 372,
+          "midY": 149,
+          "id": 4,
+          "type": "nodeLiteral",
+          "content": "\"Mrs\"",
+          "isOptional": false,
+          "amalgam": null
+        },
+        {
+          "x": 111,
+          "y": 286,
+          "midX": 131,
+          "midY": 306,
+          "id": 5,
+          "type": "nodeSelectedUnknown",
+          "content": "?surname",
+          "isOptional": false,
+          "amalgam": null
+        }
+      ],
+      "nodeCounter": 6,
+      "edges": [
+        {
+          "id": 3,
+          "content": "has title",
+          "type": "edgeKnown",
+          "isOptional": false,
+          "subject": {
+            "id": 1,
+            "intersectX": 50,
+            "intersectY": 100
+          },
+          "object": {
+            "id": 4,
+            "intersectX": 358.6223376099571,
+            "intersectY": 146.9642687667326
+          },
+          "complete": true,
+          "iri": "http://lmb.cdhr.anu.edu.au/has_title"
+        },
+        {
+          "id": 4,
+          "content": "has surname",
+          "type": "edgeKnown",
+          "isOptional": false,
+          "subject": {
+            "id": 1,
+            "intersectX": 50,
+            "intersectY": 100
+          },
+          "object": {
+            "id": 5,
+            "intersectX": 139.7193814705676,
+            "intersectY": 290.75472096445003
+          },
+          "complete": true,
+          "iri": "http://lmb.cdhr.anu.edu.au/has_surname"
+        }
+      ],
       "edgeCounter": 5
+    },
+    {
+      "nodes": [
+        {
+          "x": 0,
+          "y": 50,
+          "midX": 50,
+          "midY": 100,
+          "id": 1,
+          "type": "nodeUnknown",
+          "content": "?",
+          "isOptional": false,
+          "amalgam": {
+            "type": "UnknownClassAmalgam",
+            "inferredClass": {
+              "iri": "http://lmb.cdhr.anu.edu.au/Person",
+              "expansion": "http://lmb.cdhr.anu.edu.au",
+              "name": "Person",
+              "label": "Person"
+            }
+          }
+        },
+        {
+          "x": 234,
+          "y": 296,
+          "midX": 254,
+          "midY": 316,
+          "id": 3,
+          "type": "nodeUnknown",
+          "content": "?",
+          "isOptional": false,
+          "amalgam": {
+            "type": "UnknownClassAmalgam",
+            "inferredClass": {
+              "iri": "http://lmb.cdhr.anu.edu.au/Costume",
+              "expansion": "http://lmb.cdhr.anu.edu.au",
+              "name": "Costume",
+              "label": "Costume"
+            }
+          }
+        },
+        {
+          "x": 603,
+          "y": 236,
+          "midX": 623,
+          "midY": 256,
+          "id": 5,
+          "type": "nodeSelectedUnknown",
+          "content": "?category",
+          "isOptional": false,
+          "amalgam": null
+        },
+        {
+          "x": 379,
+          "y": 103,
+          "midX": 399,
+          "midY": 123,
+          "id": 6,
+          "type": "nodeSelectedUnknown",
+          "content": "?surname",
+          "isOptional": false,
+          "amalgam": null
+        }
+      ],
+      "nodeCounter": 7,
+      "edges": [
+        {
+          "id": 2,
+          "content": "has costume",
+          "type": "edgeKnown",
+          "isOptional": false,
+          "subject": {
+            "id": 1,
+            "intersectX": 50,
+            "intersectY": 100
+          },
+          "object": {
+            "id": 3,
+            "intersectX": 249.5393117001242,
+            "intersectY": 309.7720969155152
+          },
+          "complete": true,
+          "iri": "http://lmb.cdhr.anu.edu.au/has_costume"
+        },
+        {
+          "id": 4,
+          "content": "has costume category",
+          "type": "edgeKnown",
+          "isOptional": false,
+          "subject": {
+            "id": 3,
+            "intersectX": 254,
+            "intersectY": 316
+          },
+          "object": {
+            "id": 5,
+            "intersectX": 603.1407343480364,
+            "intersectY": 289.74881696631303
+          },
+          "complete": true,
+          "iri": "http://lmb.cdhr.anu.edu.au/has_costume_category"
+        },
+        {
+          "id": 5,
+          "content": "has surname",
+          "type": "edgeKnown",
+          "isOptional": false,
+          "subject": {
+            "id": 1,
+            "intersectX": 50,
+            "intersectY": 100
+          },
+          "object": {
+            "id": 6,
+            "intersectX": 379.4818368604998,
+            "intersectY": 146.07529644751054
+          },
+          "complete": true,
+          "iri": "http://lmb.cdhr.anu.edu.au/has_surname"
+        }
+      ],
+      "edgeCounter": 6
     }
   ]
 }

@@ -30,12 +30,12 @@ export default class MenuBar extends React.Component {
           <li className='nav-item'>
             <a className='nav-item-text' href='https://lmb.cdhr.anu.edu.au/'>Return to LMB Main</a>
           </li>
-          {/*<li className='nav-item'>*/}
-          {/*  <p className='nav-item-text' onClick={() => this.loadExample(2)}>Load Example 3</p>*/}
-          {/*</li>*/}
-          {/*<li className='nav-item'>*/}
-          {/*  <p className='nav-item-text' onClick={() => this.loadExample(1)}>Load Example 2</p>*/}
-          {/*</li>*/}
+          <li className='nav-item'>
+            <p className='nav-item-text' onClick={() => this.loadExample(2)}>Load Example 3</p>
+          </li>
+          <li className='nav-item'>
+            <p className='nav-item-text' onClick={() => this.loadExample(1)}>Load Example 2</p>
+          </li>
           <li className='nav-item'>
             <p className='nav-item-text' onClick={() => this.loadExample(0)}>Load Example 1</p>
           </li>
