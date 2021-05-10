@@ -263,6 +263,51 @@ class App extends React.Component {
 
   /**
    *
+   * @param id
+   * @param type
+   */
+  deleteItemCascade = (id, type) => {
+    const { graph } = this.state;
+
+    if (type.startsWith('node')) {
+      const deletedNodeOutgoingEdges = graph.edges.filter(edge => edge.subject.id === id);
+      for (const outgoingEdge of deletedNodeOutgoingEdges) {
+        this.deleteItemRecursively(outgoingEdge.id, outgoingEdge.type);
+      }
+      if (deletedNodeOutgoingEdges.length === 0) {
+        this.changeNodeState(id, {type: 'nodeUnf', content: '', amalgam: null});
+      } else {
+        this.deleteNode(id);
+      }
+    } else {
+      const deletedEdgeNode = graph.nodes.find(node => node.id === id);
+      if (deletedEdgeNode) {
+        this.deleteItemRecursively(deletedEdgeNode.id, deletedEdgeNode.type);
+      }
+      this.deleteEdge(id);
+    }
+  }
+
+  deleteItemRecursively = (id, type) => {
+    const { graph } = this.state;
+
+    if (type.startsWith('node')) {
+      const deletedNodeOutgoingEdges = graph.edges.filter(edge => edge.subject.id === id);
+      for (const outgoingEdge of deletedNodeOutgoingEdges) {
+        this.deleteItemRecursively(outgoingEdge.id, outgoingEdge.type);
+      }
+      this.deleteNode(id);
+    } else {
+      const deletedEdgeNode = graph.nodes.find(node => node.id === id);
+      if (deletedEdgeNode) {
+        this.deleteItemRecursively(deletedEdgeNode.id, deletedEdgeNode.type);
+      }
+      this.deleteEdge(id);
+    }
+  }
+
+  /**
+   *
    * @param {Object} example - object containing edge/node definitions, as well as current ids
    */
   loadExampleIntoCanvas = (example) => {
@@ -294,6 +339,7 @@ class App extends React.Component {
                     acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
             <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
                      changeNodeState={this.changeNodeState}
+                     deleteItemCascade={this.deleteItemCascade}
                      onSelectedItemChange={this.handleSelectedItemChange}
                      onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
                      onRequestCanvasState={this.handleRequestCanvasState}/>

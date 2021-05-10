@@ -73,6 +73,7 @@ export default class SideBar extends React.Component {
         <SelectedItemViewer id={id} type={type} content={content} meta={meta}
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded}
+                            deleteItemCascade={this.props.deleteItemCascade}
                             onSelectedItemChange={this.props.onSelectedItemChange}
                             changeNodeState={this.props.changeNodeState} />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}
