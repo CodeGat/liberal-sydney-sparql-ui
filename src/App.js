@@ -313,7 +313,9 @@ class App extends React.Component {
     } else {
       const deletedEdge = graph.edges.find(edge => edge.id === id);
       const selectedNode = graph.nodes.find(node => node.id === deletedEdge.subject.id);
-      this.handleSelectedItemChange(selectedNode.type, selectedNode.id, selectedNode.content, selectedNode.meta)
+      this.handleSelectedItemChange(
+        selectedNode.type, selectedNode.id, selectedNode.content, {amalgam: selectedNode.amalgam}
+      );
     }
   }
 
