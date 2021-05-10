@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { motion } from 'framer-motion';
 import './ItemViewerComponents.css';
 import './QueryExecutor.css';
@@ -187,10 +187,13 @@ export default class ExecuteQuerySection extends React.Component {
 }
 
 function QueryResultsViewer(props) {
+  const [ isOpen, setIsOpen ] = useState(true);
+  const toggleViewer = () => setIsOpen(!isOpen);
 
   return (
-    <motion.div className='results-container' initial={{height: 0}} animate={{height: 'min-content'}}>
-      <p className='results-header'>Results Viewer</p>
+    <motion.div className='results-container' onClick={() => toggleViewer()}
+                initial={{height: 0}} animate={{height: isOpen ? 'min-content' : '50px'}}>
+      <p className='results-header button'>Results Viewer</p>
       <p className='sparql'>{props.query}</p>
     </motion.div>
   );

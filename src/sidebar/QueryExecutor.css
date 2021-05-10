@@ -22,11 +22,20 @@ div.executequery-wrapper {
     font-family: 'Roboto Condensed', sans-serif;
     font-size: larger;
     padding-left: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 .sparql {
     font-family: "Courier New", sans-serif;
     white-space: pre-wrap;
     padding-left: 20px;
+}
+
+.close {
+    position: fixed;
+    top: 0;
+    right: 0;
+    float: right;
 }
 
 .small {
