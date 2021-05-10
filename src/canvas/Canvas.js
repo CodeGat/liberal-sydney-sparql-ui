@@ -88,7 +88,7 @@ export default class Canvas extends React.Component {
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, null);
     } else { // it must be a base class and we would need to create a new one!
-      const newNodeId = this.props.createNode(50, 50, type, suggestion.label, suggestion.iri);
+      const newNodeId = this.props.createNode(50, 100, type, suggestion.label, suggestion.iri);
       this.props.onSelectedItemChange(type, newNodeId, suggestion.label, null);
     }
   }
@@ -110,7 +110,7 @@ export default class Canvas extends React.Component {
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
       this.props.onSelectedItemChange('nodeUnknown', currentUnfNode.id, suggestion.label, null);
     } else {
-      const newNodeId = this.props.createNode(50, 50, 'nodeUnknown', suggestion.label, null);
+      const newNodeId = this.props.createNode(50, 100, 'nodeUnknown', suggestion.label, null);
       this.props.onSelectedItemChange('nodeUnknown', newNodeId, suggestion.label);
     }
   }

@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import MenuBar from "./MenuBar";
 import Canvas from "./canvas/Canvas";
 import SideBar from "./sidebar/SideBar";
 import {AnimateSharedLayout} from "framer-motion";
@@ -79,7 +80,6 @@ class App extends React.Component {
    * @param {string} [iri] - optional iri for nodes that have type 'nodeUri'
    * @returns {number} - id of node just created.
    */
-    //todo: add iri to created nodes so it's in the graph!! And edges too! so queryExecutor can do it's thing!
   createNode = (x, y, type, content, iri) => {
     const { nodeCounter } = this.state;
     const variant = Node.variants[type](false);
@@ -261,26 +261,102 @@ class App extends React.Component {
     }));
   }
 
+  /**
+   * Recursively deletes an item and all it's outgoing connections
+   * @param {number} id - id of the item to delete
+   * @param {string} type - type of the item to delete, allows calling of correct graph modification methods
+   * @param {boolean} isFirst - if it's the most shallow iteration, change the node to an 'unf' node if theres no
+   *   further connections
+   */
+  deleteItemCascade = (id, type, isFirst) => {
+    const { graph } = this.state;
+
+    if (type.startsWith('node')) { // find all the outgoing edges and recursively delete
+      const deletedNodeOutgoingEdges = graph.edges.filter(edge => edge.subject.id === id);
+      for (const outgoingEdge of deletedNodeOutgoingEdges) {
+        this.deleteItemCascade(outgoingEdge.id, outgoingEdge.type, false);
+      }
+      if (isFirst && deletedNodeOutgoingEdges.length === 0) { //todo: edge case where if only one node, turns small
+        this.changeNodeState(id, {type: 'nodeUnf', content: '', amalgam: null});
+      } else {
+        this.deleteNode(id);
+      }
+    } else { // it is an edge and we find the connected node and recursively delete
+      const deletedEdge = graph.edges.find(edge => edge.id === id);
+      const deletedEdgeNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
+      if (deletedEdgeNode) {
+        this.deleteItemCascade(deletedEdgeNode.id, deletedEdgeNode.type, false);
+      }
+      this.deleteEdge(id);
+    }
+
+    if (isFirst) { // on most shallow recursion, set selected item to incoming item or empty.
+      this.findSuitableSelectedItemChange(id, type, graph);
+    }
+  }
+
+  /**
+   * Finds the incoming node or edge off the deleted on, setting it as the selected item
+   * @param id - id of the deleted item
+   * @param type - type of the deleted item
+   * @param graph - graph snapshot at lowest level of recursion (no items deleted yet, so we can access
+   *   deleted item data)
+   */
+  findSuitableSelectedItemChange = (id, type, graph) => {
+    if (type.startsWith('node')) {
+      const selectedEdge = graph.edges.find(edge => edge.object.id === id);
+      if (selectedEdge) {
+        this.handleSelectedItemChange(selectedEdge.type, selectedEdge.id, selectedEdge.content, null);
+      } else {
+        this.handleSelectedItemChange('', -1, '', '');
+      }
+    } else {
+      const deletedEdge = graph.edges.find(edge => edge.id === id);
+      const selectedNode = graph.nodes.find(node => node.id === deletedEdge.subject.id);
+      this.handleSelectedItemChange(
+        selectedNode.type, selectedNode.id, selectedNode.content, {amalgam: selectedNode.amalgam}
+      );
+    }
+  }
+
+  /**
+   *
+   * @param {Object} example - object containing edge/node definitions, as well as current ids
+   */
+  loadExampleIntoCanvas = (example) => {
+    const { nodes, edges, nodeCounter, edgeCounter } = example;
+
+    this.setState({
+      nodeCounter: nodeCounter,
+      edgeCounter: edgeCounter,
+      graph: {nodes: nodes, edges: edges}
+    });
+  }
+
   render(){
     const { selected, transferredSuggestion, graph, tempEdge, canvasStateSnapshot } = this.state;
 
     return (
       <AnimateSharedLayout>
         <div className="App">
-          <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
-                  transferredSuggestion={transferredSuggestion}
-                  createNode={this.createNode} createEdge={this.createEdge}
-                  deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
-                  changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
-                  updateEdgeIntersections={this.updateEdgeIntersections}
-                  moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
-                  onSelectedItemChange={this.handleSelectedItemChange}
-                  acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
-          <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
-                   changeNodeState={this.changeNodeState}
-                   onSelectedItemChange={this.handleSelectedItemChange}
-                   onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
-                   onRequestCanvasState={this.handleRequestCanvasState}/>
+          <MenuBar loadExampleIntoCanvas={this.loadExampleIntoCanvas}/>
+          <div className='content'>
+            <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
+                    transferredSuggestion={transferredSuggestion}
+                    createNode={this.createNode} createEdge={this.createEdge}
+                    deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
+                    changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
+                    updateEdgeIntersections={this.updateEdgeIntersections}
+                    moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
+                    onSelectedItemChange={this.handleSelectedItemChange}
+                    acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
+            <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
+                     changeNodeState={this.changeNodeState}
+                     deleteItemCascade={(id, type) => this.deleteItemCascade(id, type, true)}
+                     onSelectedItemChange={this.handleSelectedItemChange}
+                     onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
+                     onRequestCanvasState={this.handleRequestCanvasState}/>
+          </div>
         </div>
       </AnimateSharedLayout>
     );
