@@ -15,7 +15,7 @@
 .navbar {
     border-radius: 4px;
     position: fixed;
-    min-height: 50px;
+    height: 50px;
     margin-bottom: 20px;
     border: 1px solid transparent;
 }

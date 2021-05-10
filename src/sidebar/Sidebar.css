@@ -3,7 +3,7 @@
 }
 
 .sidebar {
-    height: 92%;
+    height: calc(100% - 50px);
     width: var(--sidebarSize);
     position: fixed;
     display: grid;
