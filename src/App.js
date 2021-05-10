@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import MenuBar from "./MenuBar";
 import Canvas from "./canvas/Canvas";
 import SideBar from "./sidebar/SideBar";
 import {AnimateSharedLayout} from "framer-motion";
@@ -79,7 +80,6 @@ class App extends React.Component {
    * @param {string} [iri] - optional iri for nodes that have type 'nodeUri'
    * @returns {number} - id of node just created.
    */
-    //todo: add iri to created nodes so it's in the graph!! And edges too! so queryExecutor can do it's thing!
   createNode = (x, y, type, content, iri) => {
     const { nodeCounter } = this.state;
     const variant = Node.variants[type](false);
@@ -267,20 +267,23 @@ class App extends React.Component {
     return (
       <AnimateSharedLayout>
         <div className="App">
-          <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
-                  transferredSuggestion={transferredSuggestion}
-                  createNode={this.createNode} createEdge={this.createEdge}
-                  deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
-                  changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
-                  updateEdgeIntersections={this.updateEdgeIntersections}
-                  moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
-                  onSelectedItemChange={this.handleSelectedItemChange}
-                  acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
-          <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
-                   changeNodeState={this.changeNodeState}
-                   onSelectedItemChange={this.handleSelectedItemChange}
-                   onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
-                   onRequestCanvasState={this.handleRequestCanvasState}/>
+          <MenuBar />
+          <div className='content'>
+            <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
+                    transferredSuggestion={transferredSuggestion}
+                    createNode={this.createNode} createEdge={this.createEdge}
+                    deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
+                    changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
+                    updateEdgeIntersections={this.updateEdgeIntersections}
+                    moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
+                    onSelectedItemChange={this.handleSelectedItemChange}
+                    acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
+            <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
+                     changeNodeState={this.changeNodeState}
+                     onSelectedItemChange={this.handleSelectedItemChange}
+                     onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
+                     onRequestCanvasState={this.handleRequestCanvasState}/>
+          </div>
         </div>
       </AnimateSharedLayout>
     );

@@ -1,0 +1,21 @@
+.navbar-default {
+    background-color: #3e3f3a;
+    border-color: #3e3f3a;
+}
+.navbar-fixed-top {
+    top: 0;
+    width: 100%;
+    border-radius: 0;
+    position: fixed;
+    overflow: hidden;
+    right: 0;
+    left: 0;
+    z-index: 2000;
+}
+.navbar {
+    border-radius: 4px;
+    position: fixed;
+    min-height: 50px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+}

@@ -11,7 +11,7 @@
     grid-template-rows: minmax(100px, max-content) auto min-content;
     z-index: 1;
     float: right;
-    top: 0;
+    top: 50px;
     right: 0;
     background-color: darkgrey;
     overflow: hidden;
