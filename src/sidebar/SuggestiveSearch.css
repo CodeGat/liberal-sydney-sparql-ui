@@ -17,6 +17,11 @@ ul {
     border-radius: 10px;
 }
 
+.suggestion-pane {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
 .suggestion p {
     font-family: 'Roboto Condensed', sans-serif;
     margin-top: 5px;

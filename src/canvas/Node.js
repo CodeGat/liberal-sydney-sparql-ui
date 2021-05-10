@@ -16,7 +16,7 @@ export default class Node extends React.Component {
       stroke: '#0000fe'
     }),
     nodeSelectedUnknown: isOpt => ({
-      fill: isOpt ? '#1e90ff' : '#0000fe',
+      fill: isOpt ? '#59adff' : '#1e90ff',
       rx: 50,
       ry: 50,
       height: 100,
@@ -78,6 +78,7 @@ export default class Node extends React.Component {
   handleEntryExit = (e) => {
     const { id, type, content, amalgam } = this.props;
     e.preventDefault();
+
     this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
 
   }
@@ -87,13 +88,15 @@ export default class Node extends React.Component {
    * @param e - event that triggered the function
    */
   handleChangedText = (e) => {
-    const { id } = this.props;
+    const { id, type } = this.props;
     const changedText = e.target.value;
     let changedType;
 
     if (changedText.match(/".*".*|true|false|[+-]?\d+|[+-]?\d*\.\d+|[+-]?(\d+\.\d*[eE][+-]?\d+|\d+[eE][+-]?\d+)/)){
       changedType = 'nodeLiteral';
-    } else if (changedText.match(/\?.*/)) {
+    } else if (type === 'nodeSelectedUnknown' || changedText.match(/\?.+/)) { //todo: consider control flow
+      changedType = 'nodeSelectedUnknown';
+    } else if (changedText === '?') {
       changedType = 'nodeUnknown';
     } else {
       changedType = 'nodeUri';
@@ -102,6 +105,7 @@ export default class Node extends React.Component {
     this.props.onChangeNodeState(id, {content: changedText, type: changedType});
   }
 
+  //todo: selectedItemViewer checkbox for selected?
   render(){
     const { type, isOptional, content, x, y, amalgam } = this.props;
 
