@@ -261,13 +261,27 @@ class App extends React.Component {
     }));
   }
 
+  /**
+   *
+   * @param {Object} example - object containing edge/node definitions, as well as current ids
+   */
+  loadExampleIntoCanvas = (example) => {
+    const { nodes, edges, nodeCount, edgeCount } = example;
+
+    this.setState({
+      nodeCounter: nodeCount,
+      edgeCounter: edgeCount,
+      graph: {nodes: nodes, edges: edges}
+    });
+  }
+
   render(){
     const { selected, transferredSuggestion, graph, tempEdge, canvasStateSnapshot } = this.state;
 
     return (
       <AnimateSharedLayout>
         <div className="App">
-          <MenuBar />
+          <MenuBar loadExampleIntoCanvas={this.loadExampleIntoCanvas}/>
           <div className='content'>
             <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
                     transferredSuggestion={transferredSuggestion}
