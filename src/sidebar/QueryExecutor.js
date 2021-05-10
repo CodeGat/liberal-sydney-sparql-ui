@@ -4,7 +4,7 @@ import './ItemViewerComponents.css';
 import './QueryExecutor.css';
 import {submitQuery} from "./UtilityFunctions";
 
-export default class ExecuteQueryButton extends React.Component {
+export default class ExecuteQuerySection extends React.Component {
   static variants = {
     ready: {backgroundColor: '#b3b3b3'},
     loading: {backgroundColor: '#9c9c9c'}
@@ -165,21 +165,35 @@ export default class ExecuteQueryButton extends React.Component {
   }
 
   render() {
-    const { gettingCanvasState, convertingGraphToSparql, error } = this.state;
+    const { query, gettingCanvasState, convertingGraphToSparql, error } = this.state;
     const animation = gettingCanvasState || convertingGraphToSparql ? 'loading' : 'ready';
 
     return (
-      <div className={'executequery-wrapper'}>
-        <motion.div className={'button'} variants={ExecuteQueryButton.variants} inital={false} animate={animation}
-                    onClick={this.checkRequestCanvasState}>
-          <p>Execute Query</p>
-        </motion.div>
-        {gettingCanvasState && <p>Getting Canvas State...</p>}
-        {convertingGraphToSparql && <p>Converting Graph to SPARQL...</p>}
-        {error && <p className={'small error'}>{error}</p>}
+      <div>
+        <div className={'executequery-wrapper'}>
+          <motion.div className={'button'} variants={ExecuteQuerySection.variants} inital={false} animate={animation}
+                      onClick={this.checkRequestCanvasState}>
+            <p>Execute Query</p>
+          </motion.div>
+          {gettingCanvasState && <p>Getting Canvas State...</p>}
+          {convertingGraphToSparql && <p>Converting Graph to SPARQL...</p>}
+          {error && <p className={'small error'}>{error}</p>}
+        </div>
+        {query !== '' && <QueryResultsViewer query={query} />}
       </div>
+
     );
   }
+}
+
+function QueryResultsViewer(props) {
+
+  return (
+    <motion.div className='results-container' initial={{height: 0}} animate={{height: 'min-content'}}>
+      <p className='results-header'>Results Viewer</p>
+      <p className='sparql'>{props.query}</p>
+    </motion.div>
+  );
 }
 
 class ErrorMessages {

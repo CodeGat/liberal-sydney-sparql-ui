@@ -6,6 +6,29 @@ div.executequery-wrapper {
     border-top: 2px solid black;
 }
 
+.results-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    float: left;
+    height: min-content;
+    width: calc(100% - var(--sidebarSize));
+    background-color: darkgray;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.results-header {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: larger;
+    padding-left: 20px;
+}
+.sparql {
+    font-family: "Courier New", sans-serif;
+    white-space: pre-wrap;
+    padding-left: 20px;
+}
+
 .small {
     font-size: small;
     font-family: 'Roboto Condensed', sans-serif;
