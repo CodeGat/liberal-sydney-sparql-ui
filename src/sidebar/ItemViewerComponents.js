@@ -117,3 +117,17 @@ export function BoundUnknownCheckbox(props) {
     </>
   );
 }
+
+export function DeleteItemButton(props) {
+  const { id } = props;
+  const deleteItem = (id) => props.deleteItemCascade(id);
+
+  return (
+    <>
+      <p>Delete Node</p>
+      <div className='button' onClick={() => deleteItem(id)}>
+        <p>Delete</p>
+      </div>
+    </>
+  );
+}

@@ -94,7 +94,7 @@ export default class Node extends React.Component {
 
     if (changedText.match(/".*".*|true|false|[+-]?\d+|[+-]?\d*\.\d+|[+-]?(\d+\.\d*[eE][+-]?\d+|\d+[eE][+-]?\d+)/)){
       changedType = 'nodeLiteral';
-    } else if (type === 'nodeSelectedUnknown' || changedText.match(/\?.+/)) { //todo: consider control flow
+    } else if (type === 'nodeSelectedUnknown' || changedText.match(/\?.+/)) {
       changedType = 'nodeSelectedUnknown';
     } else if (changedText === '?') {
       changedType = 'nodeUnknown';
@@ -105,7 +105,6 @@ export default class Node extends React.Component {
     this.props.onChangeNodeState(id, {content: changedText, type: changedType});
   }
 
-  //todo: selectedItemViewer checkbox for selected?
   render(){
     const { type, isOptional, content, x, y, amalgam } = this.props;
 
