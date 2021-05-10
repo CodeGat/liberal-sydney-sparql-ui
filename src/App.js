@@ -276,7 +276,7 @@ class App extends React.Component {
       for (const outgoingEdge of deletedNodeOutgoingEdges) {
         this.deleteItemCascade(outgoingEdge.id, outgoingEdge.type, false);
       }
-      if (isFirst && deletedNodeOutgoingEdges.length === 0) {
+      if (isFirst && deletedNodeOutgoingEdges.length === 0) { //todo: edge case where if only one node, turns small
         this.changeNodeState(id, {type: 'nodeUnf', content: '', amalgam: null});
       } else {
         this.deleteNode(id);
@@ -322,11 +322,11 @@ class App extends React.Component {
    * @param {Object} example - object containing edge/node definitions, as well as current ids
    */
   loadExampleIntoCanvas = (example) => {
-    const { nodes, edges, nodeCount, edgeCount } = example;
+    const { nodes, edges, nodeCounter, edgeCounter } = example;
 
     this.setState({
-      nodeCounter: nodeCount,
-      edgeCounter: edgeCount,
+      nodeCounter: nodeCounter,
+      edgeCounter: edgeCounter,
       graph: {nodes: nodes, edges: edges}
     });
   }

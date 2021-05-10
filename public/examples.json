@@ -63,7 +63,7 @@
           "amalgam": null
         }
       ],
-      "nodeCounter": 5,
+      "nodeCounter": 6,
       "edges": [
         {
           "id": 2,
@@ -120,7 +120,7 @@
           "iri": "http://lmb.cdhr.anu.edu.au/has_surname"
         }
       ],
-      "edgeCounter": 4
+      "edgeCounter": 5
     }
   ]
 }
