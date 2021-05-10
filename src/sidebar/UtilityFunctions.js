@@ -4,12 +4,11 @@
  * @returns {Promise<Object>}
  */
 export async function submitQuery(query) {
-  const url = "http://localhost:9999/blazegraph/sparql"; //todo: "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
+  const url = "https://lmb.cdhr.anu.edu.au/blazegraph/sparql";
   const response = await fetch(url, {
     method: "POST",
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: 'blaze_lmb:yu%9R92Dps6GWPC+',
       Accept: 'application/sparql-results+json',
       'Access-Control-Allow-Origin': 'https://lmb.cdhr.anu.edu.au'
     },
