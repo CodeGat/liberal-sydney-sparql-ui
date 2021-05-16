@@ -4,7 +4,7 @@ import arrowUnknownImg from "./img/arrow_icon_unknown_black.png";
 import litImg from "./img/literal_icon_known.png";
 import unkImg from "./img/node_icon_unknown.png";
 import noneImg from "./img/none_icon.png";
-import React from "react";
+import React, {useState} from "react";
 import {motion} from "framer-motion";
 import "./ItemViewerComponents.css";
 
@@ -98,21 +98,22 @@ export function ItemLiteralType(props) {
   );
 }
 
+const buttonVariants = {
+  Yes: {backgroundColor: '#b3b3b3'},
+  No: {backgroundColor: '#9c9c9c'}
+};
+
 export function BoundUnknownCheckbox(props) {
   const { type } = props;
   const toggleBound = () => props.onBoundChange(type === 'nodeUnknown' ? 'nodeSelectedUnknown' : 'nodeUnknown');
-  const variants = {
-    yes: {backgroundColor: '#b3b3b3'},
-    no: {backgroundColor: '#9c9c9c'}
-  };
-  const animation = type === 'nodeSelectedUnknown' ? 'yes' : 'no';
+  const isSelected = type === 'nodeSelectedUnknown' ? 'yes' : 'no';
 
   return (
     <>
       <p>Show in results?</p>
-      <motion.div className={'button'} variants={variants} initial={false} animate={animation}
+      <motion.div className={'button'} variants={buttonVariants} initial={false} animate={isSelected}
                   onClick={() => toggleBound()}>
-        <p>{type === 'nodeSelectedUnknown' ? 'Yes' : 'No'}</p>
+        <p>{isSelected}</p>
       </motion.div>
     </>
   );
@@ -128,6 +129,22 @@ export function DeleteItemButton(props) {
       <div className='button' onClick={() => deleteItem(id)}>
         <p>Delete</p>
       </div>
+    </>
+  );
+}
+
+export function OptionalTripleButton(props) {
+  const [isOptional, setIsOptional] = useState(false);
+  const toggleOptional = () => setIsOptional(!isOptional);
+  const optionality = isOptional ? 'Yes' : 'No';
+
+  return (
+    <>
+      <p>Make Optional</p>
+      <motion.div className='button' variants={buttonVariants} initial={false} animate={optionality}
+                  onClick={() => toggleOptional()}>
+        <p>{optionality}</p>
+      </motion.div>
     </>
   );
 }

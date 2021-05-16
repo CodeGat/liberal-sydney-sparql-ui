@@ -351,7 +351,7 @@ class App extends React.Component {
                     onSelectedItemChange={this.handleSelectedItemChange}
                     acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
             <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
-                     changeNodeState={this.changeNodeState}
+                     changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
                      deleteItemCascade={(id, type) => this.deleteItemCascade(id, type, true)}
                      onSelectedItemChange={this.handleSelectedItemChange}
                      onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}

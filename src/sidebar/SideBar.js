@@ -62,6 +62,20 @@ export default class SideBar extends React.Component {
     );
   }
 
+  /**
+   * Sets the triple with the given edgeId to be SPARQL OPTIONAL in the graph.
+   * @param edgeId - the id of the edge of the triple that will be made optional.
+   */
+  setOptionalTriple = (edgeId) => {
+    const { graph } = this.props;
+
+    const edge = graph.edges.find(edge => edge.id === edgeId);
+
+    this.props.changeEdgeState(edgeId, {isOptional: true});
+    this.props.changeNodeState(edge.subject.id, {isOptional: true});
+    this.props.changeNodeState(edge.object.id, {isOptional: true});
+  }
+
   render(){
     const { graph, canvasStateSnapshot } = this.props;
     const { content, type, id, meta } = this.props.selected;
@@ -74,6 +88,7 @@ export default class SideBar extends React.Component {
                             basePrefix={basePrefix} basePrefixLoaded={basePrefixLoaded}
                             info={info} infoLoaded={infoLoaded}
                             deleteItemCascade={this.props.deleteItemCascade}
+                            setOptionalTriple={this.setOptionalTriple}
                             onSelectedItemChange={this.props.onSelectedItemChange}
                             changeNodeState={this.props.changeNodeState} />
         <SuggestiveSearch id={id} type={type} content={content} meta={meta} graph={graph}

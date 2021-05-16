@@ -9,7 +9,8 @@ import {
   ItemInferredProps,
   ItemLiteralType,
   BoundUnknownCheckbox,
-  DeleteItemButton
+  DeleteItemButton,
+  OptionalTripleButton
 } from "./ItemViewerComponents";
 
 export default class SelectedItemViewer extends React.Component {
@@ -162,6 +163,7 @@ function SelectedKnownEdgeViewer(props) {
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
       <DeleteItemButton id={id} deleteItemCascade={(id) => props.deleteItemCascade(id, type)}/>
+      <OptionalTripleButton setTripleOptional={() => props.setOptionalTriple(id)} />
       <ItemPrefix prefix={prefix} />
       {infoLoaded && selectedUriInfo &&
         <ItemDesc desc={selectedUriInfo} />
