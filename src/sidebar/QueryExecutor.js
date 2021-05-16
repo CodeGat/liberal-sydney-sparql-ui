@@ -191,9 +191,9 @@ function QueryResultsViewer(props) {
   const toggleViewer = () => setIsOpen(!isOpen);
 
   return (
-    <motion.div className='results-container' onClick={() => toggleViewer()}
+    <motion.div className='results-container'
                 initial={{height: 0}} animate={{height: isOpen ? 'min-content' : '50px'}}>
-      <p className='results-header button'>Results Viewer</p>
+      <p className='results-header button' onClick={() => toggleViewer()}>Results Viewer</p>
       <p className='sparql'>{props.query}</p>
     </motion.div>
   );
