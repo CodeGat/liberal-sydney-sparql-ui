@@ -106,7 +106,7 @@ const buttonVariants = {
 export function BoundUnknownCheckbox(props) {
   const { type } = props;
   const toggleBound = () => props.onBoundChange(type === 'nodeUnknown' ? 'nodeSelectedUnknown' : 'nodeUnknown');
-  const isSelected = type === 'nodeSelectedUnknown' ? 'yes' : 'no';
+  const isSelected = type === 'nodeSelectedUnknown' ? 'Yes' : 'No';
 
   return (
     <>

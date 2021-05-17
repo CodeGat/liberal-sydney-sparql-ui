@@ -287,9 +287,10 @@ class App extends React.Component {
       }
     } else { // it is an edge and we find the connected node and recursively delete
       const deletedEdge = graph.edges.find(edge => edge.id === id);
-      const deletedEdgeNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
-      if (deletedEdgeNode) {
-        this.deleteItemCascade(deletedEdgeNode.id, deletedEdgeNode.type, false);
+      const deletedEdgeObjNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
+
+      if (deletedEdgeObjNode) {
+        this.deleteItemCascade(deletedEdgeObjNode.id, deletedEdgeObjNode.type, false);
       }
       this.deleteEdge(id);
     }
@@ -341,7 +342,8 @@ class App extends React.Component {
       const deletedEdge = graph.edges.find(edge => edge.id === id);
       const selectedNode = graph.nodes.find(node => node.id === deletedEdge.subject.id);
       this.handleSelectedItemChange(
-        selectedNode.type, selectedNode.id, selectedNode.content, selectedNode.isOptional, {amalgam: selectedNode.amalgam}
+        selectedNode.type, selectedNode.id, selectedNode.content, selectedNode.isOptional,
+        {amalgam: selectedNode.amalgam}
       );
     }
   }
