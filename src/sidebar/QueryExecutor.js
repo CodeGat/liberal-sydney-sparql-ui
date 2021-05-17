@@ -144,7 +144,11 @@ export default class ExecuteQuerySection extends React.Component {
       const object = nodes.find(node => edge.object.id === node.id);
       const objectFrag = this.getNodeFrag(object, unknownNodes);
 
-      whereClauseString += `  ${subjectFrag} ${edgeFrag} ${objectFrag} .\n`;
+      if (edge.isOptional){
+        whereClauseString += `  OPTIONAL { ${subjectFrag} ${edgeFrag} ${objectFrag} . }\n`;
+      } else {
+        whereClauseString += `  ${subjectFrag} ${edgeFrag} ${objectFrag} .\n`;
+      }
     }
     whereClauseString += '}\n';
 
