@@ -77,6 +77,7 @@ export default class SideBar extends React.Component {
     this.props.changeEdgeState(edgeId, {isOptional: updatedIsOptional});
     this.props.changeNodeState(edge.subject.id, {isOptional: updatedIsOptional});
     this.props.changeNodeState(edge.object.id, {isOptional: updatedIsOptional});
+    this.props.onSelectedItemChange(edge.type, edge.id, edge.content, updatedIsOptional, edge.meta);
   }
 
   render(){
