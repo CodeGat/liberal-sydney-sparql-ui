@@ -296,7 +296,7 @@ class App extends React.Component {
     }
 
     if (isFirst) { // on most shallow recursion, set selected item to incoming item or empty.
-      if (type.startsWith('edge')){
+      if (type.startsWith('edge')) {
         this.checkOptionalityOnSubjectNodeOfDeletedEdge(id, graph);
       }
       this.findSuitableSelectedItemChange(id, type, graph);
@@ -310,7 +310,7 @@ class App extends React.Component {
    * @param {Object} graph - snapshot of the graph before deletion
    */
   checkOptionalityOnSubjectNodeOfDeletedEdge = (id, graph) => {
-    const deletedEdge = graph.edges.find(edge => edge.id = id);
+    const deletedEdge = graph.edges.find(edge => edge.id === id);
     if (!deletedEdge.isOptional) return;
 
     const subjNodeOfDeletedEdge = graph.nodes.find(node => node.id === deletedEdge.subject.id);
