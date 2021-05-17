@@ -76,10 +76,10 @@ export default class Node extends React.Component {
    * @param e - event that triggered the function
    */
   handleEntryExit = (e) => {
-    const { id, type, content, amalgam } = this.props;
+    const { id, type, content, isOptional, amalgam } = this.props;
     e.preventDefault();
 
-    this.props.onSelectedItemChange(type, id, content, {amalgam: amalgam});
+    this.props.onSelectedItemChange(type, id, content, isOptional, {amalgam: amalgam});
 
   }
 

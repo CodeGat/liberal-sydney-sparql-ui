@@ -49,7 +49,9 @@ export default class Canvas extends React.Component {
     this.props.changeNodeState(amalgamId, amalgamChange);
     this.props.deleteNode(edgeToDelete.object.id);
     this.props.deleteEdge(edgeToDelete.id);
-    this.props.onSelectedItemChange(nodeAmalgam.type, nodeAmalgam.id, nodeAmalgam.content, amalgamChange);
+    this.props.onSelectedItemChange(
+      nodeAmalgam.type, nodeAmalgam.id, nodeAmalgam.content, nodeAmalgam.isOptional, amalgamChange
+    );
   }
 
   /**
@@ -86,10 +88,10 @@ export default class Canvas extends React.Component {
 
       this.props.changeNodeState(currentUnfNode.id, {content: prefixedNodeLabel, iri: suggestion.iri, type: type});
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
-      this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, null);
+      this.props.onSelectedItemChange(type, currentUnfNode.id, prefixedNodeLabel, currentUnfNode.isOptional, null);
     } else { // it must be a base class and we would need to create a new one!
-      const newNodeId = this.props.createNode(50, 100, type, suggestion.label, suggestion.iri);
-      this.props.onSelectedItemChange(type, newNodeId, suggestion.label, null);
+      const newNodeId = this.props.createNode(50, 100, type, suggestion.label, false, suggestion.iri);
+      this.props.onSelectedItemChange(type, newNodeId, suggestion.label, false, null);
     }
   }
 
@@ -103,15 +105,17 @@ export default class Canvas extends React.Component {
 
     const selectedEdge = edges.find(edge => edge.id === this.props.selected.id);
 
-    if (selectedEdge){
+    if (selectedEdge){ // there is already an existing node connected to the edge - modify that one
       const currentUnfNode = nodes.find(node => node.id === selectedEdge.object.id);
 
       this.props.changeNodeState(currentUnfNode.id, {content: suggestion.label, type: 'nodeUnknown'});
       this.props.updateEdgeIntersections(selectedEdge, currentUnfNode);
-      this.props.onSelectedItemChange('nodeUnknown', currentUnfNode.id, suggestion.label, null);
-    } else {
-      const newNodeId = this.props.createNode(50, 100, 'nodeUnknown', suggestion.label, null);
-      this.props.onSelectedItemChange('nodeUnknown', newNodeId, suggestion.label);
+      this.props.onSelectedItemChange(
+        'nodeUnknown', currentUnfNode.id, suggestion.label, currentUnfNode.isOptional,  null
+      );
+    } else { // create a new nodeUnknown node
+      const newNodeId = this.props.createNode(50, 100, 'nodeUnknown', suggestion.label, false, null);
+      this.props.onSelectedItemChange('nodeUnknown', newNodeId, suggestion.label, false);
     }
   }
 
@@ -130,18 +134,19 @@ export default class Canvas extends React.Component {
     else if (suggestion.name === 'int' || suggestion.name === 'integer') content = '0';
 
     this.props.changeNodeState(currentUnfNode.id, {content: content, type: type});
-    this.props.onSelectedItemChange(type, currentUnfNode.id, content, null);
+    this.props.onSelectedItemChange(type, currentUnfNode.id, content, currentUnfNode.isOptional, null);
   }
 
   /**
-   * Propagates a change on canvas to the root - eventually the sidebar
+   * Propagates a change on canvas to the root - eventually the Apps graph-state
    * @param {string} type - the type of the object modified: either a node, edge or datatype
    * @param {number} id - the canvas id of the modified object
    * @param {string} content - the content that was changed
+   * @param {boolean} isOptional - whether the object is SPARQL OPTIONAL
    * @param {Object} meta - metadata about the given change
    */
-  handleElementChange = (type, id, content, meta) => {
-    this.props.onSelectedItemChange(type, id, content, meta);
+  handleElementChange = (type, id, content, isOptional, meta) => {
+    this.props.onSelectedItemChange(type, id, content, isOptional, meta);
   }
 
   /**
@@ -154,7 +159,7 @@ export default class Canvas extends React.Component {
 
     if (event.defaultPrevented) return;
     if (tempEdge.completing){ // we'll complete the edge with a new, unfinished Node as object
-      const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "", null);
+      const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "", false, null);
       const variant = Node.variants['nodeUnf'](false);
       const newNodePos = {
         x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
