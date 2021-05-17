@@ -47,14 +47,14 @@ export default class SelectedItemViewer extends React.Component {
    * @param {string} newType - the updated type
    */
   notifySelectedStateChange = (newType) => {
-    const { id, content, meta } = this.props;
+    const { id, content, isOptional, meta } = this.props;
 
     this.props.changeNodeState(id, {type: newType});
-    this.props.onSelectedItemChange(newType, id, content, meta);
+    this.props.onSelectedItemChange(newType, id, content, isOptional, meta);
   }
 
   render() {
-    const { id, type, content, basePrefix, info, infoLoaded, meta } = this.props;
+    const { id, type, content, isOptional, meta, basePrefix, info, infoLoaded } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
     if (type === "nodeUri" || type === "edgeKnown") {
@@ -72,8 +72,10 @@ export default class SelectedItemViewer extends React.Component {
         );
       } else {
         return (<SelectedKnownEdgeViewer id={id} type={type} prefix={prefix} name={name}
+                                         isOptional={isOptional}
                                          info={info} infoLoaded={infoLoaded}
-                                         deleteItemCascade={this.props.deleteItemCascade}/>);
+                                         deleteItemCascade={this.props.deleteItemCascade}
+                                         setOptionalTriple={this.props.setOptionalTriple} />);
       }
     } else if (type === "nodeUnknown" || type === "nodeSelectedUnknown") {
       return (
@@ -156,13 +158,15 @@ function SelectedUnknownEdgeViewer(props) {
 }
 
 function SelectedKnownEdgeViewer(props) {
-  const { id, type, prefix, name, info, infoLoaded } = props;
+  const { id, type, isOptional, prefix, name, info, infoLoaded } = props;
   const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
 
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
       <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
+      <OptionalTripleButton isOptional={isOptional}
+                            toggleOptionalTriple={() => props.setOptionalTriple(id, !isOptional)} />
       <ItemPrefix prefix={prefix} />
       {infoLoaded && selectedUriInfo &&
         <ItemDesc desc={selectedUriInfo} />

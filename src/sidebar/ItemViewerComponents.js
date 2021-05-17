@@ -131,15 +131,13 @@ export function DeleteItemButton(props) {
 }
 
 export function OptionalTripleButton(props) {
-  const [isOptional, setIsOptional] = useState(false);
-  const toggleOptional = () => setIsOptional(!isOptional);
-  const optionality = isOptional ? 'Yes' : 'No';
+  const optionality = props.isOptional ? 'Yes' : 'No';
 
   return (
     <>
       <p>Make Optional</p>
       <motion.div className='button' variants={buttonVariants} initial={false} animate={optionality}
-                  onClick={() => toggleOptional()}>
+                  onClick={() => props.toggleOptionalTriple()}>
         <p>{optionality}</p>
       </motion.div>
     </>
