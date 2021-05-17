@@ -105,7 +105,7 @@ function SelectedUriNodeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
-      <DeleteItemButton id={id} deleteItemCascade={(id) => props.deleteItemCascade(id, type)}/>
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemPrefix prefix={prefix} />
       {infoLoaded && selectedUriInfo &&
         <ItemDesc desc={selectedUriInfo} />
@@ -120,7 +120,7 @@ function SelectedUnknownNodeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={content} />
-      <DeleteItemButton id={id} deleteItemCascade={(id) => props.deleteItemCascade(id, type)}/>
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <BoundUnknownCheckbox type={type} onBoundChange={(type) => props.onBoundChange(type)} />
       {meta &&
         <ItemInferredProps meta={meta} />
@@ -137,7 +137,7 @@ function SelectedLiteralNodeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
-      <DeleteItemButton id={id} deleteItemCascade={(id) => props.deleteItemCascade(id, type)}/>
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemLiteralType content={content} />
     </div>
   );
@@ -149,7 +149,7 @@ function SelectedUnknownEdgeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} content={content} />
-      <DeleteItemButton id={id} deleteItemCascade={(id) => props.deleteItemCascade(id, type)}/>
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemInferredProps />
     </div>
   );
@@ -162,8 +162,7 @@ function SelectedKnownEdgeViewer(props) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
-      <DeleteItemButton id={id} deleteItemCascade={(id) => props.deleteItemCascade(id, type)}/>
-      <OptionalTripleButton setTripleOptional={() => props.setOptionalTriple(id)} />
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemPrefix prefix={prefix} />
       {infoLoaded && selectedUriInfo &&
         <ItemDesc desc={selectedUriInfo} />

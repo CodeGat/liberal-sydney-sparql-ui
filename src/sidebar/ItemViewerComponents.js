@@ -4,7 +4,7 @@ import arrowUnknownImg from "./img/arrow_icon_unknown_black.png";
 import litImg from "./img/literal_icon_known.png";
 import unkImg from "./img/node_icon_unknown.png";
 import noneImg from "./img/none_icon.png";
-import React, {useState} from "react";
+import React from "react";
 import {motion} from "framer-motion";
 import "./ItemViewerComponents.css";
 
@@ -120,13 +120,10 @@ export function BoundUnknownCheckbox(props) {
 }
 
 export function DeleteItemButton(props) {
-  const { id } = props;
-  const deleteItem = (id) => props.deleteItemCascade(id);
-
   return (
     <>
       <p>Delete Node</p>
-      <div className='button' onClick={() => deleteItem(id)}>
+      <div className='button' onClick={() => props.deleteItemCascade()}>
         <p>Delete</p>
       </div>
     </>
