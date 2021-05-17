@@ -6,57 +6,60 @@ import "./Canvas.css";
 export default class Node extends React.Component {
   static variants = {
     nodeUnknown: isOpt => ({
-      fill: isOpt ? '#1e90ff' : '#0000fe',
+      fill: '#0000fe',
       rx: 50,
       ry: 50,
       height: 100,
       width: 100,
       strokeWidth: isOpt ? 5 :  0,
       strokeDasharray: 3,
-      stroke: '#0000fe'
+      stroke: '#1e90ff'
     }),
     nodeSelectedUnknown: isOpt => ({
-      fill: isOpt ? '#59adff' : '#1e90ff',
+      fill: '#1e90ff',
       rx: 50,
       ry: 50,
       height: 100,
       width: 100,
       strokeWidth: isOpt ? 5 :  0,
       strokeDasharray: 3,
-      stroke: '#0000fe'
+      stroke: '#59adff'//'#0000fe'
     }),
     nodeUri: isOpt => ({
-      fill: isOpt ? '#4e4e4e' : '#bebebe',
+      fill: '#bebebe',
       rx: 50,
       ry: 50,
       height: 100,
       width: 100,
       strokeWidth: isOpt ? 5 :  0,
       strokeDasharray: 3,
-      stroke: '#0000fe'
+      stroke: '#4e4e4e'
     }),
     nodeLiteral: isOpt => ({
-      fill: isOpt ? '#bebebe' : '#4e4e4e',
+      fill: '#4e4e4e',
       rx: 0,
       ry: 0,
       height: 100,
       width: 200,
       strokeWidth: isOpt ? 5 : 0,
       strokeDasharray: 3,
-      stroke: '#0000fe'
+      stroke: '#bebebe'
     }),
     nodeAmalgam: isOpt => ({
-      fill: isOpt ? '#bebebe' : '#444444',
+      fill: '#444444',
       height: 100,
       width: 100,
       rx: 10,
-      ry: 10
+      ry: 10,
+      strokeWidth: isOpt ? 5 : 0,
+      strokeDasharray: 3,
+      stroke: '#bebebe'
     }),
     nodeUnf: isOpt => ({
-      fill: isOpt ? '#1e90ff' : '#0000fe',
-      strokeWidth: 0,
+      fill: '#0000fe',
+      strokeWidth: isOpt ? 3: 0,
       strokeDasharray: 3,
-      stroke: '#0000fe',
+      stroke: '#1e90ff',
       width: 40,
       height: 40,
       rx: 70,
