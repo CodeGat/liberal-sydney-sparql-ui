@@ -295,7 +295,28 @@ class App extends React.Component {
     }
 
     if (isFirst) { // on most shallow recursion, set selected item to incoming item or empty.
+      if (type.startsWith('edge')){
+        this.checkOptionalityOnSubjectNodeOfDeletedEdge(id, graph);
+      }
       this.findSuitableSelectedItemChange(id, type, graph);
+    }
+  }
+
+  /**
+   * if there are no more OPTIONAL outgoing edges from the subject node of the deleted edge, set the node to not being
+   *   optional
+   * @param {number} id - id of the deleted edge
+   * @param {Object} graph - snapshot of the graph before deletion
+   */
+  checkOptionalityOnSubjectNodeOfDeletedEdge = (id, graph) => {
+    const deletedEdge = graph.edges.find(edge => edge.id = id);
+    if (!deletedEdge.isOptional) return;
+
+    const subjNodeOfDeletedEdge = graph.nodes.find(node => node.id === deletedEdge.subject.id);
+    const subjNodeEdges = graph.edges.filter(edge => edge.subject.id === subjNodeOfDeletedEdge.id && edge.id !== id);
+
+    if (!subjNodeEdges.some(edge => edge.isOptional)) {
+      this.changeNodeState(subjNodeOfDeletedEdge.id, {isOptional: false});
     }
   }
 
