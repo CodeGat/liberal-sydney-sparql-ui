@@ -58,3 +58,15 @@
 #help-page-container p {
     font-family: 'Roboto Condensed', sans-serif;
 }
+
+.centered-table {
+    margin: 0 auto;
+}
+
+.big {
+    font-size: larger;
+}
+
+.text {
+    font-family: 'Roboto Condensed', sans-serif;
+}

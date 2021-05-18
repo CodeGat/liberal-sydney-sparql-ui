@@ -1,8 +1,13 @@
 import React, {useState} from "react";
 import {motion} from "framer-motion";
+import uri from './img/uri.png';
+import unknown from './img/unknown.png';
+import selectedunknown from './img/selectedunknown.png';
+import literal from './img/literal.png';
+import property from './img/property.png';
 import './MenuBar.css';
 
-export default function MenuBar() {
+export default function MenuBar(props) {
   const [isHelpPage, setIsHelpPage] = useState(false);
   const menuVaraints = {
     menubar: {
@@ -26,7 +31,8 @@ export default function MenuBar() {
       <div className='nav-header'>
         <p className='nav-header-text'>LMB SPARQL Explorer</p>
       </div>
-      {!isHelpPage && <NavBar toggleHelpPage={() => setIsHelpPage(!isHelpPage)} />}
+      {!isHelpPage && <NavBar loadExampleIntoCanvas={(example) => props.loadExampleIntoCanvas(example)}
+                              toggleHelpPage={() => setIsHelpPage(!isHelpPage)} />}
       {isHelpPage && <HelpPage toggleHelpPage={() => setIsHelpPage(!isHelpPage)} />}
     </motion.div>
   );
@@ -72,13 +78,54 @@ function HelpPage(props) {
 
   return (
     <div id='help-page-container' onClick={() => props.toggleHelpPage()}>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla a purus quis pellentesque. Fusce id ex hendrerit, elementum elit sed, mollis diam. In pellentesque commodo mi a finibus. Duis dapibus, arcu rutrum sodales gravida, nulla elit congue augue, eget convallis lorem augue ut quam. Morbi et iaculis lacus, sed cursus magna. Aliquam volutpat est tellus, sed tincidunt nisi ultrices ut. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec sit amet velit ex. Sed malesuada arcu sit amet lectus interdum, sit amet aliquet ante blandit. Nullam sollicitudin ac metus in auctor. Maecenas ac volutpat mauris.</p>
-      <p>Pellentesque et feugiat enim. Suspendisse accumsan purus eu leo molestie interdum. Fusce at magna ac ex tempus volutpat. Proin tristique semper justo ac ornare. Sed ullamcorper faucibus velit, ac euismod enim molestie non. Praesent et bibendum turpis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur odio purus, consectetur vitae massa at, sodales viverra erat. Sed tempor, sapien ac dignissim finibus, arcu diam vehicula purus, nec tristique mi dolor in libero. Maecenas volutpat erat vel eros mattis malesuada. Morbi feugiat auctor congue. Ut consectetur ultrices tristique. Mauris eget purus in sem efficitur porttitor. Donec imperdiet vitae ipsum in elementum. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
-      <p>Quisque bibendum nisi quis ipsum ullamcorper interdum. Aliquam consectetur a orci eget aliquet. Maecenas nec dolor id nibh bibendum varius at et justo. Donec volutpat turpis non quam tincidunt vehicula. Donec nisi est, egestas eu consequat id, accumsan sit amet quam. Nullam et ex non massa cursus sagittis. Mauris in eleifend diam. Donec quis ultricies mi. Nulla elementum consequat volutpat. Nam feugiat arcu egestas, gravida ex id, efficitur velit. Suspendisse massa tortor, feugiat vel suscipit vel, luctus tristique risus. Nulla convallis sodales ipsum, a interdum nisi finibus a. Maecenas id faucibus quam. Sed sodales, ante pellentesque tempor posuere, justo turpis scelerisque ligula, vitae ultricies nulla lacus vitae sapien</p>
-      <p>Pellentesque facilisis aliquet sapien, facilisis congue lectus eleifend eu. Nulla in molestie mauris, ut tempus velit. Aenean auctor nunc non arcu dignissim, ut dapibus arcu venenatis. Maecenas eget elit in risus facilisis vulputate. Nullam semper lorem eu venenatis pretium. Donec efficitur massa tempor, condimentum purus ut, suscipit nulla. Cras in neque non ex facilisis euismod. Praesent pulvinar diam ut imperdiet dignissim. Aenean ullamcorper, lacus in tempus ornare, nunc ligula efficitur neque, vitae tempus metus turpis sed felis. </p>
-      <p>Fusce finibus vel eros eget tempor. Phasellus eu tortor malesuada, consequat nisl non, sodales enim. Sed dolor felis, aliquam at luctus in, euismod id erat. Duis pretium vitae augue sit amet efficitur. Mauris dictum, elit et scelerisque blandit, odio tellus aliquet ex, in tincidunt ipsum purus sit amet ante. Quisque lorem dolor, luctus faucibus neque eu, bibendum venenatis tellus. Integer nec sollicitudin nunc. Nam tincidunt, leo a ultrices mattis, arcu elit eleifend lacus, luctus elementum dui orci ac felis. Quisque eu lorem id mi accumsan eleifend. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Quisque lobortis massa non dapibus molestie. </p>
-      <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla a purus quis pellentesque. Fusce id ex hendrerit, elementum elit sed, mollis diam. In pellentesque commodo mi a finibus. Duis dapibus, arcu rutrum sodales gravida, nulla elit congue augue, eget convallis lorem augue ut quam. Morbi et iaculis lacus, sed cursus magna. Aliquam volutpat est tellus, sed tincidunt nisi ultrices ut. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec sit amet velit ex. Sed malesuada arcu sit amet lectus interdum, sit amet aliquet ante blandit. Nullam sollicitudin ac metus in auctor. Maecenas ac volutpat mauris.</p>
-      <p>Pellentesque et feugiat enim. Suspendisse accumsan purus eu leo molestie interdum. Fusce at magna ac ex tempus volutpat. Proin tristique semper justo ac ornare. Sed ullamcorper faucibus velit, ac euismod enim molestie non. Praesent et bibendum turpis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur odio purus, consectetur vitae massa at, sodales viverra erat. Sed tempor, sapien ac dignissim finibus, arcu diam vehicula purus, nec tristique mi dolor in libero. Maecenas volutpat erat vel eros mattis malesuada. Morbi feugiat auctor congue. Ut consectetur ultrices tristique. Mauris eget purus in sem efficitur porttitor. Donec imperdiet vitae ipsum in elementum. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
+      <p>The LMB SPARQL Explorer is a UI that aids the creation of vaild, complete SPARQL Queries that does not require prior knowledge of the syntax of SPARQL.</p>
+      <p>It aids the creation of SPARQL queries based on a given ontology and its associated data, through inferring logical connections between the ontology and the instance-level data, through a graph-like structure.</p>
+      <p>In order to create some valid queries, there are some basic, fundamental building blocks that the LMB SPARQL Explorer uses, namely:</p>
+      <table className='centered-table'>
+        <tr>
+          <td>
+            <img src={unknown} width={150} alt='Unknown Example'/>
+          </td>
+          <td>
+            <img src={selectedunknown} width={150} alt='Selected Unknown Example'/>
+          </td>
+          <td>
+            <img src={uri} width={150} alt='Uri Example'/>
+          </td>
+          <td>
+            <img src={literal} width={150} alt='Literal Example'/>
+          </td>
+          <td>
+            <img src={property} width={150} alt='Property Example'/>
+          </td>
+        </tr>
+        <tr>
+          <td className='big text'>Unknown</td>
+          <td className='big text'>Selected Unknown</td>
+          <td className='big text'>URI</td>
+          <td className='big text'>Literal</td>
+          <td className='big text'>Property</td>
+        </tr>
+        <tr>
+          <td>
+            <p className='text'>Think of it as a wildcard - some 'thing' that is matched against everything in the dataset</p>
+          </td>
+          <td>
+            <p className='text'>This is similar, except we want this 'thing' to be in our results</p>
+          </td>
+          <td>
+            <p className='text'>A URI is a concrete concept, something specific in the data</p>
+          </td>
+          <td>
+            <p className='text'>This is a primitive type - like a string of characters ("Hello!"), numbers (12, 42.0) or others as defined in the ontology</p>
+          </td>
+          <td>
+            <p className='text'>This connects each of the other nodes together. Like the URI, this is also a concrete concept</p>
+          </td>
+        </tr>
+      </table>
+      <hr/>
+      <p>There are also properties lines in between these </p>
     </div>
   );
 }
