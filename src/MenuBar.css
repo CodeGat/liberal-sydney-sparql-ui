@@ -73,6 +73,10 @@
     font-size: larger;
 }
 
+.help-header {
+    font-size: 32px;
+}
+
 .text {
     font-family: 'Roboto Condensed', sans-serif;
 }
