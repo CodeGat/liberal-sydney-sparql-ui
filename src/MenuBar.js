@@ -5,6 +5,9 @@ import unknown from './img/unknown.png';
 import selectedunknown from './img/selectedunknown.png';
 import literal from './img/literal.png';
 import property from './img/property.png';
+import ex0 from './img/ex0.png';
+import ex1 from './img/ex1.png';
+// import ex2 from './img/ex2.png';
 import './MenuBar.css';
 
 export default function MenuBar(props) {
@@ -111,21 +114,28 @@ function HelpPage(props) {
             <p className='text'>Think of it as a wildcard - some 'thing' that is matched against everything in the dataset</p>
           </td>
           <td>
-            <p className='text'>This is similar, except we want this 'thing' to be in our results</p>
+            <p className='text'>This is similar, except we want this 'thing' (that we'll call 'person') to be in our results</p>
           </td>
           <td>
-            <p className='text'>A URI is a concrete concept, something specific in the data</p>
+            <p className='text'>A URI is a concrete concept, something specific in the data - like the concept of a Person, a Book, an Address...</p>
           </td>
           <td>
             <p className='text'>This is a primitive type - like a string of characters ("Hello!"), numbers (12, 42.0) or others as defined in the ontology</p>
           </td>
           <td>
-            <p className='text'>This connects each of the other nodes together. Like the URI, this is also a concrete concept</p>
+            <p className='text'>This connects each of the other nodes together in a relationship. Like the URI, this is also a concrete concept</p>
           </td>
         </tr>
       </table>
       <hr/>
-      <p>There are also properties lines in between these </p>
+      <p>Using just these, we can create simple examples, for example:</p>
+      <img className='img-outline' width={350} src={ex0} alt='example of a simple type query' />
+      <p>This would read: "Give me all the things (lets call each of them ?person) that are a type of Person." We can extend upon this example, too (note the automatic simplification for the type of the Unknown):</p>
+      <img className='img-outline' width={350} src={ex1} alt='example of a simple query' />
+      <p>If you were to read this in natural language, it would say something like: "Give me all the things (called '?person') which are a Person, who has the name Smith."</p>
+      <p>We can extend the examples further, too, using more relationships:</p>
+      {/*<img className='img-outline' src={ex2} alt='example of a more complex query'/>*/}
+      <p></p>
     </div>
   );
 }

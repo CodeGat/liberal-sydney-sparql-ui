@@ -51,7 +51,6 @@
 
 #help-page-container {
     clear: both;
-    text-align: center;
     padding: 0 30px;
 }
 
@@ -61,6 +60,13 @@
 
 .centered-table {
     margin: 0 auto;
+    border-collapse: collapse;
+}
+
+.centered-table td {
+    border-left: solid 1px black;
+    text-align: center;
+    padding: 0 10px;
 }
 
 .big {
@@ -69,4 +75,8 @@
 
 .text {
     font-family: 'Roboto Condensed', sans-serif;
+}
+
+.img-outline {
+    border: solid 1px black;
 }
