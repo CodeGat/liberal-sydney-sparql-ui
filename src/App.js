@@ -11,7 +11,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: {type: '', id: '', content: '', meta: ''},
+      selected: {type: '', id: '', content: '', isOptional: false, meta: ''},
       transferredSuggestion: {exists: false},
       lastReferencedUnknown: -1,
       lastReferencedUnknownAwaitingClass: false,
@@ -30,10 +30,11 @@ class App extends React.Component {
    *          node (specified by it's variant), edge or datatype.
    * @param {number} id - id of the given changed object.
    * @param {string} content - the changed input of the object.
+   * @param {boolean} isOptional - is the object SPARQL OPTIONAL?
    * @param {Object} meta - metadata of the selected item.
    */
-  handleSelectedItemChange = (type, id, content, meta) => {
-    this.setState({selected: {type: type, id: id, content: content, meta: meta}});
+  handleSelectedItemChange = (type, id, content, isOptional, meta) => {
+    this.setState({selected: {type: type, id: id, content: content, isOptional: isOptional, meta: meta}});
   }
 
   /**
@@ -77,16 +78,17 @@ class App extends React.Component {
    * @param {string} type - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
    *   fully formed node ('nodeUnknown'/'nodeKnown')
    * @param {string} content - content that the node starts with
+   * @param {boolean} isOptional - is the node SPARQL OPTIONAL?
    * @param {string} [iri] - optional iri for nodes that have type 'nodeUri'
    * @returns {number} - id of node just created.
    */
-  createNode = (x, y, type, content, iri) => {
+  createNode = (x, y, type, content, isOptional, iri) => {
     const { nodeCounter } = this.state;
     const variant = Node.variants[type](false);
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
-      id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null
+      id: nodeCounter + 1, type: type, content: content, isOptional: isOptional, amalgam: null
     };
 
     if (iri) newNode.iri = iri;
@@ -100,7 +102,7 @@ class App extends React.Component {
     }));
 
     if (type !== 'nodeUnf') {
-      this.handleSelectedItemChange(type, nodeCounter + 1, content,  null);
+      this.handleSelectedItemChange(type, nodeCounter + 1, content, isOptional,  null);
     }
 
     return nodeCounter + 1;
@@ -136,7 +138,9 @@ class App extends React.Component {
       tempEdge: {completing: true, x: subjectPos.midX + 1, y: subjectPos.midY + 1}
     }));
 
-    this.handleSelectedItemChange(content === '?' ? 'edgeUnknown' : 'edgeKnown', edgeCounter + 1, content, null);
+    this.handleSelectedItemChange(
+      content === '?' ? 'edgeUnknown' : 'edgeKnown', edgeCounter + 1, content, false,null
+    );
   }
 
   /**
@@ -283,15 +287,37 @@ class App extends React.Component {
       }
     } else { // it is an edge and we find the connected node and recursively delete
       const deletedEdge = graph.edges.find(edge => edge.id === id);
-      const deletedEdgeNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
-      if (deletedEdgeNode) {
-        this.deleteItemCascade(deletedEdgeNode.id, deletedEdgeNode.type, false);
+      const deletedEdgeObjNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
+
+      if (deletedEdgeObjNode) {
+        this.deleteItemCascade(deletedEdgeObjNode.id, deletedEdgeObjNode.type, false);
       }
       this.deleteEdge(id);
     }
 
     if (isFirst) { // on most shallow recursion, set selected item to incoming item or empty.
+      if (type.startsWith('edge')) {
+        this.checkOptionalityOnSubjectNodeOfDeletedEdge(id, graph);
+      }
       this.findSuitableSelectedItemChange(id, type, graph);
+    }
+  }
+
+  /**
+   * if there are no more OPTIONAL outgoing edges from the subject node of the deleted edge, set the node to not being
+   *   optional
+   * @param {number} id - id of the deleted edge
+   * @param {Object} graph - snapshot of the graph before deletion
+   */
+  checkOptionalityOnSubjectNodeOfDeletedEdge = (id, graph) => {
+    const deletedEdge = graph.edges.find(edge => edge.id === id);
+    if (!deletedEdge.isOptional) return;
+
+    const subjNodeOfDeletedEdge = graph.nodes.find(node => node.id === deletedEdge.subject.id);
+    const subjNodeEdges = graph.edges.filter(edge => edge.subject.id === subjNodeOfDeletedEdge.id && edge.id !== id);
+
+    if (!subjNodeEdges.some(edge => edge.isOptional)) {
+      this.changeNodeState(subjNodeOfDeletedEdge.id, {isOptional: false});
     }
   }
 
@@ -306,15 +332,18 @@ class App extends React.Component {
     if (type.startsWith('node')) {
       const selectedEdge = graph.edges.find(edge => edge.object.id === id);
       if (selectedEdge) {
-        this.handleSelectedItemChange(selectedEdge.type, selectedEdge.id, selectedEdge.content, null);
-      } else {
-        this.handleSelectedItemChange('', -1, '', '');
+        this.handleSelectedItemChange(
+          selectedEdge.type, selectedEdge.id, selectedEdge.content, selectedEdge.isOptional, null
+        );
+      } else { // have no selected item
+        this.handleSelectedItemChange('', -1, '', false,'');
       }
     } else {
       const deletedEdge = graph.edges.find(edge => edge.id === id);
       const selectedNode = graph.nodes.find(node => node.id === deletedEdge.subject.id);
       this.handleSelectedItemChange(
-        selectedNode.type, selectedNode.id, selectedNode.content, {amalgam: selectedNode.amalgam}
+        selectedNode.type, selectedNode.id, selectedNode.content, selectedNode.isOptional,
+        {amalgam: selectedNode.amalgam}
       );
     }
   }
@@ -351,7 +380,7 @@ class App extends React.Component {
                     onSelectedItemChange={this.handleSelectedItemChange}
                     acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
             <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
-                     changeNodeState={this.changeNodeState}
+                     changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
                      deleteItemCascade={(id, type) => this.deleteItemCascade(id, type, true)}
                      onSelectedItemChange={this.handleSelectedItemChange}
                      onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}

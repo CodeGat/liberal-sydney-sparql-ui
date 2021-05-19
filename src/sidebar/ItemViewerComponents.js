@@ -98,36 +98,48 @@ export function ItemLiteralType(props) {
   );
 }
 
+const buttonVariants = {
+  Yes: {backgroundColor: '#b3b3b3'},
+  No: {backgroundColor: '#9c9c9c'}
+};
+
 export function BoundUnknownCheckbox(props) {
   const { type } = props;
   const toggleBound = () => props.onBoundChange(type === 'nodeUnknown' ? 'nodeSelectedUnknown' : 'nodeUnknown');
-  const variants = {
-    yes: {backgroundColor: '#b3b3b3'},
-    no: {backgroundColor: '#9c9c9c'}
-  };
-  const animation = type === 'nodeSelectedUnknown' ? 'yes' : 'no';
+  const isSelected = type === 'nodeSelectedUnknown' ? 'Yes' : 'No';
 
   return (
     <>
       <p>Show in results?</p>
-      <motion.div className={'button'} variants={variants} initial={false} animate={animation}
+      <motion.div className={'button'} variants={buttonVariants} initial={false} animate={isSelected}
                   onClick={() => toggleBound()}>
-        <p>{type === 'nodeSelectedUnknown' ? 'Yes' : 'No'}</p>
+        <p>{isSelected}</p>
       </motion.div>
     </>
   );
 }
 
 export function DeleteItemButton(props) {
-  const { id } = props;
-  const deleteItem = (id) => props.deleteItemCascade(id);
-
   return (
     <>
       <p>Delete Node</p>
-      <div className='button' onClick={() => deleteItem(id)}>
+      <div className='button' onClick={() => props.deleteItemCascade()}>
         <p>Delete</p>
       </div>
+    </>
+  );
+}
+
+export function OptionalTripleButton(props) {
+  const optionality = props.isOptional ? 'Yes' : 'No';
+
+  return (
+    <>
+      <p>Make Optional</p>
+      <motion.div className='button' variants={buttonVariants} initial={false} animate={optionality}
+                  onClick={() => props.toggleOptionalTriple()}>
+        <p>{optionality}</p>
+      </motion.div>
     </>
   );
 }
