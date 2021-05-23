@@ -4,7 +4,7 @@ import "./Canvas.css";
 import "./Edge.css";
 
 export default class Edge extends React.Component {
-  static variants = {
+  static pathVariants = {
     edgeUnknown: isOpt => ({
       stroke: '#8e9094',
       strokeWidth: 3,
@@ -17,6 +17,14 @@ export default class Edge extends React.Component {
       strokeDasharray: isOpt ? 5 : 0,
       opacity: 1
     })
+  };
+  static inputVariants = {
+    selected: {
+      border: 'solid 2px black'
+    },
+    unselected: {
+      border: 'solid 0 black'
+    }
   };
   static labelHeight = 30;
   static labelWidth = 175;
@@ -46,7 +54,7 @@ export default class Edge extends React.Component {
   }
 
   render() {
-    const { subject, object, type, isOptional, content, tempEdge, complete } = this.props;
+    const { subject, object, type, isOptional, content, tempEdge, complete, isSelected } = this.props;
     const objectIntersectX = complete ? object.intersectX : tempEdge.x; 
     const objectIntersectY = complete ? object.intersectY : tempEdge.y;
     
@@ -63,12 +71,13 @@ export default class Edge extends React.Component {
     return (
       <g>
         <motion.path d={pathDef} markerEnd={"url(#arrow)"}
-                     variants={Edge.variants}
+                     variants={Edge.pathVariants}
                      initial={'edgeUnknown'}
                      animate={type} custom={isOptional}
                      exit={{opacity: 0}} />
         <foreignObject x={labelX} y={labelY} width={Edge.labelWidth} height={Edge.labelHeight}>
-          <input className={"edgeLabel"} value={content}
+          <motion.input className={"edgeLabel"} value={content}
+                        initial={false} variants={Edge.inputVariants} animate={isSelected ? 'selected' : 'unselected'}
                         onChange={this.handleChangedText}
                         onBlur={this.handleEntryExit}
                         onClick={(e) => {
