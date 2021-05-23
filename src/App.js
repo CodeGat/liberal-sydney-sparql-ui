@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import MenuBar from "./MenuBar";
 import Canvas from "./canvas/Canvas";
 import SideBar from "./sidebar/SideBar";
 import {AnimateSharedLayout} from "framer-motion";
@@ -10,7 +11,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: {type: '', id: '', content: '', meta: ''},
+      selected: {type: '', id: '', content: '', isOptional: false, meta: ''},
       transferredSuggestion: {exists: false},
       lastReferencedUnknown: -1,
       lastReferencedUnknownAwaitingClass: false,
@@ -28,9 +29,10 @@ class App extends React.Component {
    *          node (specified by it's variant), edge or datatype.
    * @param {number} id - id of the given changed object.
    * @param {string} content - the changed input of the object.
+   * @param {boolean} isOptional - is the object SPARQL OPTIONAL?
    * @param {Object} meta - metadata of the selected item.
    */
-  handleSelectedItemChange = (type, id, content, meta) => {
+  handleSelectedItemChange = (type, id, content, isOptional, meta) => {
     const { selected } = this.state;
 
     // set our old selected item to unselected
@@ -45,7 +47,7 @@ class App extends React.Component {
     } else {
       this.changeEdgeState(id, {isSelected: true});
     }
-    this.setState({selected: {type: type, id: id, content: content, meta: meta}});
+    this.setState({selected: {type: type, id: id, content: content, isOptional: isOptional, meta: meta}});
   }
 
   /**
@@ -89,16 +91,17 @@ class App extends React.Component {
    * @param {string} type - the initial state of the created Node, either being a placeholder ('nodeUnf') or a
    *   fully formed node ('nodeUnknown'/'nodeKnown')
    * @param {string} content - content that the node starts with
+   * @param {boolean} isOptional - is the node SPARQL OPTIONAL?
    * @param {string} [iri] - optional iri for nodes that have type 'nodeUri'
    * @returns {number} - id of node just created.
    */
-  createNode = (x, y, type, content, iri) => {
+  createNode = (x, y, type, content, isOptional, iri) => {
     const { nodeCounter } = this.state;
     const variant = Node.variants[type](false);
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
-      id: nodeCounter + 1, type: type, content: content, isOptional: false, amalgam: null,
+      id: nodeCounter + 1, type: type, content: content, isOptional: isOptional, amalgam: null,
       isSelected: false
     };
 
@@ -113,7 +116,7 @@ class App extends React.Component {
     }));
 
     if (type !== 'nodeUnf') {
-      this.handleSelectedItemChange(type, nodeCounter + 1, content,  null);
+      this.handleSelectedItemChange(type, nodeCounter + 1, content, isOptional,  null);
     }
 
     return nodeCounter + 1;
@@ -150,7 +153,9 @@ class App extends React.Component {
       tempEdge: {completing: true, x: subjectPos.midX + 1, y: subjectPos.midY + 1}
     }));
 
-    this.handleSelectedItemChange(content === '?' ? 'edgeUnknown' : 'edgeKnown', edgeCounter + 1, content, null);
+    this.handleSelectedItemChange(
+      content === '?' ? 'edgeUnknown' : 'edgeKnown', edgeCounter + 1, content, false,null
+    );
   }
 
   /**
@@ -275,26 +280,127 @@ class App extends React.Component {
     }));
   }
 
+  /**
+   * Recursively deletes an item and all it's outgoing connections
+   * @param {number} id - id of the item to delete
+   * @param {string} type - type of the item to delete, allows calling of correct graph modification methods
+   * @param {boolean} isFirst - if it's the most shallow iteration, change the node to an 'unf' node if theres no
+   *   further connections
+   */
+  deleteItemCascade = (id, type, isFirst) => {
+    const { graph } = this.state;
+
+    if (type.startsWith('node')) { // find all the outgoing edges and recursively delete
+      const deletedNodeOutgoingEdges = graph.edges.filter(edge => edge.subject.id === id);
+      for (const outgoingEdge of deletedNodeOutgoingEdges) {
+        this.deleteItemCascade(outgoingEdge.id, outgoingEdge.type, false);
+      }
+      if (isFirst && deletedNodeOutgoingEdges.length === 0) { //todo: edge case where if only one node, turns small
+        this.changeNodeState(id, {type: 'nodeUnf', content: '', amalgam: null});
+      } else {
+        this.deleteNode(id);
+      }
+    } else { // it is an edge and we find the connected node and recursively delete
+      const deletedEdge = graph.edges.find(edge => edge.id === id);
+      const deletedEdgeObjNode = graph.nodes.find(node => node.id === deletedEdge.object.id);
+
+      if (deletedEdgeObjNode) {
+        this.deleteItemCascade(deletedEdgeObjNode.id, deletedEdgeObjNode.type, false);
+      }
+      this.deleteEdge(id);
+    }
+
+    if (isFirst) { // on most shallow recursion, set selected item to incoming item or empty.
+      if (type.startsWith('edge')) {
+        this.checkOptionalityOnSubjectNodeOfDeletedEdge(id, graph);
+      }
+      this.findSuitableSelectedItemChange(id, type, graph);
+    }
+  }
+
+  /**
+   * if there are no more OPTIONAL outgoing edges from the subject node of the deleted edge, set the node to not being
+   *   optional
+   * @param {number} id - id of the deleted edge
+   * @param {Object} graph - snapshot of the graph before deletion
+   */
+  checkOptionalityOnSubjectNodeOfDeletedEdge = (id, graph) => {
+    const deletedEdge = graph.edges.find(edge => edge.id === id);
+    if (!deletedEdge.isOptional) return;
+
+    const subjNodeOfDeletedEdge = graph.nodes.find(node => node.id === deletedEdge.subject.id);
+    const subjNodeEdges = graph.edges.filter(edge => edge.subject.id === subjNodeOfDeletedEdge.id && edge.id !== id);
+
+    if (!subjNodeEdges.some(edge => edge.isOptional)) {
+      this.changeNodeState(subjNodeOfDeletedEdge.id, {isOptional: false});
+    }
+  }
+
+  /**
+   * Finds the incoming node or edge off the deleted on, setting it as the selected item
+   * @param id - id of the deleted item
+   * @param type - type of the deleted item
+   * @param graph - graph snapshot at lowest level of recursion (no items deleted yet, so we can access
+   *   deleted item data)
+   */
+  findSuitableSelectedItemChange = (id, type, graph) => {
+    if (type.startsWith('node')) {
+      const selectedEdge = graph.edges.find(edge => edge.object.id === id);
+      if (selectedEdge) {
+        this.handleSelectedItemChange(
+          selectedEdge.type, selectedEdge.id, selectedEdge.content, selectedEdge.isOptional, null
+        );
+      } else { // have no selected item
+        this.handleSelectedItemChange('', -1, '', false,'');
+      }
+    } else {
+      const deletedEdge = graph.edges.find(edge => edge.id === id);
+      const selectedNode = graph.nodes.find(node => node.id === deletedEdge.subject.id);
+      this.handleSelectedItemChange(
+        selectedNode.type, selectedNode.id, selectedNode.content, selectedNode.isOptional,
+        {amalgam: selectedNode.amalgam}
+      );
+    }
+  }
+
+  /**
+   *
+   * @param {Object} example - object containing edge/node definitions, as well as current ids
+   */
+  loadExampleIntoCanvas = (example) => {
+    const { nodes, edges, nodeCounter, edgeCounter } = example;
+
+    this.setState({
+      nodeCounter: nodeCounter,
+      edgeCounter: edgeCounter,
+      graph: {nodes: nodes, edges: edges}
+    });
+  }
+
   render(){
     const { selected, transferredSuggestion, graph, tempEdge, canvasStateSnapshot } = this.state;
 
     return (
       <AnimateSharedLayout>
         <div className="App">
-          <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
-                  transferredSuggestion={transferredSuggestion}
-                  createNode={this.createNode} createEdge={this.createEdge}
-                  deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
-                  changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
-                  updateEdgeIntersections={this.updateEdgeIntersections}
-                  moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
-                  onSelectedItemChange={this.handleSelectedItemChange}
-                  acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
-          <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
-                   changeNodeState={this.changeNodeState}
-                   onSelectedItemChange={this.handleSelectedItemChange}
-                   onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
-                   onRequestCanvasState={this.handleRequestCanvasState}/>
+          <MenuBar loadExampleIntoCanvas={this.loadExampleIntoCanvas}/>
+          <div className='content'>
+            <Canvas selected={selected} graph={graph} tempEdge={tempEdge}
+                    transferredSuggestion={transferredSuggestion}
+                    createNode={this.createNode} createEdge={this.createEdge}
+                    deleteNode={this.deleteNode} deleteEdge={this.deleteEdge}
+                    changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
+                    updateEdgeIntersections={this.updateEdgeIntersections}
+                    moveEdgePlacement={this.moveEdgePlacement} completeEdge={this.completeEdge}
+                    onSelectedItemChange={this.handleSelectedItemChange}
+                    acknowledgeTransferredSuggestion={this.handleAcknowledgedSuggestion}/>
+            <SideBar selected={selected} graph={graph} canvasStateSnapshot={canvasStateSnapshot}
+                     changeNodeState={this.changeNodeState} changeEdgeState={this.changeEdgeState}
+                     deleteItemCascade={(id, type) => this.deleteItemCascade(id, type, true)}
+                     onSelectedItemChange={this.handleSelectedItemChange}
+                     onTransferSuggestionToCanvas={this.handleTransferSuggestionToCanvas}
+                     onRequestCanvasState={this.handleRequestCanvasState}/>
+          </div>
         </div>
       </AnimateSharedLayout>
     );

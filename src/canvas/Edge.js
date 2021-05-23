@@ -22,9 +22,9 @@ export default class Edge extends React.Component {
   static labelWidth = 175;
 
   handleEntryExit = (e) => {
-    const { id, type } = this.props;
+    const { id, type, isOptional } = this.props;
 
-    this.props.onSelectedItemChange(type, id, e.target.value, null);
+    this.props.onSelectedItemChange(type, id, e.target.value, isOptional, null);
   }
 
   /**

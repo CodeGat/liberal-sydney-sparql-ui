@@ -8,7 +8,9 @@ import {
   ItemDesc,
   ItemInferredProps,
   ItemLiteralType,
-  BoundUnknownCheckbox
+  BoundUnknownCheckbox,
+  DeleteItemButton,
+  OptionalTripleButton
 } from "./ItemViewerComponents";
 
 export default class SelectedItemViewer extends React.Component {
@@ -45,14 +47,14 @@ export default class SelectedItemViewer extends React.Component {
    * @param {string} newType - the updated type
    */
   notifySelectedStateChange = (newType) => {
-    const { id, content, meta } = this.props;
+    const { id, content, isOptional, meta } = this.props;
 
     this.props.changeNodeState(id, {type: newType});
-    this.props.onSelectedItemChange(newType, id, content, meta);
+    this.props.onSelectedItemChange(newType, id, content, isOptional, meta);
   }
 
   render() {
-    const { type, content, basePrefix, info, infoLoaded, meta } = this.props;
+    const { id, type, content, isOptional, meta, basePrefix, info, infoLoaded } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
     if (type === "nodeUri" || type === "edgeKnown") {
@@ -64,19 +66,33 @@ export default class SelectedItemViewer extends React.Component {
       if (expandedPrefixLoaded) prefix = expandedPrefix;
 
       if (type === "nodeUri") {
-        return (<SelectedUriNodeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded}/>);
+        return (
+          <SelectedUriNodeViewer id={id} type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded}
+                                 deleteItemCascade={this.props.deleteItemCascade}/>
+        );
       } else {
-        return (<SelectedKnownEdgeViewer type={type} prefix={prefix} name={name} info={info} infoLoaded={infoLoaded} />);
+        return (<SelectedKnownEdgeViewer id={id} type={type} prefix={prefix} name={name}
+                                         isOptional={isOptional}
+                                         info={info} infoLoaded={infoLoaded}
+                                         deleteItemCascade={this.props.deleteItemCascade}
+                                         setOptionalTriple={this.props.setOptionalTriple} />);
       }
     } else if (type === "nodeUnknown" || type === "nodeSelectedUnknown") {
       return (
-        <SelectedUnknownNodeViewer type={type} content={content} meta={meta}
-                                   onBoundChange={(newType) => this.notifySelectedStateChange(newType)} />
+        <SelectedUnknownNodeViewer id={id} type={type} content={content} meta={meta}
+                                   onBoundChange={(newType) => this.notifySelectedStateChange(newType)}
+                                   deleteItemCascade={this.props.deleteItemCascade}/>
       );
     } else if (type === "nodeLiteral") {
-      return (<SelectedLiteralNodeViewer type={type} content={content} />);
+      return (
+        <SelectedLiteralNodeViewer id={id} type={type} content={content}
+                                   deleteItemCascade={this.props.deleteItemCascade}/>
+      );
     } else if (type === "edgeUnknown") {
-      return(<SelectedUnknownEdgeViewer type={type} content={content} />);
+      return(
+        <SelectedUnknownEdgeViewer id={id} type={type} content={content}
+                                   deleteItemCascade={this.props.deleteItemCascade}/>
+      );
     } else {
       return (<SelectedNullViewer type={type} content={content} />);
     }
@@ -84,13 +100,14 @@ export default class SelectedItemViewer extends React.Component {
 }
 
 function SelectedUriNodeViewer(props) {
-  const { type, prefix, name, info, infoLoaded } = props;
+  const { id, type, prefix, name, info, infoLoaded } = props;
   //todo: might need to take into account different delimiters such as '.', '#', '/'.
   const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
 
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemPrefix prefix={prefix} />
       {infoLoaded && selectedUriInfo &&
         <ItemDesc desc={selectedUriInfo} />
@@ -100,11 +117,12 @@ function SelectedUriNodeViewer(props) {
 }
 
 function SelectedUnknownNodeViewer(props) {
-  const { type, content, meta } = props;
+  const { id, type, content, meta } = props;
 
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={content} />
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <BoundUnknownCheckbox type={type} onBoundChange={(type) => props.onBoundChange(type)} />
       {meta &&
         <ItemInferredProps meta={meta} />
@@ -114,36 +132,41 @@ function SelectedUnknownNodeViewer(props) {
 }
 
 function SelectedLiteralNodeViewer(props) {
-  const { type, content } = props;
+  const { id, type, content } = props;
 
   const name = content.match(/".*".*/) ? content.split(/(?=[^"]*$)/)[0] : content;
 
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemLiteralType content={content} />
     </div>
   );
 }
 
 function SelectedUnknownEdgeViewer(props) {
-  const { type, content } = props;
+  const { id, type, content } = props;
 
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} content={content} />
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
       <ItemInferredProps />
     </div>
   );
 }
 
 function SelectedKnownEdgeViewer(props) {
-  const { type, prefix, name, info, infoLoaded } = props;
+  const { id, type, isOptional, prefix, name, info, infoLoaded } = props;
   const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
 
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} name={name} />
+      <DeleteItemButton deleteItemCascade={() => props.deleteItemCascade(id, type)}/>
+      <OptionalTripleButton isOptional={isOptional}
+                            toggleOptionalTriple={() => props.setOptionalTriple(id, !isOptional)} />
       <ItemPrefix prefix={prefix} />
       {infoLoaded && selectedUriInfo &&
         <ItemDesc desc={selectedUriInfo} />

@@ -1,0 +1,86 @@
+.navbar-default {
+    border-color: #3e3f3a;
+}
+.navbar-fixed-top {
+    top: 0;
+    width: 100%;
+    border-radius: 0;
+    position: fixed;
+    right: 0;
+    left: 0;
+    z-index: 2000;
+}
+.navbar {
+    position: fixed;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+}
+
+.nav {
+    list-style-type: none;
+    padding: 0 20px;
+    overflow: hidden;
+}
+
+.nav-header {
+    float: left;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.nav-header-text {
+    font-family: 'Roboto Condensed', sans-serif;
+    color: white;
+    font-size: medium;
+}
+
+.nav-item {
+    float: right;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.nav-item-text {
+    display: block;
+    color: white;
+    text-align: center;
+    font-family: 'Roboto Condensed', sans-serif;
+    margin: 0;
+    cursor: pointer;
+}
+
+#help-page-container {
+    clear: both;
+    padding: 0 30px;
+}
+
+#help-page-container p {
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.centered-table {
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+.centered-table td {
+    border-left: solid 1px black;
+    text-align: center;
+    padding: 0 10px;
+}
+
+.big {
+    font-size: larger;
+}
+
+.help-header {
+    font-size: 32px;
+}
+
+.text {
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.img-outline {
+    border: solid 1px black;
+}
