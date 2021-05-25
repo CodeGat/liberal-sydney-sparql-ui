@@ -160,7 +160,7 @@ export default class Canvas extends React.Component {
     if (event.defaultPrevented) return;
     if (tempEdge.completing){ // we'll complete the edge with a new, unfinished Node as object
       const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "", false, null);
-      const variant = Node.variants['nodeUnf'](false);
+      const variant = Node.variants['nodeUnf'];
       const newNodePos = {
         x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
         midX: event.clientX, midY: event.clientY

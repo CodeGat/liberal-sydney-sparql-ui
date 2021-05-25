@@ -97,7 +97,7 @@ class App extends React.Component {
    */
   createNode = (x, y, type, content, isOptional, iri) => {
     const { nodeCounter } = this.state;
-    const variant = Node.variants[type](false);
+    const variant = Node.variants[type];
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
@@ -171,7 +171,7 @@ class App extends React.Component {
     const edge = edges.find(edge => !edge.complete);
 
     const subject = nodes.find(node => node.id === edge.subject.id);
-    const objectVariant = Node.variants[objectType](false);
+    const objectVariant = Node.variants[objectType];
 
     const objectShape = {...objectVariant, x: objectPos.x, y: objectPos.y};
     const pathDef = {d: `M${subject.midX} ${subject.midY} L${objectPos.midX} ${objectPos.midY}`};
@@ -207,7 +207,7 @@ class App extends React.Component {
   updateEdgeIntersections = (edgeToUpdate, objectNode) => {
     const subX = edgeToUpdate.subject.intersectX;
     const subY = edgeToUpdate.subject.intersectY;
-    const nodeVariant = Node.variants['nodeUri'](false);
+    const nodeVariant = Node.variants['nodeUri'];
     const updatedObjectNodeX = objectNode.x + nodeVariant.width / 2;
     const updatedObjectNodeY = objectNode.y + nodeVariant.height / 2;
 

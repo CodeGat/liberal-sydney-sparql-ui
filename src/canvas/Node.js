@@ -5,68 +5,71 @@ import "./Canvas.css";
 
 export default class Node extends React.Component {
   static variants = {
-    nodeUnknown: ({isOpt, isSelected}) => ({
+    nodeUnknown: {
       fill: '#0000fe',
       rx: 50,
       ry: 50,
       height: 100,
       width: 100,
-      strokeWidth: isOpt || isSelected ? 5 :  0,
-      strokeDasharray: isSelected ? 0 : 3,
       stroke: '#1e90ff'
-    }),
-    nodeSelectedUnknown: ({isOpt, isSelected}) => ({
+    },
+    nodeSelectedUnknown: {
       fill: '#1e90ff',
       rx: 50,
       ry: 50,
       height: 100,
       width: 100,
-      strokeWidth: isOpt || isSelected ? 5 :  0,
-      strokeDasharray: isSelected ? 0 : 3,
       stroke: '#59adff'
-    }),
-    nodeUri: ({isOpt, isSelected}) => ({
+    },
+    nodeUri: {
       fill: '#bebebe',
       rx: 50,
       ry: 50,
       height: 100,
       width: 100,
-      strokeWidth: isOpt || isSelected ? 5 :  0,
-      strokeDasharray: isSelected ? 0 : 3,
       stroke: '#4e4e4e'
-    }),
-    nodeLiteral: ({isOpt, isSelected}) => ({
+    },
+    nodeLiteral:{
       fill: '#4e4e4e',
       rx: 0,
       ry: 0,
       height: 100,
       width: 200,
-      strokeWidth: isOpt || isSelected ? 5 : 0,
-      strokeDasharray: isSelected ? 0 : 3,
       stroke: '#bebebe'
-    }),
-    nodeAmalgam: ({isOpt, isSelected}) => ({
+    },
+    nodeAmalgam: {
       fill: '#444444',
       height: 100,
       width: 100,
       rx: 10,
       ry: 10,
-      strokeWidth: isOpt || isSelected ? 5 : 0,
-      strokeDasharray: isSelected ? 0 : 3,
       stroke: '#bebebe'
-    }),
-    nodeUnf: ({isOpt, isSelected}) => ({
+    },
+    nodeUnf: {
       fill: '#0000fe',
-      strokeWidth: isOpt || isSelected ? 3: 0,
-      strokeDasharray: isSelected ? 0 : 3,
       stroke: '#1e90ff',
       width: 40,
       height: 40,
       rx: 70,
       ry: 70
-    })
+    },
+    sel: {
+      strokeWidth: 5,
+      strokeDasharray: 0,
+      // transition: {
+      //   duration: 0
+      // }
+    },
+    opt: {
+      strokeWidth: 5,
+      strokeDasharray: 3
+    },
+    no: {
+      strokeWidth: 0,
+      strokeDasharray: 0,
+    },
   };
-  static nodeHeight = 100;
+
   static nodeWidth = 100;
   static unfWidth = 40;
   static unfHeight = 40;
@@ -109,17 +112,28 @@ export default class Node extends React.Component {
   }
 
   render(){
-    const { type, isOptional, content, x, y, amalgam, isSelected } = this.props;
+    const { id, type, isOptional, content, x, y, amalgam, isSelected } = this.props;
 
-    const variant = Node.variants[type](isOptional);
+    const variant = Node.variants[type];
     const currentNodeWidth = variant.width;
     const currentNodeHeight = variant.height;
+
+    let status;
+    if (isSelected){
+      status = 'sel';
+    } else if (isOptional) {
+      status = 'opt';
+    } else {
+      status = 'no';
+    }
+    console.log(`${id} opt ${isOptional} sel ${isSelected}`);
 
     return (
       <motion.g whileHover={{scale: 1.2}} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
         <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit}
-                     variants={Node.variants} initial={false} animate={type}
-                     custom={{isOpt: isOptional, isSelected: isSelected}}
+                     variants={Node.variants}
+                     initial={false} animate={[type, status]}
+                     custom={{isOptional: false, isSelected: false}}
                      transition={{duration: 0.2}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
           <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2}
