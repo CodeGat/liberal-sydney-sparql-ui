@@ -225,24 +225,26 @@ function ResultViewer(props) {
   const results = props.result.results.bindings
 
   return (
-    <table className='table-container'>
-      <thead>
-        <tr>
-          {selectedVars.map((selectedVar, ix) =>
-            <th key={ix}>{selectedVar}</th>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {results.map((result, ix) =>
-          <tr key={ix}>
-            {Object.keys(result).map((key, ix) =>
-              <td key={ix}>{result[key].value}</td>
+    <div className='table-container'>
+      <table>
+        <thead>
+          <tr>
+            {selectedVars.map((selectedVar, ix) =>
+              <th key={ix}>{selectedVar}</th>
             )}
           </tr>
-        )}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {results.map((result, ix) =>
+            <tr key={ix}>
+              {Object.keys(result).map((key, ix) =>
+                <td key={ix}>{result[key].value}</td>
+              )}
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
