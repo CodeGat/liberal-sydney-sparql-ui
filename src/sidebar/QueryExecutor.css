@@ -11,11 +11,16 @@ div.executequery-wrapper {
     bottom: 0;
     left: 0;
     float: left;
+    max-height: 500px;
     height: min-content;
     width: calc(100% - var(--sidebarSize));
     background-color: darkgray;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
+}
+
+.table-container {
+    overflow: auto;
 }
 
 .results-header {
@@ -25,7 +30,7 @@ div.executequery-wrapper {
     margin-left: 20px;
     margin-right: 20px;
 }
-.sparql {
+.sparql, td {
     font-family: "Courier New", sans-serif;
     white-space: pre-wrap;
     padding-left: 20px;

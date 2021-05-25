@@ -14,6 +14,9 @@ export default class ExecuteQuerySection extends React.Component {
     super(props);
     this.state = {
       query: '',
+      result: null,
+      queryGenerated: false,
+      queryExecuted: false,
       gettingCanvasState: false,
       convertingGraphToSparql: false,
       error: null
@@ -37,12 +40,7 @@ export default class ExecuteQuerySection extends React.Component {
         return;
       }
 
-      submitQuery(sparqlQueryString).then(
-        response => console.log(response.results.bindings),
-        error => console.warn(error)
-      )
-
-      this.setState({query: sparqlQueryString, error: null, convertingGraphToSparql: false});
+      this.setState({query: sparqlQueryString, error: null, queryGenerated: true, convertingGraphToSparql: false});
     }
   }
 
@@ -106,8 +104,6 @@ export default class ExecuteQuerySection extends React.Component {
     const whereClause = this.whereClause(unknownNodes, unknownEdges);
     const orderingClause = this.orderingClause();
 
-    console.log(selectClause + whereClause);
-
     return `${selectClause}\n${whereClause}\n${orderingClause}`;
   }
 
@@ -160,16 +156,27 @@ export default class ExecuteQuerySection extends React.Component {
   }
 
   checkRequestCanvasState = () => {
-    const { gettingCanvasState, convertingGraphToSparql } = this.state;
+    const { query, gettingCanvasState, convertingGraphToSparql, queryGenerated } = this.state;
 
-    if (!gettingCanvasState && !convertingGraphToSparql) {
-      this.setState({gettingCanvasState: true});
+    if (queryGenerated) {
+      this.setState({queryGenerated: false, queryExecuted: true});
+
+      submitQuery(query).then(
+        response => this.setState({result: response}),
+        error => this.setState({error: error})
+      );
+    } else if (!gettingCanvasState && !convertingGraphToSparql) {
+      this.setState({gettingCanvasState: true, queryGenerated: false, queryExecuted: false});
       this.props.requestCanvasState();
     }
   }
 
   render() {
-    const { query, gettingCanvasState, convertingGraphToSparql, error } = this.state;
+    const {
+      query, result,
+      queryGenerated, queryExecuted,
+      gettingCanvasState, convertingGraphToSparql, error
+    } = this.state;
     const animation = gettingCanvasState || convertingGraphToSparql ? 'loading' : 'ready';
 
     return (
@@ -177,20 +184,23 @@ export default class ExecuteQuerySection extends React.Component {
         <div className={'executequery-wrapper'}>
           <motion.div className={'button'} variants={ExecuteQuerySection.variants} inital={false} animate={animation}
                       onClick={this.checkRequestCanvasState}>
-            <p>Execute Query</p>
+            <p>{queryGenerated ? 'Execute' : 'Generate'} Query</p>
           </motion.div>
           {gettingCanvasState && <p>Getting Canvas State...</p>}
           {convertingGraphToSparql && <p>Converting Graph to SPARQL...</p>}
           {error && <p className={'small error'}>{error}</p>}
         </div>
-        {query !== '' && <QueryResultsViewer query={query} />}
+        {(queryGenerated || queryExecuted) &&
+          <QueryViewerWrapper query={query} result={result} generated={queryGenerated} executed={queryExecuted} />
+        }
       </div>
 
     );
   }
 }
 
-function QueryResultsViewer(props) {
+function QueryViewerWrapper(props) {
+  const { query, result, generated, executed } = props;
   const [ isOpen, setIsOpen ] = useState(true);
   const toggleViewer = () => setIsOpen(!isOpen);
 
@@ -198,8 +208,43 @@ function QueryResultsViewer(props) {
     <motion.div className='results-container'
                 initial={{height: 0}} animate={{height: isOpen ? 'min-content' : '50px'}}>
       <p className='results-header button' onClick={() => toggleViewer()}>Results Viewer</p>
-      <p className='sparql'>{props.query}</p>
+      {generated && <QueryViewer query={query} />}
+      {executed && result && <ResultViewer result={result} />}
     </motion.div>
+  );
+}
+
+function QueryViewer(props) {
+  return (
+    <p className='sparql'>{props.query}</p>
+  );
+}
+
+function ResultViewer(props) {
+  const selectedVars = props.result.head.vars;
+  const results = props.result.results.bindings
+
+  return (
+    <div >
+      <table className='table-container'>
+        <thead>
+          <tr>
+            {selectedVars.map((selectedVar, ix) =>
+              <th key={ix}>{selectedVar}</th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {results.map((result, ix) =>
+            <tr key={ix}>
+              {Object.keys(result).map((key, ix) =>
+                <td key={ix}>{result[key].value}</td>
+              )}
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
