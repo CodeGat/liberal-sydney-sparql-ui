@@ -222,7 +222,7 @@ function QueryViewer(props) {
 
 function ResultViewer(props) {
   const selectedVars = props.result.head.vars;
-  const results = props.result.results.bindings
+  const results = props.result.results.bindings;
 
   return (
     <div className='table-container'>
@@ -237,7 +237,7 @@ function ResultViewer(props) {
         <tbody>
           {results.map((result, ix) =>
             <tr key={ix}>
-              {Object.keys(result).map((key, ix) =>
+              {selectedVars.map((key, ix) =>
                 <td key={ix}>{result[key].value}</td>
               )}
             </tr>
