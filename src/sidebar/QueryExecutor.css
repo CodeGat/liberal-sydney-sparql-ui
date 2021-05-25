@@ -11,12 +11,33 @@ div.executequery-wrapper {
     bottom: 0;
     left: 0;
     float: left;
+    max-height: 500px;
     height: min-content;
     width: calc(100% - var(--sidebarSize));
     background-color: darkgray;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
 }
+
+.table-container {
+    overflow: auto;
+    height: 450px;
+}
+
+.table-container thead th {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+}
+
+.table-container tbody th {
+    position: sticky;
+    left: 0;
+}
+
+.table-container table  { border-collapse: collapse; width: 100%; }
+.table-container th, td { padding: 8px 16px; }
+.table-container th     { background: darkgrey; }
 
 .results-header {
     font-family: 'Roboto Condensed', sans-serif;
@@ -25,7 +46,7 @@ div.executequery-wrapper {
     margin-left: 20px;
     margin-right: 20px;
 }
-.sparql {
+.sparql, td {
     font-family: "Courier New", sans-serif;
     white-space: pre-wrap;
     padding-left: 20px;

@@ -160,7 +160,7 @@ export default class Canvas extends React.Component {
     if (event.defaultPrevented) return;
     if (tempEdge.completing){ // we'll complete the edge with a new, unfinished Node as object
       const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "", false, null);
-      const variant = Node.variants['nodeUnf'](false);
+      const variant = Node.variants['nodeUnf'];
       const newNodePos = {
         x: event.clientX - variant.width / 2, y: event.clientY - variant.height / 2,
         midX: event.clientX, midY: event.clientY
@@ -189,6 +189,7 @@ export default class Canvas extends React.Component {
               {edges.map(edge =>
                 <Edge id={edge.id} key={edge.id} type={edge.type} isOptional={edge.isOptional} content={edge.content}
                       subject={edge.subject} object={edge.object} tempEdge={tempEdge} complete={edge.complete}
+                      isSelected={edge.isSelected}
                       onChangeEdgeState={this.props.changeEdgeState}
                       onSelectedItemChange={this.handleElementChange}/>)}
             </AnimatePresence>
@@ -198,6 +199,7 @@ export default class Canvas extends React.Component {
               {nodes.map(node =>
                 <Node id={node.id} key={node.id} x={node.x} y={node.y} midX={node.midX} midY={node.midY}
                       type={node.type} content={node.content} isOptional={node.isOptional} amalgam={node.amalgam}
+                      isSelected={node.isSelected}
                       onChangeNodeState={this.props.changeNodeState}
                       onSelectedItemChange={this.handleElementChange} />)}
             </AnimatePresence>

@@ -23,7 +23,6 @@ class App extends React.Component {
     };
   }
 
-
   /**
    *
    * @param {string} type - whether the object changed was a
@@ -34,6 +33,20 @@ class App extends React.Component {
    * @param {Object} meta - metadata of the selected item.
    */
   handleSelectedItemChange = (type, id, content, isOptional, meta) => {
+    const { selected } = this.state;
+
+    // set our old selected item to unselected
+    if (selected.type.startsWith('node')) {
+      this.changeNodeState(selected.id, {isSelected: false});
+    } else {
+      this.changeEdgeState(selected.id, {isSelected: false});
+    }
+    // and set our new one to selected!
+    if (type.startsWith('node')) {
+      this.changeNodeState(id, {isSelected: true});
+    } else {
+      this.changeEdgeState(id, {isSelected: true});
+    }
     this.setState({selected: {type: type, id: id, content: content, isOptional: isOptional, meta: meta}});
   }
 
@@ -84,11 +97,12 @@ class App extends React.Component {
    */
   createNode = (x, y, type, content, isOptional, iri) => {
     const { nodeCounter } = this.state;
-    const variant = Node.variants[type](false);
+    const variant = Node.variants[type];
     const newNode = {
       x: x - variant.width / 2, y: y - variant.height / 2,
       midX: x, midY: y,
-      id: nodeCounter + 1, type: type, content: content, isOptional: isOptional, amalgam: null
+      id: nodeCounter + 1, type: type, content: content, isOptional: isOptional, amalgam: null,
+      isSelected: false
     };
 
     if (iri) newNode.iri = iri;
@@ -124,7 +138,8 @@ class App extends React.Component {
       type: content === '?' ? 'edgeUnknown' : 'edgeKnown', isOptional: false,
       subject: {id: subjectId, intersectX: subjectPos.midX, intersectY: subjectPos.midY},
       object: {},
-      complete: false
+      complete: false,
+      isSelected: false
     }
 
     if (iri) newEdge.iri = iri;
@@ -156,7 +171,7 @@ class App extends React.Component {
     const edge = edges.find(edge => !edge.complete);
 
     const subject = nodes.find(node => node.id === edge.subject.id);
-    const objectVariant = Node.variants[objectType](false);
+    const objectVariant = Node.variants[objectType];
 
     const objectShape = {...objectVariant, x: objectPos.x, y: objectPos.y};
     const pathDef = {d: `M${subject.midX} ${subject.midY} L${objectPos.midX} ${objectPos.midY}`};
@@ -192,7 +207,7 @@ class App extends React.Component {
   updateEdgeIntersections = (edgeToUpdate, objectNode) => {
     const subX = edgeToUpdate.subject.intersectX;
     const subY = edgeToUpdate.subject.intersectY;
-    const nodeVariant = Node.variants['nodeUri'](false);
+    const nodeVariant = Node.variants['nodeUri'];
     const updatedObjectNodeX = objectNode.x + nodeVariant.width / 2;
     const updatedObjectNodeY = objectNode.y + nodeVariant.height / 2;
 
