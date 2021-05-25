@@ -8,6 +8,7 @@ div.executequery-wrapper {
 
 .results-container {
     position: fixed;
+    overflow: auto;
     bottom: 0;
     left: 0;
     float: left;
