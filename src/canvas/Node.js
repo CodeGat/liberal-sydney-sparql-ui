@@ -109,7 +109,7 @@ export default class Node extends React.Component {
   }
 
   render(){
-    const { id, type, isOptional, content, x, y, amalgam, isSelected } = this.props;
+    const { type, isOptional, content, x, y, amalgam, isSelected } = this.props;
 
     const variant = Node.variants[type];
     const currentNodeWidth = variant.width;
