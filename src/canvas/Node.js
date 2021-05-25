@@ -55,10 +55,7 @@ export default class Node extends React.Component {
     },
     sel: {
       strokeWidth: 5,
-      strokeDasharray: 0,
-      // transition: {
-      //   duration: 0
-      // }
+      strokeDasharray: 0
     },
     opt: {
       strokeWidth: 5,
@@ -66,7 +63,7 @@ export default class Node extends React.Component {
     },
     no: {
       strokeWidth: 0,
-      strokeDasharray: 0,
+      strokeDasharray: 0
     },
   };
 
@@ -126,14 +123,12 @@ export default class Node extends React.Component {
     } else {
       status = 'no';
     }
-    console.log(`${id} opt ${isOptional} sel ${isSelected}`);
 
     return (
       <motion.g whileHover={{scale: 1.2}} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
         <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit}
                      variants={Node.variants}
                      initial={false} animate={[type, status]}
-                     custom={{isOptional: false, isSelected: false}}
                      transition={{duration: 0.2}} transformTemplate={() => "translateX(0) translateY(0)"}/>
         {type !== 'nodeUnf' &&
           <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2}
