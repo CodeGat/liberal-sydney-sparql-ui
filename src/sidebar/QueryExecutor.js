@@ -105,7 +105,7 @@ export default class ExecuteQuerySection extends React.Component {
   getNodeFrag = (node, unknownNodes) => {
     let frag;
     if (node.type === 'nodeUri') {
-      frag = `<${node.iri}>`;
+      frag = '<' + node.iri + '>';
     } else if (node.type === 'nodeSelectedUnknown' || node.type === 'nodeUnknown') {
       frag = unknownNodes[node.id].frag;
     } else {
@@ -125,7 +125,7 @@ export default class ExecuteQuerySection extends React.Component {
     if (edge.type === 'edgeUnknown') {
       frag = unknownEdges[edge.id].frag;
     } else {
-      frag = `<${edge.iri}>`;
+      frag = '<' + edge.iri + '>';
     }
     return frag;
   }
