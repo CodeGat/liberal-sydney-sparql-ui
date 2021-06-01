@@ -5,18 +5,27 @@ import { AnimateSharedLayout, motion} from "framer-motion";
 import './Sidebar.css';
 import './SuggestiveSearch.css';
 
+/**
+ * Class containing the state of the Suggestive Search (the middle part of the sidebar)
+ */
 export default class SuggestiveSearch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      suggestions: [],
-      elementDefs: [],
-      baseClasses: [],
-      defsLoaded: false,
-      suggestionNo: 0
+      suggestions: [], // list of suggestions
+      elementDefs: [], // list of
+      baseClasses: [], // list of ontology classes
+      defsLoaded: false, // are the elementDefs queried and added to the elementDefs array?
+      suggestionNo: 0 // suggestion counter for the React keys
     };
   }
 
+  /**
+   * Update suggestions as new information comes in
+   * @param prevProps - props from the last React state update
+   * @param prevState - state from the last React state update
+   * @param snapshot  - snapshot of the last React state update
+   */
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { id, basePrefixLoaded, meta } = this.props;
     let { type, content } = this.props;
@@ -40,10 +49,10 @@ export default class SuggestiveSearch extends React.Component {
 
       this.setState({suggestions: newSuggestions});
     }
-    if (!prevProps.basePrefixLoaded && basePrefixLoaded){
+    if (!prevProps.basePrefixLoaded && basePrefixLoaded){ //on mount, get domains/ranges for all ontology elements
       this.updateStateWithOntologyData();
     }
-    if (!prevState.defsLoaded && defsLoaded){
+    if (!prevState.defsLoaded && defsLoaded){ // generate the initial suggestions on mount
       const baseClassSuggestions = this.generateSuggestionsOfBaseClasses(baseClasses);
 
       this.setState({suggestions: baseClassSuggestions});
@@ -94,6 +103,15 @@ export default class SuggestiveSearch extends React.Component {
     return suggestions;
   }
 
+  /**
+   * Generates the appropriate IRI Class suggestions based on the typeEdgeIds subjects incoming edge, aka...
+   *
+   *  ... --has costume-->( ? )--rdf:type-->O
+   *              ^
+   *  the range of this edge
+   * @param {number} typeEdgeId - the rdf:type edge id
+   * @returns {Array<Object>}
+   */
   generateSuggestionsForSelectedRdfTypeEdge = (typeEdgeId) => {
     const { baseClasses, elementDefs } = this.state;
     const { edges } = this.props.graph;
@@ -229,6 +247,9 @@ export default class SuggestiveSearch extends React.Component {
     return suggestions;
   }
 
+  /**
+   * Fetches ontology and the associated domain/range and class data for each element.
+   */
   updateStateWithOntologyData = () => {
     // when component mounts, fetch ontology and the associated data, caching it
     submitQuery("SELECT DISTINCT ?s ?klass ?domain ?range WHERE { " +
@@ -287,6 +308,12 @@ export default class SuggestiveSearch extends React.Component {
   }
 
   //todo: find a better way to cache incoming responses
+  /**
+   * find the shortened prefix, if it exists
+   * @param expansion - expansion of some prefix
+   * @param cachedPrefixes - existing local prefixes
+   * @returns {string} - the shortened prefix, if it exists
+   */
   findPrefixOfExpansion = (expansion, cachedPrefixes) => {
     let prefix;
     const { basePrefix, basePrefixLoaded } = this.props;
@@ -313,6 +340,13 @@ export default class SuggestiveSearch extends React.Component {
     return prefix;
   }
 
+  /**
+   * Clear suggestions from the SuggestiveSearch and propagate the dragged suggestion to the canvas
+   * @param {string} type - type of the given suggestion
+   * @param {Object} elem - iri, prefix, name, label and expansion if available
+   * @param {Object} point - x/y values for the last known position of the Suggestion as known by the Sidebar, not the
+   *   canvas!
+   */
   transferSuggestionToCanvas = (type, elem, point) => {
     this.setState({suggestions: []});
     this.props.onTransferSuggestionToCanvas(type, elem, point);

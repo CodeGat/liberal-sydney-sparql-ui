@@ -4,18 +4,22 @@ import Node from "./Node"
 import Edge from "./Edge"
 import {AnimatePresence} from "framer-motion";
 
+/**
+ * The Component that renders the svg canvas, and the Nodes and Edges within
+ */
 export default class Canvas extends React.Component {
 
   /**
-   * If a transferred suggestion exists, find out it's type (Node or Edge) and how it will connect to the element it
-   *   is making a suggestion for.
-   * @param prevProps
-   * @param prevState
-   * @param snapshot
+   * If a suggestion transferred from the suggestion bar exists, find out it's type (Node or Edge) and how it will
+   *   connect to the element it is making a suggestion for.
+   * @param prevProps - props from the last React state update
+   * @param prevState - state from the last React state update
+   * @param snapshot  -snapshot of the last React state update
    */
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.transferredSuggestion.exists && this.props.transferredSuggestion.exists) {
       const {elem, type, amalgamInfo} = this.props.transferredSuggestion;
+      // tell the SuggestionBar that the suggestion has been added to canvas, so it can generate new ones
       this.props.acknowledgeTransferredSuggestion();
 
       if (amalgamInfo) {
@@ -26,7 +30,7 @@ export default class Canvas extends React.Component {
         this.realiseSuggestedEdge(elem);
       } else if (type === "nodeUri") { // likewise if suggestion is a known Node (a URI), the selected item is an Edge
         this.realiseSuggestedUri(elem, type);
-      } else if (type === "nodeUnknown") {
+      } else if (type === "nodeUnknown") { // similarly for this - the currently selected item is an Edge
         this.realiseSuggestedUnknown(elem);
       } else if (type === "nodeLiteral") { // and if the suggestion is a known Node (literal), the selected is an Edge
         this.realiseSuggestedLiteral(elem, type);
@@ -158,7 +162,7 @@ export default class Canvas extends React.Component {
     const { tempEdge } = this.props;
 
     if (event.defaultPrevented) return;
-    if (tempEdge.completing){ // we'll complete the edge with a new, unfinished Node as object
+    if (tempEdge.completing){ // if there is an incomplete edge we'll complete the edge with a new, unfinished Node as object
       const newNodeId = this.props.createNode(event.clientX, event.clientY, 'nodeUnf', "", false, null);
       const variant = Node.variants['nodeUnf'];
       const newNodePos = {

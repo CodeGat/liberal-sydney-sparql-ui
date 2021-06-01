@@ -5,18 +5,25 @@ import SelectedItemViewer from "./SelectedItemViewer";
 import SuggestiveSearch from "./SuggestiveSearch";
 import ExecuteQuerySection from "./QueryExecutor";
 
+/**
+ * Class for displaying the Sidebar
+ */
 export default class SideBar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      info: {},
-      infoLoaded: false,
-      basePrefix: '',
-      basePrefixLoaded: false,
-      error: ''
+      info: {}, // information on each element of the ontology, from the ontology
+      infoLoaded: false, // do we have info from the ontology?
+      basePrefix: '', // the URI for the ontology base
+      basePrefixLoaded: false, // has the base prefix been found?
+      error: '' // error object for failed SPARQL queries
     };
   }
 
+  /**
+   * When the application starts, execute queries for getting the base ontology prefix and getting the
+   *   rdfs:(label|comment) for every ontological element
+   */
   componentDidMount() {
     submitQuery("SELECT DISTINCT ?s WHERE { ?s a owl:Ontology } LIMIT 1")
       .then(
