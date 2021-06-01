@@ -3,7 +3,12 @@ import { motion } from "framer-motion";
 import "./Node.css";
 import "./Canvas.css";
 
+/**
+ * Class that encapsulates all the different Node types and the information, including URIs, Literals, Unknowns,
+ *   Selected Unknowns and Amalgams.
+ */
 export default class Node extends React.Component {
+  //different variants for different visual representation of a Node, depending on it's type.
   static variants = {
     nodeUnknown: {
       fill: '#0000fe',
@@ -67,6 +72,7 @@ export default class Node extends React.Component {
     },
   };
 
+  // Constants for generic Node sizes
   static nodeWidth = 100;
   static unfWidth = 40;
   static unfHeight = 40;
@@ -75,10 +81,10 @@ export default class Node extends React.Component {
   static labelWidth = 150;
 
   /**
-   *
+   * handles the event where one clicks on the Node or the Input
    * @param e - event that triggered the function
    */
-  handleEntryExit = (e) => {
+  handleClick = (e) => {
     const { id, type, content, isOptional, amalgam } = this.props;
     e.preventDefault();
 
@@ -87,7 +93,7 @@ export default class Node extends React.Component {
   }
 
   /**
-   * Updates the state of the node with relation to it's text and type
+   * Updates the state of the node based on it's text and type
    * @param e - event that triggered the function
    */
   handleChangedText = (e) => {
@@ -115,18 +121,12 @@ export default class Node extends React.Component {
     const currentNodeWidth = variant.width;
     const currentNodeHeight = variant.height;
 
-    let status;
-    if (isSelected){
-      status = 'sel';
-    } else if (isOptional) {
-      status = 'opt';
-    } else {
-      status = 'no';
-    }
+    // different outlines on the Node based on if it is selected, optional, or neither
+    let status = isSelected ? 'sel' : (isOptional ? 'opt' : 'no');
 
     return (
       <motion.g whileHover={{scale: 1.2}} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
-        <motion.rect x={x} y={y} onClickCapture={this.handleEntryExit}
+        <motion.rect x={x} y={y} onClickCapture={this.handleClick}
                      variants={Node.variants}
                      initial={false} animate={[type, status]}
                      transition={{duration: 0.2}} transformTemplate={() => "translateX(0) translateY(0)"}/>
@@ -134,10 +134,10 @@ export default class Node extends React.Component {
           <foreignObject x={x - (Node.labelWidth - currentNodeWidth) / 2}
                          y={y - (Node.labelHeight - currentNodeHeight) / 2}
                          width={Node.labelWidth} height={Node.labelHeight}
-                         onClickCapture={this.handleEntryExit}
+                         onClickCapture={this.handleClick}
                          pointerEvents={"auto"} >
             <motion.input className={"nodeLabel"} value={content}
-                          onChange={this.handleChangedText} onBlur={this.handleEntryExit}
+                          onChange={this.handleChangedText} onBlur={this.handleClick}
                           onClick={(e) => e.preventDefault()}/>
             {amalgam && amalgam.type === 'UnknownClassAmalgam' &&
               <p className={'class-amalgam centered'}>{amalgam.inferredClass.label}</p>
