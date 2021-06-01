@@ -1,5 +1,5 @@
 /**
- * submits a query to the given blazegraph instance rooted at a given url
+ * submits a query to the given blazegraph instance
  * @param query {string} - string-based query
  * @returns {Promise<Object>}
  */

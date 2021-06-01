@@ -13,15 +13,26 @@ import {
   OptionalTripleButton
 } from "./ItemViewerComponents";
 
+//todo: remove prefix finding
+/**
+ * Class for the top area of the Sidebar - displays information about the currently selected item. Wrapper for
+ *   type-specific Viewer
+ */
 export default class SelectedItemViewer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      expandedPrefix: '',
-      expandedPrefixLoaded: false
+      expandedPrefix: '', // the expanded version of the prefix of the selected item, usually a URI
+      expandedPrefixLoaded: false // check for it the expanded prefix has been loaded
     };
   }
 
+  /**
+   * Find the expanded prefix of the currently selected item if it exists
+   * @param prevProps - props from the last React state update
+   * @param prevState - state from the last React state update
+   * @param snapshot  - snapshot of the last React state update
+   */
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { type, content } = this.props;
 
@@ -57,7 +68,7 @@ export default class SelectedItemViewer extends React.Component {
     const { id, type, content, isOptional, meta, basePrefix, info, infoLoaded } = this.props;
     const { expandedPrefix, expandedPrefixLoaded } = this.state;
 
-    if (type === "nodeUri" || type === "edgeKnown") {
+    if (type === "nodeUri" || type === "edgeKnown") { // these types have prefixes, find them and return the Viewer
       const contentSegments = content.split(':');
       let prefix = 'Unknown';
       let name = contentSegments.length > 1 ? contentSegments[1] : contentSegments[0];
@@ -77,7 +88,7 @@ export default class SelectedItemViewer extends React.Component {
                                          deleteItemCascade={this.props.deleteItemCascade}
                                          setOptionalTriple={this.props.setOptionalTriple} />);
       }
-    } else if (type === "nodeUnknown" || type === "nodeSelectedUnknown") {
+    } else if (type === "nodeUnknown" || type === "nodeSelectedUnknown") { // the rest of these don't require prefix lookup
       return (
         <SelectedUnknownNodeViewer id={id} type={type} content={content} meta={meta}
                                    onBoundChange={(newType) => this.notifySelectedStateChange(newType)}
@@ -99,6 +110,11 @@ export default class SelectedItemViewer extends React.Component {
   }
 }
 
+/**
+ * Viewer for Uri Nodes when they have been Selected
+ * @param {Object} props - required information and functions for displaying the Selected URI.
+ * @returns {JSX.Element} - HTML Fragment for Selected URI Viewer
+ */
 function SelectedUriNodeViewer(props) {
   const { id, type, prefix, name, info, infoLoaded } = props;
   //todo: might need to take into account different delimiters such as '.', '#', '/'.
@@ -116,6 +132,11 @@ function SelectedUriNodeViewer(props) {
   );
 }
 
+/**
+ * Viewer for Unknown Nodes when they have been Selected
+ * @param {Object} props - required information and functions for displaying the Selected Unknown.
+ * @returns {JSX.Element} - HTML Fragment for Selected Unknown Node Viewer
+ */
 function SelectedUnknownNodeViewer(props) {
   const { id, type, content, meta } = props;
 
@@ -131,6 +152,11 @@ function SelectedUnknownNodeViewer(props) {
   );
 }
 
+/**
+ * Viewer for Literal Nodes when they have been Selected
+ * @param {Object} props - required information and functions for displaying the Selected Literal.
+ * @returns {JSX.Element} - HTML Fragment for Selected Literal Node Viewer
+ */
 function SelectedLiteralNodeViewer(props) {
   const { id, type, content } = props;
 
@@ -145,6 +171,11 @@ function SelectedLiteralNodeViewer(props) {
   );
 }
 
+/**
+ * Viewer for SelectedUnknown Nodes when they have been Selected
+ * @param {Object} props - required information and functions for displaying the Selected SelectedUnknown.
+ * @returns {JSX.Element} - HTML Fragment for Selected SelectedUnknown Node Viewer
+ */
 function SelectedUnknownEdgeViewer(props) {
   const { id, type, content } = props;
 
@@ -157,6 +188,11 @@ function SelectedUnknownEdgeViewer(props) {
   );
 }
 
+/**
+ * Viewer for Known Edges when they have been Selected
+ * @param {Object} props - required information and functions for displaying the Selected Known Edge.
+ * @returns {JSX.Element} - HTML Fragment for Selected Known Edge Viewer
+ */
 function SelectedKnownEdgeViewer(props) {
   const { id, type, isOptional, prefix, name, info, infoLoaded } = props;
   const selectedUriInfo = info[prefix + '#' + name] ? info[prefix + '#' + name].comment : false;
@@ -175,9 +211,13 @@ function SelectedKnownEdgeViewer(props) {
   );
 }
 
-function SelectedNullViewer(props) {
-  const { type } = props;
-
+/**
+ * Stub class for either errors or initial canvas layout
+ * @param {string} type - type of the selected item
+ * @returns {JSX.Element} -  HTML Fragment for no selection or error
+ * @constructor
+ */
+function SelectedNullViewer({type}) {
   return (
     <div className={'itemviewer'}>
       <ItemImageHeader type={type} />
