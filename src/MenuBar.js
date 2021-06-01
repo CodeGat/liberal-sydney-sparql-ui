@@ -14,6 +14,11 @@ import showresults from './img/showresults.png';
 import optional from './img/optional.png';
 import './MenuBar.css';
 
+/**
+ * The menu bar at the top of the screen
+ * @param props - contains method for loading the example into the app
+ * @returns {JSX.Element} - the HTML help bar
+ */
 export default function MenuBar(props) {
   const [isHelpPage, setIsHelpPage] = useState(false);
   const menuVariants = {
@@ -82,7 +87,6 @@ function NavBar(props) {
 }
 
 function HelpPage(props) {
-
   return (
     <div id='help-page-container' onClick={() => props.toggleHelpPage()}>
       <p className='help-header'>Intro and Basics</p>

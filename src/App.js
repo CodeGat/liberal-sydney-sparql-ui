@@ -11,22 +11,22 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: {type: '', id: '', content: '', isOptional: false, meta: ''},
-      transferredSuggestion: {exists: false},
-      lastReferencedUnknown: -1,
-      lastReferencedUnknownAwaitingClass: false,
-      nodeCounter: 0,
-      edgeCounter: 0,
-      tempEdge: {completing: false, x: 0, y: 0},
-      graph: {nodes: [], edges: []},
-      canvasStateSnapshot: {required: false, id: 0, graph: {}}
+      selected: {type: '', id: '', content: '', isOptional: false, meta: ''}, // currently selected item
+      transferredSuggestion: {exists: false}, // suggestion dragged from the sidebar onto the canvas
+      lastReferencedUnknown: -1, // the last ? node created
+      lastReferencedUnknownAwaitingClass: false, // the last ? node that required an associated inferred class
+      nodeCounter: 0, // nodeCounter for React key requirement on map(...)
+      edgeCounter: 0, // edgeCounter for React key requirement on map(...)
+      tempEdge: {completing: false, x: 0, y: 0}, // temporary edge definition that is still being completed
+      graph: {nodes: [], edges: []}, // the overall state of the canvas
+      canvasStateSnapshot: {required: false, id: 0, graph: {}} // snapshot of the above graph to be passed to QueryExecutor
     };
   }
 
   /**
-   *
-   * @param {string} type - whether the object changed was a
-   *          node (specified by it's variant), edge or datatype.
+   * Set the old selected items `selected` property to false and the new one to true, and update the state
+   *   of the `selected` element
+   * @param {string} type - whether the object changed was a node (specified by it's variant), edge or datatype.
    * @param {number} id - id of the given changed object.
    * @param {string} content - the changed input of the object.
    * @param {boolean} isOptional - is the object SPARQL OPTIONAL?
@@ -51,10 +51,10 @@ class App extends React.Component {
   }
 
   /**
-   *
-   * @param type
-   * @param elem
-   * @param point
+   * Transfer the suggestion from the sidebar onto the Canvas.
+   * @param {string} type - type of the transferred suggestion
+   * @param {Object} elem - information on the iri, name, label, prefix and expansion of the suggestion
+   * @param {Object} point - the last x/y coordinates from perspective of the sidebar (not the svg canvas)
    */
   handleTransferSuggestionToCanvas = (type, elem, point) => {
     const { lastReferencedUnknownAwaitingClass, lastReferencedUnknown } = this.state;
@@ -64,20 +64,27 @@ class App extends React.Component {
       elem: elem,
       point: point
     };
-    if (lastReferencedUnknownAwaitingClass){
+    if (lastReferencedUnknownAwaitingClass){ //this suggestion is part of an unknown with an associated type
       suggestionToTransfer.amalgamInfo = {id: lastReferencedUnknown, amalgamType: 'UnknownClassAmalgam'};
     }
 
     this.setState({transferredSuggestion: suggestionToTransfer});
+    // the next node to be added will be the type of the rdf:type edge's subject
     if (type === 'edgeKnown' && elem.label === 'type') {
       this.setState(old => ({lastReferencedUnknown: old.selected.id, lastReferencedUnknownAwaitingClass: true}));
     }
   }
 
+  /**
+   * The suggestion has been added, set related state back to default.
+   */
   handleAcknowledgedSuggestion = () => {
     this.setState({transferredSuggestion: {exists: false}, lastReferencedUnknownAwaitingClass: false});
   }
 
+  /**
+   * set canvasStateSnapshot to the current graph, ready to be propagated to the QueryExecutor.
+   */
   handleRequestCanvasState = () => {
     const { graph } = this.state;
 
@@ -364,7 +371,7 @@ class App extends React.Component {
   }
 
   /**
-   *
+   * Set graph to the loaded example
    * @param {Object} example - object containing edge/node definitions, as well as current ids
    */
   loadExampleIntoCanvas = (example) => {
